@@ -35,7 +35,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-<<<<<<< HEAD
     <Reference Include="BehaviorSharp">
       <HintPath>..\..\..\LeagueSharp\System\BehaviorSharp.dll</HintPath>
     </Reference>
@@ -54,9 +53,9 @@
     <Reference Include="SharpDX.Direct3D9">
       <HintPath>..\..\..\LeagueSharp\System\SharpDX.Direct3D9.dll</HintPath>
     </Reference>
-    <Reference Include="SharpDX.XInput">
-      <HintPath>..\..\..\LeagueSharp\System\SharpDX.XInput.dll</HintPath>
-=======
+  <Reference Include="SharpDX.XInput">
+    <HintPath>..\..\..\LeagueSharp\System\SharpDX.XInput.dll</HintPath>
+  </Reference>
     <Reference Include="LeagueSharp">
       <HintPath>C:\Program Files (x86)\LeagueSharp\\System\LeagueSharp.dll</HintPath>
     </Reference>
@@ -65,7 +64,6 @@
     </Reference>
     <Reference Include="SharpDX">
       <HintPath>C:\Program Files (x86)\LeagueSharp\\System\SharpDX.dll</HintPath>
->>>>>>> origin/master
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
