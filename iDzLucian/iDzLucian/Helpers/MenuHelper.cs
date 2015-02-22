@@ -1,4 +1,19 @@
-﻿using System;
+﻿// This file is part of LeagueSharp.Common.
+// 
+// LeagueSharp.Common is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+// 
+// LeagueSharp.Common is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with LeagueSharp.Common.  If not, see <http://www.gnu.org/licenses/>.
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using LeagueSharp;
@@ -6,16 +21,24 @@ using LeagueSharp.Common;
 
 namespace iDzLucian.Helpers
 {
-    static class MenuHelper
+    internal static class MenuHelper
     {
         public static bool IsEnabledAndReady(this Spell spell, Mode mode)
         {
             if (ObjectManager.Player.IsDead)
+            {
                 return false;
+            }
             try
             {
-                var manaPercentage = GetSliderValue("com.idzlucian.manamanager." + GetStringFromSpellSlot(spell.Slot).ToLowerInvariant() + "mana" + GetStringFromMode(mode).ToLowerInvariant());
-                var enabledCondition = IsMenuEnabled("com.idzlucian.use" + GetStringFromSpellSlot(spell.Slot).ToLowerInvariant() + GetStringFromMode(mode));
+                var manaPercentage =
+                    GetSliderValue(
+                        "com.idzlucian.manamanager." + GetStringFromSpellSlot(spell.Slot).ToLowerInvariant() + "mana" +
+                        GetStringFromMode(mode).ToLowerInvariant());
+                var enabledCondition =
+                    IsMenuEnabled(
+                        "com.idzlucian.use" + GetStringFromSpellSlot(spell.Slot).ToLowerInvariant() +
+                        GetStringFromMode(mode));
                 return spell.IsReady() && (ObjectManager.Player.ManaPercentage() >= manaPercentage) && enabledCondition;
             }
             catch (Exception e)
@@ -32,8 +55,9 @@ namespace iDzLucian.Helpers
             {
                 mmMenu.AddItem(
                     new MenuItem(
-                        "com.idzlucian.manamanager." + GetStringFromSpellSlot(spellList[i]).ToLowerInvariant() + "mana" + GetStringFromMode(mode).ToLowerInvariant(),
-                        GetStringFromSpellSlot(spellList[i]) + " Mana").SetValue(new Slider(manaCosts[i])));
+                        "com.idzlucian.manamanager." + GetStringFromSpellSlot(spellList[i]).ToLowerInvariant() + "mana" +
+                        GetStringFromMode(mode).ToLowerInvariant(), GetStringFromSpellSlot(spellList[i]) + " Mana")
+                        .SetValue(new Slider(manaCosts[i])));
             }
             menu.AddSubMenu(mmMenu);
         }
@@ -44,19 +68,26 @@ namespace iDzLucian.Helpers
             {
                 menu.AddItem(
                     new MenuItem(
-                        "com.idzlucian.use" + GetStringFromSpellSlot(spellList[i]).ToLowerInvariant() + GetStringFromMode(mode),
-                        "Use " + GetStringFromSpellSlot(spellList[i]) + " " + GetFullNameFromMode(mode)).SetValue(values[i]));
+                        "com.idzlucian.use" + GetStringFromSpellSlot(spellList[i]).ToLowerInvariant() +
+                        GetStringFromMode(mode),
+                        "Use " + GetStringFromSpellSlot(spellList[i]) + " " + GetFullNameFromMode(mode)).SetValue(
+                            values[i]));
             }
         }
 
-        public static void AddDrawMenu(this Menu menu, Dictionary<SpellSlot, Spell> dictionary, System.Drawing.Color myColor)
+        public static void AddDrawMenu(this Menu menu,
+            Dictionary<SpellSlot, Spell> dictionary,
+            System.Drawing.Color myColor)
         {
             foreach (var entry in dictionary)
             {
                 var slot = entry.Key;
                 if (entry.Value.Range < 4000f)
                 {
-                    menu.AddItem(new MenuItem("com.idzlucian.drawing.draw" + GetStringFromSpellSlot(slot), "Draw " + GetStringFromSpellSlot(slot)).SetValue(new Circle(true, myColor)));
+                    menu.AddItem(
+                        new MenuItem(
+                            "com.idzlucian.drawing.draw" + GetStringFromSpellSlot(slot),
+                            "Draw " + GetStringFromSpellSlot(slot)).SetValue(new Circle(true, myColor)));
                 }
             }
         }
@@ -64,8 +95,8 @@ namespace iDzLucian.Helpers
         public static void AddHitChanceSelector(this Menu menu)
         {
             menu.AddItem(
-                    new MenuItem("com.idzlucian.customhitchance", "Hitchance").SetValue(
-                        new StringList(new[] { "Low", "Medium", "High", "Very High" }, 2)));
+                new MenuItem("com.idzlucian.customhitchance", "Hitchance").SetValue(
+                    new StringList(new[] { "Low", "Medium", "High", "Very High" }, 2)));
         }
 
         public static bool IsMenuEnabled(String item)
@@ -118,7 +149,8 @@ namespace iDzLucian.Helpers
                     return "unk";
             }
         }
-        static string GetStringFromMode(Mode mode)
+
+        private static string GetStringFromMode(Mode mode)
         {
             switch (mode)
             {
@@ -136,13 +168,14 @@ namespace iDzLucian.Helpers
                     return "unk";
             }
         }
-        static string GetFullNameFromMode(Mode mode)
+
+        private static string GetFullNameFromMode(Mode mode)
         {
             return mode.ToString();
         }
     }
 
-    enum Mode
+    internal enum Mode
     {
         Combo,
         Harrass,
