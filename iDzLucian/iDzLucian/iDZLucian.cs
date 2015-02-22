@@ -193,6 +193,8 @@ namespace iDzLucian
                     if (prediction.Hitchance >= HitChance.High)
                     {
                         Spells[SpellSlot.W].Cast(prediction.UnitPosition);
+                        _orbwalker.ForceTarget(target);
+                        _shouldHavePassive = true;
                     }
                 }
             }
@@ -222,6 +224,7 @@ namespace iDzLucian
                     if (prediction.Hitchance >= HitChance.High)
                     {
                         Spells[SpellSlot.W].Cast(prediction.UnitPosition);
+                        _shouldHavePassive = true;
                     }
                 }
             }
@@ -234,6 +237,18 @@ namespace iDzLucian
         private static bool HasPassive()
         {
             return _shouldHavePassive || ObjectManager.Player.HasBuff("lucianpassivebuff");
+        }
+
+        private static float GetCullingDamage()
+        {
+            int level = Spells[SpellSlot.R].Level;
+            return
+                (float)
+                    (level == 1
+                        ? 7.5 + 7.5 * (_player.AttackSpeedMod - .6) / 1.4
+                        : level == 2
+                            ? 7.5 + 9 * (_player.AttackSpeedMod - .6) / 1.4
+                            : level == 3 ? 7.5 + 10.5 * (_player.AttackSpeedMod - .6) : 0);
         }
 
         #region Menu and Spells
