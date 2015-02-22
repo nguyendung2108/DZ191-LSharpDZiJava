@@ -28,9 +28,7 @@ namespace iDzLucian
 
         private static void OnGameLoad(EventArgs args)
         {
-           iDZLucian.OnLoad(args);
+            iDzLucian.OnLoad(args);
         }
-
-       
     }
 }

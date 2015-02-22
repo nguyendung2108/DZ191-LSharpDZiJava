@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
-using SharpDX;
 
-namespace iDzLucian
+namespace iDzLucian.Helpers
 {
     static class MenuHelper
     {
@@ -72,22 +70,22 @@ namespace iDzLucian
 
         public static bool isMenuEnabled(String item)
         {
-            return iDZLucian._menu.Item(item).GetValue<bool>();
+            return iDzLucian.Menu.Item(item).GetValue<bool>();
         }
 
         public static int getSliderValue(String item)
         {
-            return iDZLucian._menu.Item(item) != null ? iDZLucian._menu.Item(item).GetValue<Slider>().Value : -1;
+            return iDzLucian.Menu.Item(item) != null ? iDzLucian.Menu.Item(item).GetValue<Slider>().Value : -1;
         }
 
         public static bool getKeybindValue(String item)
         {
-            return iDZLucian._menu.Item(item).GetValue<KeyBind>().Active;
+            return iDzLucian.Menu.Item(item).GetValue<KeyBind>().Active;
         }
 
         public static HitChance GetHitchance()
         {
-            switch (iDZLucian._menu.Item("com.idzlucian.customhitchance").GetValue<StringList>().SelectedIndex)
+            switch (iDzLucian.Menu.Item("com.idzlucian.customhitchance").GetValue<StringList>().SelectedIndex)
             {
                 case 0:
                     return HitChance.Low;
