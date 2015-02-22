@@ -21,14 +21,8 @@ namespace iDzLucian
 {
     internal class Program
     {
-<<<<<<< HEAD
-        private static Obj_AI_Hero _player;
-        private static Spell _q, _qExtended, _w, _e, _r;
-        private static Menu _menu;
-        private static Orbwalking.Orbwalker _orbwalker;
 
-=======
->>>>>>> origin/master
+    
         private static void Main(string[] args)
         {
             CustomEvents.Game.OnGameLoad += OnGameLoad;
@@ -36,70 +30,7 @@ namespace iDzLucian
 
         private static void OnGameLoad(EventArgs args)
         {
-<<<<<<< HEAD
-            _player = ObjectManager.Player;
-
-            if (_player.ChampionName != "Lucian")
-            {
-                return;
-            }
-
-            LoadSpells();
-            CreateMenu();
-
-            Game.OnGameUpdate += OnGameUpdate;
-        }
-
-        private static void LoadSpells()
-        {
-            _q = new Spell(SpellSlot.Q, 675);
-            _q.SetTargetted(0.25f, float.MaxValue);
-
-            _qExtended = new Spell(SpellSlot.Q, 1100);
-            _qExtended.SetSkillshot(0.25f, 5f, float.MaxValue, true, SkillshotType.SkillshotLine);
-
-            _w = new Spell(SpellSlot.W, 1000);
-            _w.SetSkillshot(0.3f, 80, 1600, true, SkillshotType.SkillshotLine);
-
-            _e = new Spell(SpellSlot.E, 425);
-            _e.SetSkillshot(.25f, 1f, float.MaxValue, false, SkillshotType.SkillshotLine);
-
-            _r = new Spell(SpellSlot.R, 1400);
-            _r.SetSkillshot(.1f, 110, 2800, true, SkillshotType.SkillshotLine);
-        }
-
-        private static void CreateMenu()
-        {
-            _menu = new Menu("iDzLucian", "iDzLucian", true);
-
-            var orbwalkingMenu = new Menu("Orbwalker", "orbwalker");
-            _orbwalker = new Orbwalking.Orbwalker(orbwalkingMenu);
-
-            var comboMenu = new Menu("Combo Options", "com.idzlucian.combo");
-            {
-                //TODO
-            }
-
-            _menu.AddToMainMenu();
-        }
-
-        private static void OnGameUpdate(EventArgs args)
-        {
-            switch (_orbwalker.ActiveMode)
-            {
-                case Orbwalking.OrbwalkingMode.Combo:
-                    OnCombo();
-                    break;
-            }
-        }
-
-        private static void OnCombo()
-        {
-            
-        }
-=======
             iDzLucian.OnLoad(args);
         }
->>>>>>> origin/master
     }
 }

@@ -124,7 +124,7 @@ namespace iDzLucian
                 {
                     if (Spells[SpellSlot.Q].CanCast(target) && !(HasPassive() && Orbwalking.InAutoAttackRange(target)))
                     {
-                        Spells[SpellSlot.Q].Cast(target);
+                        Spells[SpellSlot.Q].CastOnUnit(target);
                         _orbwalker.ForceTarget(target);
                         _shouldHavePassive = true;
                     }
@@ -157,16 +157,16 @@ namespace iDzLucian
             {
                 var targetPrediction = _qExtended.GetPrediction(targetExtended).UnitPosition.To2D();
                 var qCollision = _qExtended.GetCollision(
-                    ObjectManager.Player.ServerPosition.To2D(), new List<Vector2> { targetPrediction });
+                    ObjectManager.Player.ServerPosition.To2D(), new List<Vector2> { targetPrediction }, _qExtended.Delay);
                 if (qCollision.Any())
                 {
-                    Spells[SpellSlot.Q].Cast(qCollision.First());
+                    Spells[SpellSlot.Q].CastOnUnit(qCollision.First());
                     _shouldHavePassive = true;
                 }
             }
         }
 
-        private static void Harass()
+        private static void Harass() // TODO needs testing, its basically just the same as combo imo
         {
             Obj_AI_Hero target = TargetSelector.GetTarget(Spells[SpellSlot.Q].Range, TargetSelector.DamageType.Physical);
 
@@ -176,7 +176,7 @@ namespace iDzLucian
                 {
                     if (Spells[SpellSlot.Q].CanCast(target) && !HasPassive() && Orbwalking.InAutoAttackRange(target))
                     {
-                        Spells[SpellSlot.Q].Cast(target);
+                        Spells[SpellSlot.Q].CastOnUnit(target);
                         _orbwalker.ForceTarget(target);
                         _shouldHavePassive = true;
                     }
@@ -200,7 +200,35 @@ namespace iDzLucian
 
         private static void Farm()
         {
-            //TODO farming also checking Extended Q collision :^ )
+            IEnumerable<Obj_AI_Base> allMinions = MinionManager.GetMinions(
+                _player.ServerPosition, Spells[SpellSlot.Q].Range);
+
+            #region laneclear
+
+            foreach (Obj_AI_Base minion in
+                allMinions.Where(minion => minion != null && minion.IsValidTarget(Spells[SpellSlot.Q].Range)))
+            {
+                if (Spells[SpellSlot.Q].IsEnabledAndReady(Mode.Laneclear) && !HasPassive() &&
+                    Spells[SpellSlot.Q].CanCast(minion) && Orbwalking.InAutoAttackRange(minion))
+                {
+                    Spells[SpellSlot.Q].CastOnUnit(minion);
+                    _shouldHavePassive = true;
+                }
+                if (Spells[SpellSlot.W].IsEnabledAndReady(Mode.Harass) && Spells[SpellSlot.W].CanCast(minion) &&
+                    !HasPassive() && !Spells[SpellSlot.Q].CanCast(minion) &&
+                    !Spells[SpellSlot.Q].IsEnabledAndReady(Mode.Harass) && Orbwalking.InAutoAttackRange(minion))
+                {
+                    var prediction = Spells[SpellSlot.W].GetPrediction(minion);
+                    if (prediction.Hitchance >= HitChance.High)
+                    {
+                        Spells[SpellSlot.W].Cast(prediction.UnitPosition);
+                    }
+                }
+            }
+
+            #endregion
+
+            //TODO Last hit.
         }
 
         private static bool HasPassive()
