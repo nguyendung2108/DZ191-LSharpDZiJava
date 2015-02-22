@@ -239,16 +239,18 @@ namespace iDzLucian
             return _shouldHavePassive || ObjectManager.Player.HasBuff("lucianpassivebuff");
         }
 
-        private static float GetCullingDamage()
+        private static double GetCullingDamage(Obj_AI_Hero target)
         {
             int level = Spells[SpellSlot.R].Level;
-            return
+            var totalShots =
                 (float)
                     (level == 1
                         ? 7.5 + 7.5 * (_player.AttackSpeedMod - .6) / 1.4
                         : level == 2
                             ? 7.5 + 9 * (_player.AttackSpeedMod - .6) / 1.4
                             : level == 3 ? 7.5 + 10.5 * (_player.AttackSpeedMod - .6) : 0);
+
+            return (float) (_player.GetSpellDamage(target, SpellSlot.Q) * totalShots);
         }
 
         #region Menu and Spells
