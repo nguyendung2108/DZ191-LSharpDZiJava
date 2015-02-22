@@ -61,7 +61,9 @@ namespace iDzLucian
         private static void OrbwalkingAfterAttack(AttackableUnit unit, AttackableUnit target)
         {
             if (!unit.IsMe)
+            {
                 return;
+            }
             _shouldHavePassive = false;
         }
 
@@ -132,11 +134,13 @@ namespace iDzLucian
                     }
                 }
                 if (Spells[SpellSlot.W].IsEnabledAndReady(Mode.Combo) && !Spells[SpellSlot.Q].CanCast(target) &&
+                    !Spells[SpellSlot.Q].IsEnabledAndReady(Mode.Combo) &&
                     !(HasPassive() && Orbwalking.InAutoAttackRange(target)))
                 {
-                    if (Spells[SpellSlot.W].GetPrediction(target).Hitchance >= HitChance.High)
+                    var prediction = Spells[SpellSlot.W].GetPrediction(target);
+                    if (prediction.Hitchance >= HitChance.High)
                     {
-                        Spells[SpellSlot.W].Cast(target);
+                        Spells[SpellSlot.W].Cast(prediction.UnitPosition);
                         _orbwalker.ForceTarget(target);
                         _shouldHavePassive = true;
                     }
@@ -164,12 +168,39 @@ namespace iDzLucian
 
         private static void Harass()
         {
-            
+            Obj_AI_Hero target = TargetSelector.GetTarget(Spells[SpellSlot.Q].Range, TargetSelector.DamageType.Physical);
+
+            if (target.IsValidTarget(Spells[SpellSlot.Q].Range))
+            {
+                if (Spells[SpellSlot.Q].IsEnabledAndReady(Mode.Harass))
+                {
+                    if (Spells[SpellSlot.Q].CanCast(target) && !HasPassive() && Orbwalking.InAutoAttackRange(target))
+                    {
+                        Spells[SpellSlot.Q].Cast(target);
+                        _orbwalker.ForceTarget(target);
+                        _shouldHavePassive = true;
+                    }
+                    else
+                    {
+                        ExtendedQ();
+                    }
+                }
+                if (Spells[SpellSlot.W].IsEnabledAndReady(Mode.Harass) && Spells[SpellSlot.W].CanCast(target) &&
+                    !HasPassive() && !Spells[SpellSlot.Q].CanCast(target) &&
+                    !Spells[SpellSlot.Q].IsEnabledAndReady(Mode.Harass) && Orbwalking.InAutoAttackRange(target))
+                {
+                    var prediction = Spells[SpellSlot.W].GetPrediction(target);
+                    if (prediction.Hitchance >= HitChance.High)
+                    {
+                        Spells[SpellSlot.W].Cast(prediction.UnitPosition);
+                    }
+                }
+            }
         }
 
         private static void Farm()
         {
-            
+            //TODO farming also checking Extended Q collision :^ )
         }
 
         private static bool HasPassive()
@@ -210,8 +241,8 @@ namespace iDzLucian
             Menu.AddSubMenu(comboMenu);
 
             var harassMenu = new Menu("Lucian - Harass", "com.idzlucian.harass");
-            harassMenu.AddModeMenu(Mode.Harrass, new[] { SpellSlot.Q, SpellSlot.W }, new[] { true, true });
-            harassMenu.AddManaManager(Mode.Harrass, new[] { SpellSlot.Q, SpellSlot.W }, new[] { 35, 35 });
+            harassMenu.AddModeMenu(Mode.Harass, new[] { SpellSlot.Q, SpellSlot.W }, new[] { true, true });
+            harassMenu.AddManaManager(Mode.Harass, new[] { SpellSlot.Q, SpellSlot.W }, new[] { 35, 35 });
             Menu.AddSubMenu(harassMenu);
 
             var farmMenu = new Menu("Lucian - Farm", "com.idzlucian.farm");

@@ -156,7 +156,7 @@ namespace iDzLucian.Helpers
             {
                 case Mode.Combo:
                     return "C";
-                case Mode.Harrass:
+                case Mode.Harass:
                     return "H";
                 case Mode.Lasthit:
                     return "LH";
@@ -178,7 +178,7 @@ namespace iDzLucian.Helpers
     internal enum Mode
     {
         Combo,
-        Harrass,
+        Harass,
         Lasthit,
         Laneclear,
         Farm
