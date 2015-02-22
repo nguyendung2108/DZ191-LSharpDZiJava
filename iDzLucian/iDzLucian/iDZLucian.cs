@@ -60,6 +60,8 @@ namespace iDzLucian
 
         private static void OrbwalkingAfterAttack(AttackableUnit unit, AttackableUnit target)
         {
+            if (!unit.IsMe)
+                return;
             _shouldHavePassive = false;
         }
 
@@ -68,7 +70,7 @@ namespace iDzLucian
             //TODO Get Correct spell names
             //Reset the AutoAttack timer after a Q, so we can attack immediately after.
             //Logic for Spell Weaving would be:
-            //W AA Q AA (E AA)?
+            //W AA Q AA (E AA)? // wouldn't it be Q aa, W aa, E, aa?
             if (sender.IsMe)
             {
                 switch (args.SData.Name)
@@ -132,9 +134,12 @@ namespace iDzLucian
                 if (Spells[SpellSlot.W].IsEnabledAndReady(Mode.Combo) && !Spells[SpellSlot.Q].CanCast(target) &&
                     !(HasPassive() && Orbwalking.InAutoAttackRange(target)))
                 {
-                    Spells[SpellSlot.W].Cast(target);
-                    _orbwalker.ForceTarget(target);
-                    _shouldHavePassive = true;
+                    if (Spells[SpellSlot.W].GetPrediction(target).Hitchance >= HitChance.High)
+                    {
+                        Spells[SpellSlot.W].Cast(target);
+                        _orbwalker.ForceTarget(target);
+                        _shouldHavePassive = true;
+                    }
                 }
             }
         }
@@ -159,12 +164,12 @@ namespace iDzLucian
 
         private static void Harass()
         {
-            throw new NotImplementedException();
+            
         }
 
         private static void Farm()
         {
-            throw new NotImplementedException();
+            
         }
 
         private static bool HasPassive()
@@ -199,7 +204,7 @@ namespace iDzLucian
             var comboMenu = new Menu("Lucian - Combo", "com.idzlucian.combo");
             comboMenu.AddModeMenu(
                 Mode.Combo, new[] { SpellSlot.Q, SpellSlot.W, SpellSlot.E, SpellSlot.R },
-                new[] { true, true, true, false });
+                new[] { true, true, false, false });
             comboMenu.AddManaManager(
                 Mode.Combo, new[] { SpellSlot.Q, SpellSlot.W, SpellSlot.E, SpellSlot.R }, new[] { 35, 35, 25, 10 });
             Menu.AddSubMenu(comboMenu);
