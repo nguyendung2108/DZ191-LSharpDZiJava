@@ -14,8 +14,8 @@ namespace iDzLucian.Helpers
                 return false;
             try
             {
-                var manaPercentage = getSliderValue("com.idzlucian.manamanager." + GetStringFromSpellSlot(spell.Slot).ToLowerInvariant() + "mana" + GetStringFromMode(mode).ToLowerInvariant());
-                var enabledCondition = isMenuEnabled("com.idzlucian.use" + GetStringFromSpellSlot(spell.Slot).ToLowerInvariant() + GetStringFromMode(mode));
+                var manaPercentage = GetSliderValue("com.idzlucian.manamanager." + GetStringFromSpellSlot(spell.Slot).ToLowerInvariant() + "mana" + GetStringFromMode(mode).ToLowerInvariant());
+                var enabledCondition = IsMenuEnabled("com.idzlucian.use" + GetStringFromSpellSlot(spell.Slot).ToLowerInvariant() + GetStringFromMode(mode));
                 return spell.IsReady() && (ObjectManager.Player.ManaPercentage() >= manaPercentage) && enabledCondition;
             }
             catch (Exception e)
@@ -68,17 +68,17 @@ namespace iDzLucian.Helpers
                         new StringList(new[] { "Low", "Medium", "High", "Very High" }, 2)));
         }
 
-        public static bool isMenuEnabled(String item)
+        public static bool IsMenuEnabled(String item)
         {
             return iDzLucian.Menu.Item(item).GetValue<bool>();
         }
 
-        public static int getSliderValue(String item)
+        public static int GetSliderValue(String item)
         {
             return iDzLucian.Menu.Item(item) != null ? iDzLucian.Menu.Item(item).GetValue<Slider>().Value : -1;
         }
 
-        public static bool getKeybindValue(String item)
+        public static bool GetKeybindValue(String item)
         {
             return iDzLucian.Menu.Item(item).GetValue<KeyBind>().Active;
         }
@@ -136,7 +136,7 @@ namespace iDzLucian.Helpers
                     return "unk";
             }
         }
-        static String GetFullNameFromMode(Mode mode)
+        static string GetFullNameFromMode(Mode mode)
         {
             return mode.ToString();
         }
