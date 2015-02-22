@@ -242,15 +242,11 @@ namespace iDzLucian
         private static double GetCullingDamage(Obj_AI_Hero target)
         {
             int level = Spells[SpellSlot.R].Level;
-            var totalShots =
-                (float)
-                    (level == 1
+            return (float) (_player.GetSpellDamage(target, SpellSlot.Q) * (level == 1
                         ? 7.5 + 7.5 * (_player.AttackSpeedMod - .6) / 1.4
                         : level == 2
                             ? 7.5 + 9 * (_player.AttackSpeedMod - .6) / 1.4
-                            : level == 3 ? 7.5 + 10.5 * (_player.AttackSpeedMod - .6) : 0);
-
-            return (float) (_player.GetSpellDamage(target, SpellSlot.Q) * totalShots);
+                            : level == 3 ? 7.5 + 10.5 * (_player.AttackSpeedMod - .6) : 0));
         }
 
         #region Menu and Spells
