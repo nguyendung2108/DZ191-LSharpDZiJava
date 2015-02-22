@@ -100,7 +100,7 @@ namespace iDzLucian.Helpers
             }
         }
 
-        public static String GetStringFromSpellSlot(SpellSlot sp)
+        public static string GetStringFromSpellSlot(SpellSlot sp)
         {
             //TODO Test if this works
             //return sp.ToString();
@@ -118,7 +118,7 @@ namespace iDzLucian.Helpers
                     return "unk";
             }
         }
-        static String GetStringFromMode(Mode mode)
+        static string GetStringFromMode(Mode mode)
         {
             switch (mode)
             {
