@@ -24,6 +24,7 @@ namespace iDzLucian
         private static Obj_AI_Hero _player;
         private static Spell _q, _qExtended, _w, _e, _r;
         private static Menu _menu;
+        private static Orbwalking.Orbwalker _orbwalker;
 
         private static void Main(string[] args)
         {
@@ -67,13 +68,30 @@ namespace iDzLucian
         {
             _menu = new Menu("iDzLucian", "iDzLucian", true);
 
-            var comboMenu = new Menu("Combo Options", "com.iDzLucian.combo");
+            var orbwalkingMenu = new Menu("Orbwalker", "orbwalker");
+            _orbwalker = new Orbwalking.Orbwalker(orbwalkingMenu);
+
+            var comboMenu = new Menu("Combo Options", "com.idzlucian.combo");
             {
                 //TODO
             }
 
             _menu.AddToMainMenu();
         }
-        private static void OnGameUpdate(EventArgs args) {}
+
+        private static void OnGameUpdate(EventArgs args)
+        {
+            switch (_orbwalker.ActiveMode)
+            {
+                case Orbwalking.OrbwalkingMode.Combo:
+                    OnCombo();
+                    break;
+            }
+        }
+
+        private static void OnCombo()
+        {
+            
+        }
     }
 }
