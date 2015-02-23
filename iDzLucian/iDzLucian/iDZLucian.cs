@@ -286,29 +286,26 @@ namespace iDzLucian
                     hero =>
                         hero.IsValidTarget(_qExtended.Range) && _player.GetSpellDamage(hero, SpellSlot.Q) > hero.Health);
 
-            if (extendedQTarget == null)
+            if (extendedQTarget == null || !_spells[SpellSlot.Q].IsReady() || !_spells[SpellSlot.E].IsReady())
             {
                 return;
             }
-            foreach (Obj_AI_Base selectedMinion in minions)
+
+            foreach (var selectedMinion in
+                minions.Where(min => _spells[SpellSlot.Q].IsInRange(min) && _qExtended.IsInRange(extendedQTarget)))
             {
-                if (_spells[SpellSlot.Q].IsInRange(selectedMinion) && _qExtended.IsInRange(extendedQTarget))
+                var bestPosition = _qExtended.GetPrediction(extendedQTarget, true).CastPosition.To2D();
+                var collisionObjects = _qExtended.GetCollision(
+                    _player.ServerPosition.To2D(), new List<Vector2> { bestPosition });
+
+                if (_spells[SpellSlot.E].IsInRange(bestPosition) && bestPosition != _player.Position.To2D())
                 {
-                    Vector2 bestPosition = _qExtended.GetPrediction(extendedQTarget, true).CastPosition.To2D();
-                    List<Obj_AI_Base> collisionObjects = _qExtended.GetCollision(
-                        _player.ServerPosition.To2D(), new List<Vector2> { bestPosition });
-                    if (_spells[SpellSlot.E].IsInRange(bestPosition) &&
-                        bestPosition != _player.Position.To2D())
-                    {
-                        _spells[SpellSlot.E].Cast(bestPosition);
-                    }
-                    if (_spells[SpellSlot.Q].IsReady())
-                    {
-                        if (collisionObjects.Any())
-                        {
-                            _spells[SpellSlot.Q].CastOnUnit(selectedMinion);
-                        }
-                    }
+                    _spells[SpellSlot.E].Cast(bestPosition);
+                }
+
+                if (_spells[SpellSlot.Q].IsReady() && collisionObjects.Any())
+                {
+                    _spells[SpellSlot.Q].CastOnUnit(selectedMinion);
                 }
             }
         }
