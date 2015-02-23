@@ -73,7 +73,10 @@ namespace iDzLucian
                 {
                     var ipoteticPosition = ObjectManager.Player.ServerPosition.Extend(Game.CursorPos, _spells[SpellSlot.E].Range);
                     if (PositionHelper.IsSafePosition(ipoteticPosition) &&
-                        ipoteticPosition.Distance(tg.ServerPosition) <= Orbwalking.GetRealAutoAttackRange(null) && (!_spells[SpellSlot.Q].IsEnabledAndReady(Mode.Combo) || !_spells[SpellSlot.Q].CanCast(tg)))
+                        ipoteticPosition.Distance(tg.ServerPosition) <= Orbwalking.GetRealAutoAttackRange(null) && 
+                        (!_spells[SpellSlot.Q].IsEnabledAndReady(Mode.Combo) || !_spells[SpellSlot.Q].CanCast(tg)) &&
+                        (!_spells[SpellSlot.W].IsEnabledAndReady(Mode.Combo) || !_spells[SpellSlot.W].CanCast(tg))
+                        )
                     {
                         _spells[SpellSlot.E].Cast(ipoteticPosition);
                     }
