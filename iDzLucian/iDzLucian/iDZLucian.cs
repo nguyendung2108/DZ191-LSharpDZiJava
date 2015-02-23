@@ -75,7 +75,8 @@ namespace iDzLucian
                     if (PositionHelper.IsSafePosition(ipoteticPosition) &&
                         ipoteticPosition.Distance(tg.ServerPosition) <= Orbwalking.GetRealAutoAttackRange(null) && 
                         (!_spells[SpellSlot.Q].IsEnabledAndReady(Mode.Combo) || !_spells[SpellSlot.Q].CanCast(tg)) &&
-                        (!_spells[SpellSlot.W].IsEnabledAndReady(Mode.Combo) || !_spells[SpellSlot.W].CanCast(tg))
+                        (!_spells[SpellSlot.W].IsEnabledAndReady(Mode.Combo) || !_spells[SpellSlot.W].CanCast(tg) &&
+                        (ipoteticPosition.Distance(tg.ServerPosition) > 400))
                         )
                     {
                         _spells[SpellSlot.E].Cast(ipoteticPosition);
