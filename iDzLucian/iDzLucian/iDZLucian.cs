@@ -203,12 +203,15 @@ namespace iDzLucian
                 var minionFarmLocation = _spells[SpellSlot.Q].GetCircularFarmLocation(allMinions,60);
             if (minionFarmLocation.MinionsHit >= 2)
             {
-                var minion = allMinions.OrderBy(m => m.Distance(minionFarmLocation.Position)).First(m => m.IsValidTarget());
-                if (_spells[SpellSlot.Q].IsEnabledAndReady(Mode.Laneclear) && !HasPassive() &&
-                    _spells[SpellSlot.Q].CanCast(minion) && Orbwalking.InAutoAttackRange(minion))
+                var minion = allMinions.FindAll(m => m.Distance(minionFarmLocation.Position) <= 60).OrderBy(m => m.Distance(minionFarmLocation.Position)).First(m => m.IsValidTarget());
+                if (minion.IsValidTarget())
                 {
-                    _spells[SpellSlot.Q].CastOnUnit(minion);
-                    _shouldHavePassive = true;
+                    if (_spells[SpellSlot.Q].IsEnabledAndReady(Mode.Laneclear) && !HasPassive() &&
+                    _spells[SpellSlot.Q].CanCast(minion) && Orbwalking.InAutoAttackRange(minion))
+                    {
+                        _spells[SpellSlot.Q].CastOnUnit(minion);
+                        _shouldHavePassive = true;
+                    }
                 }
             }
             #endregion
