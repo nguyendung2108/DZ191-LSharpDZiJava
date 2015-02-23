@@ -32,8 +32,7 @@ namespace iDzLucian
         private static Orbwalking.Orbwalker _orbwalker;
         private static bool _shouldHavePassive;
 
-        //Do not resharp this name mkkk
-        //Let _spells be _spells
+        //Do not resharp _spells name, tyvm mkkk :3
         private static readonly Dictionary<SpellSlot, Spell> _spells = new Dictionary<SpellSlot, Spell>
         {
             { SpellSlot.Q, new Spell(SpellSlot.Q, 675f) },
@@ -80,14 +79,17 @@ namespace iDzLucian
                 switch (args.SData.Name)
                 {
                     case "LucianQ":
+                        _shouldHavePassive = true;
                         Utility.DelayAction.Add(
                             (int) (Math.Ceiling(Game.Ping / 2f) + 250 + 325), Orbwalking.ResetAutoAttackTimer);
                         break;
                     case "LucianW":
+                        _shouldHavePassive = true;
                         Utility.DelayAction.Add(
                             (int) (Math.Ceiling(Game.Ping / 2f) + 250 + 325), Orbwalking.ResetAutoAttackTimer);
                         break;
                     case "LucianE":
+                        _shouldHavePassive = true;
                         break;
                 }
                 //Console.WriteLine(args.SData.Name);
@@ -129,7 +131,6 @@ namespace iDzLucian
                     {
                         _spells[SpellSlot.Q].CastOnUnit(target);
                         _orbwalker.ForceTarget(target);
-                        _shouldHavePassive = true;
                     }
                 }
                 if (_spells[SpellSlot.W].IsEnabledAndReady(Mode.Combo) && !_spells[SpellSlot.Q].CanCast(target) &&
@@ -141,7 +142,6 @@ namespace iDzLucian
                     {
                         _spells[SpellSlot.W].CastIfHitchanceEquals(target, MenuHelper.GetHitchance());
                         _orbwalker.ForceTarget(target);
-                        _shouldHavePassive = true;
                     }
                 }
             }
@@ -164,7 +164,6 @@ namespace iDzLucian
                 if (qCollision.Any())
                 {
                     _spells[SpellSlot.Q].CastOnUnit(qCollision.First());
-                    _shouldHavePassive = true;
                 }
             }
         }
@@ -181,7 +180,6 @@ namespace iDzLucian
                     {
                         _spells[SpellSlot.Q].CastOnUnit(target);
                         _orbwalker.ForceTarget(target);
-                        _shouldHavePassive = true;
                     }
                 }
                 if (_spells[SpellSlot.W].IsEnabledAndReady(Mode.Harass) && _spells[SpellSlot.W].CanCast(target) &&
@@ -190,7 +188,6 @@ namespace iDzLucian
                 {
                         _spells[SpellSlot.W].CastIfHitchanceEquals(target, MenuHelper.GetHitchance());
                         _orbwalker.ForceTarget(target);
-                        _shouldHavePassive = true;
                 }
             }
         }
@@ -198,22 +195,28 @@ namespace iDzLucian
         private static void Farm()
         {
             var allMinions = MinionManager.GetMinions(_player.ServerPosition, _spells[SpellSlot.Q].Range);
-
-            #region laneclear
-                var minionFarmLocation = _spells[SpellSlot.Q].GetCircularFarmLocation(allMinions,60);
-            if (minionFarmLocation.MinionsHit >= 2)
+            switch (_orbwalker.ActiveMode)
             {
-                var minion = allMinions.FindAll(m => m.Distance(minionFarmLocation.Position) <= 60).OrderBy(m => m.Distance(minionFarmLocation.Position)).First(m => m.IsValidTarget());
-                if (minion.IsValidTarget())
-                {
-                    if (_spells[SpellSlot.Q].IsEnabledAndReady(Mode.Laneclear) && !HasPassive() &&
-                    _spells[SpellSlot.Q].CanCast(minion) && Orbwalking.InAutoAttackRange(minion))
+                case Orbwalking.OrbwalkingMode.LaneClear:
+                    var minionFarmLocation = _spells[SpellSlot.Q].GetCircularFarmLocation(allMinions,60);
+                    if (minionFarmLocation.MinionsHit >= MenuHelper.GetSliderValue("com.idzlucian.farm.q.lc.minhit"))
                     {
-                        _spells[SpellSlot.Q].CastOnUnit(minion);
-                        _shouldHavePassive = true;
+                        var minion = allMinions.FindAll(m => m.Distance(minionFarmLocation.Position) <= 60).OrderBy(m => m.Distance(minionFarmLocation.Position)).First(m => m.IsValidTarget());
+                        if (minion.IsValidTarget())
+                        {
+                            if (_spells[SpellSlot.Q].IsEnabledAndReady(Mode.Laneclear) && !HasPassive() &&
+                            _spells[SpellSlot.Q].CanCast(minion) && Orbwalking.InAutoAttackRange(minion))
+                            {
+                                _spells[SpellSlot.Q].CastOnUnit(minion);
+                            }
+                        }
                     }
-                }
+                    break;
+                case Orbwalking.OrbwalkingMode.LastHit:
+                    break;
             }
+            #region laneclear
+            
             #endregion
 
             //TODO Last hit.
@@ -284,6 +287,12 @@ namespace iDzLucian
             var farmMenu = new Menu("Lucian - Farm", "com.idzlucian.farm");
             farmMenu.AddModeMenu(Mode.Laneclear, new[] { SpellSlot.Q }, new[] { true });
             farmMenu.AddManaManager(Mode.Laneclear, new[] { SpellSlot.Q }, new[] { 35 });
+            var farmOptions = new Menu("Farm Options", "com.idzlucian.farm.farm");
+            {
+                farmOptions.AddItem(new MenuItem("com.idzlucian.farm.q.lc.minhit", "Min Minions for Q LC").SetValue(new Slider(2,1,6)));
+            }
+            farmMenu.AddSubMenu(farmOptions);
+
             Menu.AddSubMenu(farmMenu);
 
             var miscMenu = new Menu("Lucian - Misc", "com.idzlucian.misc");
