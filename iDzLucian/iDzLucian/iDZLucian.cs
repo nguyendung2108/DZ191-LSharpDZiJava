@@ -313,7 +313,7 @@ namespace iDzLucian
             var skillOptionsCombo = new Menu("Skill Options", "com.idzlucian.combo.skilloptions");
             {
                 skillOptionsCombo.AddItem(
-                    new MenuItem("com.idzlucian.skilloptions.weave", "Spell Weaving").SetValue(true))
+                    new MenuItem("com.idzlucian.skilloptions.weave", "Spell Weaving").SetValue(true));
                 skillOptionsCombo.AddItem(
                     new MenuItem("com.idzlucian.combo.useextendedq", "Use Extended Q Combo").SetValue(true));
                 skillOptionsCombo.AddItem(
