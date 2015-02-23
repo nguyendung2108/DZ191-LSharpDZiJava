@@ -84,17 +84,14 @@ namespace iDzLucian
                 switch (args.SData.Name)
                 {
                     case "LucianQ":
-                        
                         Utility.DelayAction.Add(
                             (int) (Math.Ceiling(Game.Ping / 2f) + 250 + 325), Orbwalking.ResetAutoAttackTimer);
                         break;
                     case "LucianW":
-                        _shouldHavePassive = true;
                         Utility.DelayAction.Add(
                             (int) (Math.Ceiling(Game.Ping / 2f) + 250 + 325), Orbwalking.ResetAutoAttackTimer);
                         break;
                     case "LucianE":
-                        _shouldHavePassive = true;
                         break;
                 }
                 //Console.WriteLine(args.SData.Name);
@@ -206,7 +203,12 @@ namespace iDzLucian
                     var minionFarmLocation = _spells[SpellSlot.Q].GetCircularFarmLocation(allMinions,60);
                     if (minionFarmLocation.MinionsHit >= MenuHelper.GetSliderValue("com.idzlucian.farm.q.lc.minhit"))
                     {
-                        var minion = allMinions.FindAll(m => m.Distance(minionFarmLocation.Position) <= 60).OrderBy(m => m.Distance(minionFarmLocation.Position)).First(m => m.IsValidTarget());
+                        var minionC = allMinions.FindAll(m => m.Distance(minionFarmLocation.Position) <= 60).OrderBy(m => m.Distance(minionFarmLocation.Position));
+                        if (!minionC.Any())
+                        {
+                            return;
+                        }
+                        var minion = minionC.First(m => m.IsValidTarget());
                         if (minion.IsValidTarget())
                         {
                             if (_spells[SpellSlot.Q].IsEnabledAndReady(Mode.Laneclear) && !HasPassive() &&
