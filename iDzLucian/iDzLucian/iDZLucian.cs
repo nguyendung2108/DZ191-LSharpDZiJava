@@ -257,6 +257,11 @@ namespace iDzLucian
 
         private static bool HasPassive()
         {
+            if (!MenuHelper.IsMenuEnabled("com.idzlucian.skilloptions.weave"))
+            {
+                return false;
+            }
+
             return _shouldHavePassive || ObjectManager.Player.HasBuff("lucianpassivebuff");
         }
 
@@ -307,6 +312,8 @@ namespace iDzLucian
 
             var skillOptionsCombo = new Menu("Skill Options", "com.idzlucian.combo.skilloptions");
             {
+                skillOptionsCombo.AddItem(
+                    new MenuItem("com.idzlucian.skilloptions.weave", "Spell Weaving").SetValue(true))
                 skillOptionsCombo.AddItem(
                     new MenuItem("com.idzlucian.combo.useextendedq", "Use Extended Q Combo").SetValue(true));
                 skillOptionsCombo.AddItem(
