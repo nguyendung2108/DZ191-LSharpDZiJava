@@ -66,6 +66,20 @@ namespace iDzLucian
                 return;
             }
             _shouldHavePassive = false;
+            if (target is Obj_AI_Hero)
+            {
+                var tg = target as Obj_AI_Hero;
+                if (_spells[SpellSlot.E].IsEnabledAndReady(Mode.Combo))
+                {
+                    var ipoteticPosition = ObjectManager.Player.ServerPosition.Extend(Game.CursorPos, _spells[SpellSlot.E].Range);
+                    if (PositionHelper.IsSafePosition(ipoteticPosition) &&
+                        ipoteticPosition.Distance(tg.ServerPosition) <= Orbwalking.GetRealAutoAttackRange(null) && (!_spells[SpellSlot.Q].IsEnabledAndReady(Mode.Combo) || !_spells[SpellSlot.Q].CanCast(tg)))
+                    {
+                        _spells[SpellSlot.E].Cast(ipoteticPosition);
+                    }
+                }
+            }
+            
         }
 
         private static void Obj_AI_Base_OnProcessSpellCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
@@ -258,6 +272,7 @@ namespace iDzLucian
             _spells[SpellSlot.E].SetSkillshot(.25f, 1f, float.MaxValue, false, SkillshotType.SkillshotLine);
             _spells[SpellSlot.R].SetSkillshot(.1f, 110, 2800, true, SkillshotType.SkillshotLine);
         }
+        
 
         private static void CreateMenu()
         {

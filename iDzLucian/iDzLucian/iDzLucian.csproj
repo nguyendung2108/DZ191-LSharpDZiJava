@@ -76,6 +76,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Helpers\MenuHelper.cs" />
+    <Compile Include="Helpers\PositionHelper.cs" />
     <Compile Include="iDZLucian.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
