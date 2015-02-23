@@ -278,6 +278,40 @@ namespace iDzLucian
                              : level == 3 ? 7.5 + 10.5 * (_player.AttackSpeedMod - .6) : 0));
         }
 
+        private static void DashKillsteal()
+        {
+            var minions = MinionManager.GetMinions(_player.ServerPosition, _spells[SpellSlot.Q].Range);
+            var extendedQTarget =
+                HeroManager.Enemies.FirstOrDefault(
+                    hero =>
+                        hero.IsValidTarget(_qExtended.Range) && _player.GetSpellDamage(hero, SpellSlot.Q) > hero.Health);
+            foreach (Obj_AI_Base selectedMinion in
+                minions.Where(minion => minion != null && minion.IsValidTarget(_spells[SpellSlot.Q].Range)))
+            {
+                if (extendedQTarget != null)
+                {
+                    if (_player.Distance(selectedMinion) < _spells[SpellSlot.Q].Range &&
+                        _player.Distance(extendedQTarget) < _qExtended.Range)
+                    {
+                        Vector2 bestPosition = _qExtended.GetPrediction(extendedQTarget, true).CastPosition.To2D();
+                        List<Obj_AI_Base> collisionObjects = _qExtended.GetCollision(
+                            _player.ServerPosition.To2D(), new List<Vector2> { bestPosition });
+                        if (_player.Distance(bestPosition) < _spells[SpellSlot.E].Range && bestPosition != _player.Position.To2D())
+                        {
+                            _spells[SpellSlot.E].Cast(bestPosition);
+                            if (_spells[SpellSlot.Q].IsReady())
+                            {
+                                if (collisionObjects.Any())
+                                {
+                                    _spells[SpellSlot.Q].CastOnUnit(selectedMinion);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         #region Menu and Spells
 
         private static void LoadSpells()
