@@ -69,7 +69,7 @@ namespace iDzLucian
             _shouldHavePassive = false;
             if (target is Obj_AI_Hero)
             {
-                var tg = target as Obj_AI_Hero;
+                var tg = (Obj_AI_Hero) target;
                 if (_spells[SpellSlot.E].IsEnabledAndReady(Mode.Combo))
                 {
                     var hypoteticalPosition = ObjectManager.Player.ServerPosition.Extend(Game.CursorPos, _spells[SpellSlot.E].Range);
