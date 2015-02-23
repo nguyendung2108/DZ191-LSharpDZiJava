@@ -24,6 +24,7 @@ using SharpDX;
 
 namespace iDzLucian
 {
+    // ReSharper disable once InconsistentNaming
     internal class iDzLucian
     {
         private static Obj_AI_Hero _player;
