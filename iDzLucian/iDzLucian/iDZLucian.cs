@@ -76,7 +76,7 @@ namespace iDzLucian
                         ipoteticPosition.Distance(tg.ServerPosition) <= Orbwalking.GetRealAutoAttackRange(null) && 
                         (!_spells[SpellSlot.Q].IsEnabledAndReady(Mode.Combo) || !_spells[SpellSlot.Q].CanCast(tg)) &&
                         (!_spells[SpellSlot.W].IsEnabledAndReady(Mode.Combo) || !_spells[SpellSlot.W].CanCast(tg) &&
-                        (ipoteticPosition.Distance(tg.ServerPosition) > 400))
+                        (ipoteticPosition.Distance(tg.ServerPosition) > 400) && !(HasPassive()))
                         )
                     {
                         _spells[SpellSlot.E].Cast(ipoteticPosition);
@@ -108,8 +108,6 @@ namespace iDzLucian
                     case "LucianW":
                         Utility.DelayAction.Add(
                             (int) (Math.Ceiling(Game.Ping / 2f) + 250 + 325), Orbwalking.ResetAutoAttackTimer);
-                        break;
-                    case "LucianE":
                         break;
                 }
                 //Console.WriteLine(args.SData.Name);
