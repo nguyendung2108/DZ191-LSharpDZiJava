@@ -76,10 +76,15 @@ namespace iDzLucian
             //W AA Q AA (E AA)? // wouldn't it be Q aa, W aa, E, aa?
             if (sender.IsMe)
             {
+                if (ObjectManager.Player.GetSpellSlot(args.SData.Name) != SpellSlot.R)
+                {
+                    _shouldHavePassive = true;
+                    Utility.DelayAction.Add((int)Math.Floor(2000 - (Game.Ping / 2f)), () => _shouldHavePassive = false);
+                }
                 switch (args.SData.Name)
                 {
                     case "LucianQ":
-                        _shouldHavePassive = true;
+                        
                         Utility.DelayAction.Add(
                             (int) (Math.Ceiling(Game.Ping / 2f) + 250 + 325), Orbwalking.ResetAutoAttackTimer);
                         break;
