@@ -65,6 +65,7 @@ namespace iDzLucian
             {
                 return;
             }
+            //TODO Add E for Kiting and get away
             _shouldHavePassive = false;
             if (target is Obj_AI_Hero)
             {
