@@ -310,8 +310,8 @@ namespace iDzLucian
             Menu.AddSubMenu(harassMenu);
 
             var farmMenu = new Menu("Lucian - Farm", "com.idzlucian.farm");
-            farmMenu.AddModeMenu(Mode.Laneclear, new[] { SpellSlot.Q, SpellSlot.W }, new[] { true, false });
-            farmMenu.AddManaManager(Mode.Laneclear, new[] { SpellSlot.Q, SpellSlot.W }, new[] { 35, 25 });
+            farmMenu.AddModeMenu(Mode.Laneclear, new[] { SpellSlot.Q}, new[] { true });
+            farmMenu.AddManaManager(Mode.Laneclear, new[] { SpellSlot.Q  }, new[] { 35 });
             var farmOptions = new Menu("Farm Options", "com.idzlucian.farm.farm");
             {
                 farmOptions.AddItem(new MenuItem("com.idzlucian.farm.q.lc.minhit", "Min Minions for Q LC").SetValue(new Slider(2,1,6)));
