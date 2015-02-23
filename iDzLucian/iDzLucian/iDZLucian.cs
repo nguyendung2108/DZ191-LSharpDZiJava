@@ -32,6 +32,7 @@ namespace iDzLucian
         private static Orbwalking.Orbwalker _orbwalker;
         private static bool _shouldHavePassive;
         //Do not resharp _spells name, tyvm mkkk :3
+        // ReSharper disable once InconsistentNaming
         private static readonly Dictionary<SpellSlot, Spell> _spells = new Dictionary<SpellSlot, Spell>
         {
             { SpellSlot.Q, new Spell(SpellSlot.Q, 675f) },
@@ -78,8 +79,8 @@ namespace iDzLucian
                         hypotheticalPosition.Distance(targ.ServerPosition) <= Orbwalking.GetRealAutoAttackRange(null) &&
                         (!_spells[SpellSlot.Q].IsEnabledAndReady(Mode.Combo) || !_spells[SpellSlot.Q].CanCast(targ)) &&
                         (!_spells[SpellSlot.W].IsEnabledAndReady(Mode.Combo) ||
-                         !_spells[SpellSlot.W].CanCast(targ) && (hypotheticalPosition.Distance(targ.ServerPosition) > 400) &&
-                         !(HasPassive())))
+                         !_spells[SpellSlot.W].CanCast(targ) &&
+                         (hypotheticalPosition.Distance(targ.ServerPosition) > 400) && !(HasPassive())))
                     {
                         _spells[SpellSlot.E].Cast(hypotheticalPosition);
                     }
@@ -89,13 +90,14 @@ namespace iDzLucian
 
         private static void Obj_AI_Base_OnProcessSpellCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
         {
-            //TODO Get Correct spell names
+            ////TODO Get Correct spell names DONE?
             //Reset the AutoAttack timer after a Q, so we can attack immediately after.
             //Logic for Spell Weaving would be:
             //W AA Q AA (E AA)? // wouldn't it be Q aa, W aa, E, aa?
             if (sender.IsMe)
             {
                 if (ObjectManager.Player.GetSpellSlot(args.SData.Name) != SpellSlot.R)
+                    //TODO wait doesn't R have passive check fgt wat
                 {
                     _shouldHavePassive = true;
                     Utility.DelayAction.Add((int) Math.Floor(2000 - (Game.Ping / 2f)), () => _shouldHavePassive = false);
@@ -156,19 +158,14 @@ namespace iDzLucian
                     !_spells[SpellSlot.Q].IsEnabledAndReady(Mode.Combo) &&
                     !(HasPassive() && Orbwalking.InAutoAttackRange(target)))
                 {
-                    var prediction = _spells[SpellSlot.W].GetPrediction(target);
-                    if (prediction.Hitchance >= HitChance.High)
-                    {
-                        _spells[SpellSlot.W].CastIfHitchanceEquals(target, MenuHelper.GetHitchance());
-                        _orbwalker.ForceTarget(target);
-                    }
+                    _spells[SpellSlot.W].CastIfHitchanceEquals(target, MenuHelper.GetHitchance());
+                    _orbwalker.ForceTarget(target);
                 }
             }
         }
 
         private static void ExtendedQ(Mode mode)
         {
-            //Tested and working
             if (
                 !MenuHelper.IsMenuEnabled(
                     "com.idzlucian." + MenuHelper.GetFullNameFromMode(mode).ToLowerInvariant() + ".useextendedq") ||
@@ -196,6 +193,8 @@ namespace iDzLucian
         {
             Obj_AI_Hero target = TargetSelector.GetTarget(
                 _spells[SpellSlot.Q].Range, TargetSelector.DamageType.Physical);
+
+            ExtendedQ(Mode.Harass);
 
             if (target.IsValidTarget(_spells[SpellSlot.Q].Range))
             {
@@ -304,10 +303,13 @@ namespace iDzLucian
                 new[] { true, true, false, false });
             comboMenu.AddManaManager(
                 Mode.Combo, new[] { SpellSlot.Q, SpellSlot.W, SpellSlot.E, SpellSlot.R }, new[] { 35, 35, 25, 10 });
+
             var skillOptionsCombo = new Menu("Skill Options", "com.idzlucian.combo.skilloptions");
             {
                 skillOptionsCombo.AddItem(
                     new MenuItem("com.idzlucian.combo.useextendedq", "Use Extended Q Combo").SetValue(true));
+                skillOptionsCombo.AddItem(
+                    new MenuItem("com.idzlucian.harass.useextendedq", "Use Extended Q Harass").SetValue(true));
             }
             comboMenu.AddSubMenu(skillOptionsCombo);
 
@@ -316,8 +318,8 @@ namespace iDzLucian
             var harassMenu = new Menu("Lucian - Harass", "com.idzlucian.harass");
             harassMenu.AddModeMenu(Mode.Harass, new[] { SpellSlot.Q, SpellSlot.W }, new[] { true, true });
             harassMenu.AddManaManager(Mode.Harass, new[] { SpellSlot.Q, SpellSlot.W }, new[] { 35, 35 });
-            harassMenu.AddItem(
-                new MenuItem("com.idzlucian.harrass.useextendedq", "Use Extended Q Harass").SetValue(true));
+            //harassMenu.AddItem(
+            //    new MenuItem("com.idzlucian.harass.useextendedq", "Use Extended Q Harass").SetValue(true));
             Menu.AddSubMenu(harassMenu);
 
             var farmMenu = new Menu("Lucian - Farm", "com.idzlucian.farm");
