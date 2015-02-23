@@ -149,6 +149,7 @@ namespace iDzLucian
 
         private static void ExtendedQ(Mode mode)
         {
+            //Tested and working
             if (!MenuHelper.IsMenuEnabled("com.idzlucian."+ MenuHelper.GetFullNameFromMode(mode).ToLowerInvariant() +".useextendedq") || ObjectManager.Player.ManaPercentage() < MenuHelper.GetSliderValue("com.idzlucian.manamanager.qmana" + MenuHelper.GetStringFromMode(mode).ToLowerInvariant()))
             {
                 return;
@@ -159,7 +160,7 @@ namespace iDzLucian
             {
                 var targetPrediction = _qExtended.GetPrediction(targetExtended).CastPosition.To2D();
                 var qCollision = _qExtended.GetCollision(
-                    ObjectManager.Player.ServerPosition.To2D(), new List<Vector2> { targetPrediction }, _qExtended.Delay);
+                    ObjectManager.Player.ServerPosition.To2D(), new List<Vector2> { targetPrediction });
                 if (qCollision.Any())
                 {
                     _spells[SpellSlot.Q].CastOnUnit(qCollision.First());
@@ -199,7 +200,7 @@ namespace iDzLucian
             var allMinions = MinionManager.GetMinions(_player.ServerPosition, _spells[SpellSlot.Q].Range);
 
             #region laneclear
-                var minionFarmLocation = _spells[SpellSlot.Q].GetCircularFarmLocation(allMinions);
+                var minionFarmLocation = _spells[SpellSlot.Q].GetCircularFarmLocation(allMinions,60);
             if (minionFarmLocation.MinionsHit >= 2)
             {
                 var minion = allMinions.OrderBy(m => m.Distance(minionFarmLocation.Position)).First(m => m.IsValidTarget());
@@ -261,9 +262,14 @@ namespace iDzLucian
             comboMenu.AddModeMenu(
                 Mode.Combo, new[] { SpellSlot.Q, SpellSlot.W, SpellSlot.E, SpellSlot.R },
                 new[] { true, true, false, false });
-            comboMenu.AddItem(new MenuItem("com.idzlucian.combo.useextendedq", "Use Extended Q Combo").SetValue(true));
             comboMenu.AddManaManager(
                 Mode.Combo, new[] { SpellSlot.Q, SpellSlot.W, SpellSlot.E, SpellSlot.R }, new[] { 35, 35, 25, 10 });
+            var skillOptionsCombo = new Menu("Skill Options", "com.idzlucian.combo.skilloptions");
+            {
+                skillOptionsCombo.AddItem(new MenuItem("com.idzlucian.combo.useextendedq", "Use Extended Q Combo").SetValue(true));
+            }
+            comboMenu.AddSubMenu(skillOptionsCombo);
+
             Menu.AddSubMenu(comboMenu);
 
             var harassMenu = new Menu("Lucian - Harass", "com.idzlucian.harass");
