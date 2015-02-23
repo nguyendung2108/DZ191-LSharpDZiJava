@@ -150,7 +150,7 @@ namespace iDzLucian.Helpers
             }
         }
 
-        private static string GetStringFromMode(Mode mode)
+        public static string GetStringFromMode(Mode mode)
         {
             switch (mode)
             {
@@ -169,7 +169,7 @@ namespace iDzLucian.Helpers
             }
         }
 
-        private static string GetFullNameFromMode(Mode mode)
+        public static string GetFullNameFromMode(Mode mode)
         {
             return mode.ToString();
         }
