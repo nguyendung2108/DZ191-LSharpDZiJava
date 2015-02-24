@@ -278,9 +278,11 @@ namespace iDzLucian
                              : level == 3 ? 7.5 + 10.5 * (_player.AttackSpeedMod - .6) : 0));
         }
 
+        /// <summary>
+        ///     Goes ham on a target using a minion for collision, and finishing the target with an extended Q
+        /// </summary>
         private static void DashKillsteal()
         {
-
             //TODO test this, remains untesed due to my high ping.
             var minions = MinionManager.GetMinions(_player.ServerPosition, _spells[SpellSlot.Q].Range);
             var extendedQTarget =
@@ -294,7 +296,7 @@ namespace iDzLucian
             }
 
             foreach (var selectedMinion in
-                minions.Where(min => _spells[SpellSlot.Q].IsInRange(min) && _qExtended.IsInRange(extendedQTarget)))
+                minions.Where(minion => _spells[SpellSlot.Q].IsInRange(minion) && _qExtended.IsInRange(extendedQTarget)))
             {
                 var bestPosition = _qExtended.GetPrediction(extendedQTarget, true).CastPosition.To2D();
                 var collisionObjects = _qExtended.GetCollision(
