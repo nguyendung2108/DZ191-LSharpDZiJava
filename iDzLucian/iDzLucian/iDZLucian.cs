@@ -245,6 +245,8 @@ namespace iDzLucian
                     }
                     break;
                 case Orbwalking.OrbwalkingMode.LastHit:
+                    //TODO last hit with ExtendedQ hitting a target, then we are not just wasting Q for 1 cs...
+                    //or last hit if q will kill 3 >= minions
                     break;
             }
 
