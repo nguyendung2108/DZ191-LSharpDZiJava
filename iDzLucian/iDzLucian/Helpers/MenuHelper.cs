@@ -99,17 +99,17 @@ namespace iDzLucian.Helpers
                     new StringList(new[] { "Low", "Medium", "High", "Very High" }, 2)));
         }
 
-        public static bool IsMenuEnabled(String item)
+        public static bool IsMenuEnabled(string item)
         {
             return iDzLucian.Menu.Item(item).GetValue<bool>();
         }
 
-        public static int GetSliderValue(String item)
+        public static int GetSliderValue(string item)
         {
             return iDzLucian.Menu.Item(item) != null ? iDzLucian.Menu.Item(item).GetValue<Slider>().Value : -1;
         }
 
-        public static bool GetKeybindValue(String item)
+        public static bool GetKeybindValue(string item)
         {
             return iDzLucian.Menu.Item(item).GetValue<KeyBind>().Active;
         }

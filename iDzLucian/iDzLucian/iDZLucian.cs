@@ -280,6 +280,8 @@ namespace iDzLucian
 
         private static void DashKillsteal()
         {
+
+            //TODO test this, remains untesed due to my high ping.
             var minions = MinionManager.GetMinions(_player.ServerPosition, _spells[SpellSlot.Q].Range);
             var extendedQTarget =
                 HeroManager.Enemies.FirstOrDefault(
@@ -296,7 +298,7 @@ namespace iDzLucian
             {
                 var bestPosition = _qExtended.GetPrediction(extendedQTarget, true).CastPosition.To2D();
                 var collisionObjects = _qExtended.GetCollision(
-                    _player.ServerPosition.To2D(), new List<Vector2> { bestPosition });
+                    _player.ServerPosition.To2D(), new List<Vector2> { bestPosition }); // FROM e endPositiono
 
                 if (_spells[SpellSlot.E].IsInRange(bestPosition) && bestPosition != _player.Position.To2D())
                 {
