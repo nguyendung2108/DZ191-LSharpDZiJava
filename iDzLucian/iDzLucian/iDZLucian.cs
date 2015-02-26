@@ -42,6 +42,8 @@ namespace iDzLucian
             { SpellSlot.R, new Spell(SpellSlot.R, 1400f) }
         };
 
+        #region Events
+
         public static void OnLoad(EventArgs args)
         {
             _player = ObjectManager.Player;
@@ -141,6 +143,10 @@ namespace iDzLucian
             }
         }
 
+        #endregion
+
+        #region ActiveModes
+
         private static void Combo()
         {
             var target = TargetSelector.GetTarget(_spells[SpellSlot.Q].Range, TargetSelector.DamageType.Physical);
@@ -161,31 +167,6 @@ namespace iDzLucian
                 {
                     _spells[SpellSlot.W].CastIfHitchanceEquals(target, MenuHelper.GetHitchance());
                     _orbwalker.ForceTarget(target);
-                }
-            }
-        }
-
-        private static void ExtendedQ(Mode mode)
-        {
-            if (
-                !MenuHelper.IsMenuEnabled(
-                    "com.idzlucian." + MenuHelper.GetFullNameFromMode(mode).ToLowerInvariant() + ".useextendedq") ||
-                ObjectManager.Player.ManaPercentage() <
-                MenuHelper.GetSliderValue(
-                    "com.idzlucian.manamanager.qmana" + MenuHelper.GetStringFromMode(mode).ToLowerInvariant()))
-            {
-                return;
-            }
-            var target = TargetSelector.GetTarget(_spells[SpellSlot.Q].Range, TargetSelector.DamageType.Physical);
-            var targetExtended = TargetSelector.GetTarget(_qExtended.Range, TargetSelector.DamageType.Physical);
-            if (!target.IsValidTarget() && targetExtended.IsValidTarget())
-            {
-                var targetPrediction = _qExtended.GetPrediction(targetExtended).CastPosition.To2D();
-                var qCollision = _qExtended.GetCollision(
-                    ObjectManager.Player.ServerPosition.To2D(), new List<Vector2> { targetPrediction });
-                if (qCollision.Any())
-                {
-                    _spells[SpellSlot.Q].CastOnUnit(qCollision.First());
                 }
             }
         }
@@ -257,6 +238,10 @@ namespace iDzLucian
             //TODO Last hit.
         }
 
+        #endregion
+
+        #region Calculations and Checks
+
         private static bool HasPassive()
         {
             if (!MenuHelper.IsMenuEnabled("com.idzlucian.skilloptions.weave"))
@@ -280,6 +265,31 @@ namespace iDzLucian
                              : level == 3 ? 7.5 + 10.5 * (_player.AttackSpeedMod - .6) : 0));
         }
 
+        private static void ExtendedQ(Mode mode)
+        {
+            if (
+                !MenuHelper.IsMenuEnabled(
+                    "com.idzlucian." + MenuHelper.GetFullNameFromMode(mode).ToLowerInvariant() + ".useextendedq") ||
+                ObjectManager.Player.ManaPercentage() <
+                MenuHelper.GetSliderValue(
+                    "com.idzlucian.manamanager.qmana" + MenuHelper.GetStringFromMode(mode).ToLowerInvariant()))
+            {
+                return;
+            }
+            var target = TargetSelector.GetTarget(_spells[SpellSlot.Q].Range, TargetSelector.DamageType.Physical);
+            var targetExtended = TargetSelector.GetTarget(_qExtended.Range, TargetSelector.DamageType.Physical);
+            if (!target.IsValidTarget() && targetExtended.IsValidTarget())
+            {
+                var targetPrediction = _qExtended.GetPrediction(targetExtended).CastPosition.To2D();
+                var qCollision = _qExtended.GetCollision(
+                    ObjectManager.Player.ServerPosition.To2D(), new List<Vector2> { targetPrediction });
+                if (qCollision.Any())
+                {
+                    _spells[SpellSlot.Q].CastOnUnit(qCollision.First());
+                }
+            }
+        }
+
         /// <summary>
         ///     Goes ham on a target using a minion for collision, and finishing the target with an extended Q
         /// </summary>
@@ -287,22 +297,21 @@ namespace iDzLucian
         {
             //TODO test this, remains untesed due to my high ping.
             var minions = MinionManager.GetMinions(_player.ServerPosition, _spells[SpellSlot.Q].Range);
-            var extendedQTarget =
-                HeroManager.Enemies.FirstOrDefault(
-                    hero =>
-                        hero.IsValidTarget(_qExtended.Range) && _player.GetSpellDamage(hero, SpellSlot.Q) > hero.Health);
+            var extendedQTarget = TargetSelector.GetTarget(_qExtended.Range, TargetSelector.DamageType.Physical);
 
-            if (extendedQTarget == null || !_spells[SpellSlot.Q].IsReady() || !_spells[SpellSlot.E].IsReady())
+            if (extendedQTarget == null || !extendedQTarget.IsValidTarget(_qExtended.Range) ||
+                !_spells[SpellSlot.Q].IsReady() || !_spells[SpellSlot.E].IsReady())
             {
                 return;
             }
 
             foreach (var selectedMinion in
-                minions.Where(minion => _spells[SpellSlot.Q].IsInRange(minion) && _qExtended.IsInRange(extendedQTarget)))
+                minions.Where(minion => _spells[SpellSlot.Q].IsInRange(minion) && _qExtended.IsInRange(extendedQTarget))
+                )
             {
                 var bestPosition = _qExtended.GetPrediction(extendedQTarget, true).CastPosition.To2D();
                 var collisionObjects = _qExtended.GetCollision(
-                    _player.ServerPosition.To2D(), new List<Vector2> { bestPosition }); // FROM e endPositiono
+                    selectedMinion.Position.To2D(), new List<Vector2> { bestPosition }); // FROM e endPositiono
 
                 if (_spells[SpellSlot.E].IsInRange(bestPosition) && bestPosition != _player.Position.To2D())
                 {
@@ -316,6 +325,8 @@ namespace iDzLucian
             }
         }
 
+        #endregion
+
         #region Menu and Spells
 
         private static void LoadSpells()
@@ -327,7 +338,6 @@ namespace iDzLucian
             _spells[SpellSlot.E].SetSkillshot(.25f, 1f, float.MaxValue, false, SkillshotType.SkillshotLine);
             _spells[SpellSlot.R].SetSkillshot(.1f, 110, 2800, true, SkillshotType.SkillshotLine);
         }
-
 
         private static void CreateMenu()
         {
