@@ -180,10 +180,10 @@ namespace iEzrealReworked
 
             var comboMenu = new Menu("Ezreal - Combo", "com.iezreal.combo");
             comboMenu.AddModeMenu(
-                Mode.Combo, new[] { SpellSlot.Q, SpellSlot.W, SpellSlot.E, SpellSlot.R },
-                new[] { true, true, false, false });
+                Mode.Combo, new[] { SpellSlot.Q, SpellSlot.W, SpellSlot.R },
+                new[] { true, true, true });
             comboMenu.AddManaManager(
-                Mode.Combo, new[] { SpellSlot.Q, SpellSlot.W, SpellSlot.E, SpellSlot.R }, new[] { 35, 35, 25, 10 });
+                Mode.Combo, new[] { SpellSlot.Q, SpellSlot.W, SpellSlot.R }, new[] { 35, 35, 10 });
             Menu.AddSubMenu(comboMenu);
 
             var harassMenu = new Menu("Ezreal - Harass", "com.iezreal.harass");
