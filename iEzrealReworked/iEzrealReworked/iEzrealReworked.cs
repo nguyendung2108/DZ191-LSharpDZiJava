@@ -47,20 +47,31 @@ namespace iEzrealReworked
         ///     Gets the real trueshot barrage damage taking into account minions and champions inline with Ultimate width
         /// </summary>
         /// <param name="target"></param>
-        /// <returns>the real ultimate damage</returns>
+        /// <returns>if the player can kill the target with ult...</returns>
         private static bool CanExecuteTarget(Obj_AI_Hero target)
         {
             var targetPrediction = Spells[SpellSlot.R].GetPrediction(target);
-            var count = Spells[SpellSlot.R].GetCollision(_player.ServerPosition.To2D(), new List<Vector2> { targetPrediction.CastPosition.To2D() }).Count;
+            var count =
+                Spells[SpellSlot.R].GetCollision(
+                    _player.ServerPosition.To2D(), new List<Vector2> { targetPrediction.CastPosition.To2D() }).Count;
             var distance = _player.Distance(target);
             float additionalDamage = 0;
 
             if (count >= 7)
+            {
                 additionalDamage = Spells[SpellSlot.R].GetDamage(target) * 0.3f;
-            else if (count > 1)
+            }
+            else if (count == 0)
+            {
+                additionalDamage = 1.0f;
+            }
+            else
+            {
                 additionalDamage = Spells[SpellSlot.R].GetDamage(target) * (10 - count / 10);
+            }
 
-            return Spells[SpellSlot.R].GetDamage(target) + additionalDamage > (target.Health + (distance / Spells[SpellSlot.R].Speed) * target.HPRegenRate);
+            return Spells[SpellSlot.R].GetDamage(target) + additionalDamage >
+                   (target.Health + (distance / Spells[SpellSlot.R].Speed) * target.HPRegenRate);
         }
 
         #endregion
@@ -182,10 +193,8 @@ namespace iEzrealReworked
 
             var comboMenu = new Menu("Ezreal - Combo", "com.iezreal.combo");
             comboMenu.AddModeMenu(
-                Mode.Combo, new[] { SpellSlot.Q, SpellSlot.W, SpellSlot.R },
-                new[] { true, true, true });
-            comboMenu.AddManaManager(
-                Mode.Combo, new[] { SpellSlot.Q, SpellSlot.W, SpellSlot.R }, new[] { 35, 35, 10 });
+                Mode.Combo, new[] { SpellSlot.Q, SpellSlot.W, SpellSlot.R }, new[] { true, true, true });
+            comboMenu.AddManaManager(Mode.Combo, new[] { SpellSlot.Q, SpellSlot.W, SpellSlot.R }, new[] { 35, 35, 10 });
             Menu.AddSubMenu(comboMenu);
 
             var harassMenu = new Menu("Ezreal - Harass", "com.iezreal.harass");
