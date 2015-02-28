@@ -19,7 +19,6 @@ using System.Linq;
 using iEzrealReworked.helpers;
 using LeagueSharp;
 using LeagueSharp.Common;
-using SharpDX;
 
 namespace iEzrealReworked
 {
@@ -50,94 +49,23 @@ namespace iEzrealReworked
         /// <returns>if the player can kill the target with ult...</returns>
         private static bool CanExecuteTarget(Obj_AI_Hero target)
         {
-            var targetPrediction = Spells[SpellSlot.R].GetPrediction(target);
-            var count =
-                Spells[SpellSlot.R].GetCollision(
-                    _player.ServerPosition.To2D(), new List<Vector2> { targetPrediction.CastPosition.To2D() }).Count;
-            var distance = _player.Distance(target);
-            float additionalDamage;
+            double totalDamage = 0;
+            totalDamage += _player.GetSpellDamage(target, SpellSlot.R);
+
+            var prediction = Spells[SpellSlot.R].GetPrediction(target);
+            var count = prediction.CollisionObjects.Count;
 
             if (count >= 7)
             {
-                additionalDamage = Spells[SpellSlot.R].GetDamage(target) * 0.3f;
+                totalDamage = totalDamage * .3;
             }
-            else if (count == 0)
+            else if (count != 0)
             {
-                additionalDamage = 1.0f;
-            }
-            else
-            {
-                additionalDamage = Spells[SpellSlot.R].GetDamage(target) * (10 - count / 10);
+                totalDamage = totalDamage * (10 - count / 10);
             }
 
-            return Spells[SpellSlot.R].GetDamage(target) + additionalDamage >
-                   (target.Health + (distance / Spells[SpellSlot.R].Speed) * target.HPRegenRate);
-        }
-
-        /// <summary>
-        ///     gets minions and champs in a spells path.
-        /// </summary>
-        /// <param name="player"> the unit </param>
-        /// <param name="target"> the target </param>
-        /// <param name="spell"> the spell to do the calculations for </param>
-        /// <returns>
-        ///     if a target is killable with given spell, taking into account damage reduction from minions and champs it
-        ///     passes through also takes into account health regeneration rate, returns true / false.
-        /// </returns>
-        private static bool CanExecuteTarget(Obj_AI_Hero player, Obj_AI_Hero target, Spell spell)
-        {
-            float distance = player.Distance(target);
-            List<Obj_AI_Base> minionList = MinionManager.GetMinions(
-                ObjectManager.Player.ServerPosition, spell.Range, MinionTypes.All, MinionTeam.NotAlly);
-            int numberOfMinions = (from Obj_AI_Minion minion in minionList
-                let skillshotPosition =
-                    V2E(
-                        player.Position,
-                        V2E(
-                            player.Position, target.Position,
-                            Vector3.Distance(player.Position, target.Position) - spell.Width + 1).To3D(),
-                        Vector3.Distance(player.Position, minion.Position))
-                where skillshotPosition.Distance(minion) < spell.Width
-                select minion).Count();
-            int numberOfChamps = (from minion in ObjectManager.Get<Obj_AI_Hero>()
-                let skillshotPosition =
-                    V2E(
-                        player.Position,
-                        V2E(
-                            player.Position, target.Position,
-                            Vector3.Distance(player.Position, target.Position) - spell.Width + 1).To3D(),
-                        Vector3.Distance(player.Position, minion.Position))
-                where skillshotPosition.Distance(minion) < spell.Width && minion.IsEnemy
-                select minion).Count();
-            int totalUnits = numberOfChamps + numberOfMinions - 1;
-            // total number of champions and minions the projectile will pass through.
-            if (totalUnits == -1)
-            {
-                return false;
-            }
-            //if total higher or equal to 7 then damage reduction = 0.3 else if total == 0 then damage reduction = 1.0 else damage reduction = 1 - total / 10 // TODO make this useable for similar champs.
-            double damageReduction = 0;
-            switch (ObjectManager.Player.ChampionName)
-            {
-                case "Ezreal":
-                    damageReduction = ((totalUnits >= 7)) ? 0.3 : (totalUnits == 0) ? 1.0 : (1 - ((totalUnits) / 10));
-                    break;
-            }
-            // the damage reduction calculations minus percentage for each unit it passes through!
-            return spell.GetDamage(target) * damageReduction >= (target.Health + (distance / 2000) * target.HPRegenRate);
-            // - 15 is a safeguard for certain kill.
-        }
-
-        /// <summary>
-        ///     Extends a vector using the params from, direction, distance
-        /// </summary>
-        /// <param name="from"></param>
-        /// <param name="direction"></param>
-        /// <param name="distance"></param>
-        /// <returns></returns>
-        private static Vector2 V2E(Vector3 from, Vector3 direction, float distance)
-        {
-            return from.To2D() + distance * Vector3.Normalize(direction - from).To2D();
+            Game.PrintChat("collision: " + count);
+            return (float) totalDamage > target.Health + target.HPRegenRate * 3 + 25;
         }
 
         #endregion
@@ -341,7 +269,7 @@ namespace iEzrealReworked
             {
                 if (Spells[SpellSlot.R].IsEnabledAndReady(Mode.Combo) && Spells[SpellSlot.R].CanCast(target))
                 {
-                    if (CanExecuteTarget(_player, target, Spells[SpellSlot.R]))
+                    if (CanExecuteTarget(target))
                     {
                         Spells[SpellSlot.R].CastIfHitchanceEquals(target, MenuHelper.GetHitchance());
                     }
