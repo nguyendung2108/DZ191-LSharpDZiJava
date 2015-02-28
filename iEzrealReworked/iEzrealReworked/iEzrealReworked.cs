@@ -264,8 +264,7 @@ namespace iEzrealReworked
             {
                 if (Spells[SpellSlot.R].IsEnabledAndReady(Mode.Combo) && Spells[SpellSlot.R].CanCast(target))
                 {
-                    if (GetRealBarrageDamage(target) >=
-                        (target.Health + _player.Distance(target) / Spells[SpellSlot.R].Speed) * target.HPRegenRate)
+                    if (GetRealBarrageDamage(target) >= target.Health)
                     {
                         Spells[SpellSlot.R].CastIfHitchanceEquals(target, MenuHelper.GetHitchance());
                     }
