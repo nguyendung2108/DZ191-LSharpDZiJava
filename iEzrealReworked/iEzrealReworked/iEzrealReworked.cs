@@ -279,6 +279,10 @@ namespace iEzrealReworked
                     {
                         Spells[SpellSlot.R].CastIfHitchanceEquals(target, MenuHelper.GetHitchance());
                     }
+                    else
+                    {
+                        Game.PrintChat(string.Format("{0} is not killable..", target.ChampionName));
+                    }
                 }
             }
         }
