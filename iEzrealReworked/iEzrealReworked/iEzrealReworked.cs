@@ -57,7 +57,7 @@ namespace iEzrealReworked
             return (count >= 7)
                 ? Spells[SpellSlot.R].GetDamage(target) * 0.3f
                 : (count > 0 && count < 7)
-                    ? Spells[SpellSlot.R].GetDamage(target) * (1 - count / 10)
+                    ? Spells[SpellSlot.R].GetDamage(target) * (10 - count / 10)
                     : Spells[SpellSlot.R].GetDamage(target);
         }
 
