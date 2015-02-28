@@ -48,17 +48,19 @@ namespace iEzrealReworked
         /// </summary>
         /// <param name="target"></param>
         /// <returns>the real ultimate damage</returns>
-        private static double GetRealBarrageDamage(Obj_AI_Hero target)
+        private static bool CanExecuteTarget(Obj_AI_Hero target)
         {
             var targetPrediction = Spells[SpellSlot.R].GetPrediction(target);
-            var rCollision = Spells[SpellSlot.R].GetCollision(_player.ServerPosition.To2D(), new List<Vector2> { targetPrediction.CastPosition.To2D() });
-            float count = rCollision.Count;
+            var count = Spells[SpellSlot.R].GetCollision(_player.ServerPosition.To2D(), new List<Vector2> { targetPrediction.CastPosition.To2D() }).Count;
+            var distance = _player.Distance(target);
+            float additionalDamage = 0;
 
-            return (count >= 7)
-                ? Spells[SpellSlot.R].GetDamage(target) * 0.3f
-                : (count > 0 && count < 7)
-                    ? Spells[SpellSlot.R].GetDamage(target) * (10 - count / 10)
-                    : Spells[SpellSlot.R].GetDamage(target);
+            if (count >= 7)
+                additionalDamage = Spells[SpellSlot.R].GetDamage(target) * 0.3f;
+            else if (count > 1)
+                additionalDamage = Spells[SpellSlot.R].GetDamage(target) * (10 - count / 10);
+
+            return Spells[SpellSlot.R].GetDamage(target) + additionalDamage > (target.Health + (distance / Spells[SpellSlot.R].Speed) * target.HPRegenRate);
         }
 
         #endregion
@@ -264,7 +266,7 @@ namespace iEzrealReworked
             {
                 if (Spells[SpellSlot.R].IsEnabledAndReady(Mode.Combo) && Spells[SpellSlot.R].CanCast(target))
                 {
-                    if (GetRealBarrageDamage(target) >= target.Health)
+                    if (CanExecuteTarget(target))
                     {
                         Spells[SpellSlot.R].CastIfHitchanceEquals(target, MenuHelper.GetHitchance());
                     }
