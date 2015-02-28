@@ -49,23 +49,22 @@ namespace iEzrealReworked
         /// <returns>if the player can kill the target with ult...</returns>
         private static bool CanExecuteTarget(Obj_AI_Hero target)
         {
-            double totalDamage = 0;
-            totalDamage += _player.GetSpellDamage(target, SpellSlot.R);
+            double damage = 0;
 
             var prediction = Spells[SpellSlot.R].GetPrediction(target);
             var count = prediction.CollisionObjects.Count;
 
             if (count >= 7)
             {
-                totalDamage = totalDamage * .3;
+                damage = _player.GetSpellDamage(target, SpellSlot.R) * .3;
             }
             else if (count != 0)
             {
-                totalDamage = totalDamage * (10 - count / 10);
+                damage = _player.GetSpellDamage(target, SpellSlot.R) * (10 - count / 10);
             }
 
             Game.PrintChat("collision: " + count);
-            return (float) totalDamage > target.Health + target.HPRegenRate * 3 + 25;
+            return damage > target.Health + target.HPRegenRate * 3 + 25;
         }
 
         #endregion
