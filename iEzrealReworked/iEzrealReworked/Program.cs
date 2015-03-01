@@ -21,7 +21,8 @@ namespace iEzrealReworked
     {
         private static void Main(string[] args)
         {
-            CustomEvents.Game.OnGameLoad += iEzrealReworked.OnLoad;
+            var ezreal = new iEzrealReworked();
+            CustomEvents.Game.OnGameLoad += ezreal.OnLoad;
         }
     }
 }

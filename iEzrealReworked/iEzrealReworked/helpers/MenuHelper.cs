@@ -79,7 +79,7 @@ namespace iEzrealReworked.helpers
 
         public static void AddDrawMenu(this Menu menu,
             Dictionary<SpellSlot, Spell> dictionary,
-            System.Drawing.Color myColor)
+            Color myColor)
         {
             foreach (var entry in dictionary)
             {

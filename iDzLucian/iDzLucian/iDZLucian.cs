@@ -295,7 +295,7 @@ namespace iDzLucian
         /// </summary>
         private static void DashKillsteal()
         {
-            //TODO test this, remains untesed due to my high ping.
+            //TODO test this, remains untesed due to my high ping. cmon dz embaress me
             var minions = MinionManager.GetMinions(_player.ServerPosition, _spells[SpellSlot.Q].Range);
             var extendedQTarget = TargetSelector.GetTarget(_qExtended.Range, TargetSelector.DamageType.Physical);
 
