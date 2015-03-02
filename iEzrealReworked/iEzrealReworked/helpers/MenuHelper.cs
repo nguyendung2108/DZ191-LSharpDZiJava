@@ -101,12 +101,6 @@ namespace iEzrealReworked.helpers
                     new StringList(new[] { "Low", "Medium", "High", "Very High" }, 2)));
         }
 
-        public static void AddSlider(this Menu menu, string name, int defaultValue, int minValue, int maxValue)
-        {
-            menu.AddItem(
-                new MenuItem("com.iezreal.slider" + name, name).SetValue(new Slider(defaultValue, minValue, maxValue)));
-        }
-
         public static bool IsMenuEnabled(string item)
         {
             return iEzrealReworked.Menu.Item(item).GetValue<bool>();

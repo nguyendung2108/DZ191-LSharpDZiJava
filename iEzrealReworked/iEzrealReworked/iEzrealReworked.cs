@@ -27,10 +27,6 @@ namespace iEzrealReworked
     {
         //The menu instance
         public static Menu Menu;
-        //The common orbwalker
-        private Orbwalking.Orbwalker _orbwalker;
-        //The player
-        private Obj_AI_Hero _player;
         //The Spell Values for Q, W, E and R
         private readonly Dictionary<SpellSlot, Spell> _spells = new Dictionary<SpellSlot, Spell>
         {
@@ -39,6 +35,11 @@ namespace iEzrealReworked
             { SpellSlot.E, new Spell(SpellSlot.E, 475) },
             { SpellSlot.R, new Spell(SpellSlot.R, 20000) }
         };
+
+        //The common orbwalker
+        private Orbwalking.Orbwalker _orbwalker;
+        //The player
+        private Obj_AI_Hero _player;
 
         #region calculations
 
@@ -63,7 +64,7 @@ namespace iEzrealReworked
                 damage = _player.GetSpellDamage(target, SpellSlot.R) * (10 - count / 10);
             }
 
-            return damage > target.Health + target.HPRegenRate * 3 + 25;
+            return damage > target.Health + 15;
         }
 
         #endregion
@@ -92,7 +93,7 @@ namespace iEzrealReworked
 
             //Event Subscribers
             Game.OnGameUpdate += OnGameUpdate;
-            Drawing.OnDraw += OnDraw;
+            Drawing.OnDraw += delegate { DrawHelper.DrawSpellsRanges(_spells); };
         }
 
         /// <summary>
@@ -120,24 +121,6 @@ namespace iEzrealReworked
                 case Orbwalking.OrbwalkingMode.LastHit:
                     OnFarm();
                     break;
-            }
-        }
-
-        /// <summary>
-        ///     Draw the spell ranges and whatever other shit you feel like drawing.
-        /// </summary>
-        /// <param name="args"></param>
-        private void OnDraw(EventArgs args)
-        {
-            foreach (KeyValuePair<SpellSlot, Spell> spell in
-                _spells.Where(
-                    spell =>
-                        MenuHelper.IsMenuEnabled(
-                            "com.iezreal.drawing.draw" + MenuHelper.GetStringFromSpellSlot(spell.Key))))
-            {
-                Render.Circle.DrawCircle(
-                    _player.Position, spell.Value.Range,
-                    MenuHelper.GetCicleColour("com.iezreal.drawing.draw" + MenuHelper.GetStringFromSpellSlot(spell.Key)));
             }
         }
 
@@ -169,19 +152,32 @@ namespace iEzrealReworked
         private void OnFarm()
         {
             var allMinions = MinionManager.GetMinions(_player.ServerPosition, _spells[SpellSlot.Q].Range);
+            Obj_AI_Base qMinion = allMinions.FirstOrDefault(min => min.IsValidTarget(_spells[SpellSlot.Q].Range));
             switch (_orbwalker.ActiveMode)
             {
                 case Orbwalking.OrbwalkingMode.LaneClear:
-                    Obj_AI_Base qMinion = allMinions.FirstOrDefault(min => min.IsValidTarget(_spells[SpellSlot.Q].Range));
+
                     if (_spells[SpellSlot.Q].IsEnabledAndReady(Mode.Laneclear) && _spells[SpellSlot.Q].CanCast(qMinion))
                     {
                         _spells[SpellSlot.Q].Cast(qMinion);
                     }
-                    //TODO r laneclear with amt of minions...
-
+                    var ultMinions = _spells[SpellSlot.R].GetLineFarmLocation(allMinions);
+                    if (_spells[SpellSlot.R].IsEnabledAndReady(Mode.Laneclear))
+                    {
+                        if (ultMinions.MinionsHit >= MenuHelper.GetSliderValue("com.iezreal.farm.r.lc.minhit"))
+                        {
+                            _spells[SpellSlot.R].Cast(ultMinions.Position);
+                        }
+                    }
                     break;
                 case Orbwalking.OrbwalkingMode.LastHit:
-
+                    if (_spells[SpellSlot.Q].IsEnabledAndReady(Mode.Lasthit) && _spells[SpellSlot.Q].CanCast(qMinion))
+                    {
+                        if (qMinion != null && qMinion.Health < _player.GetSpellDamage(qMinion, SpellSlot.R))
+                        {
+                            _spells[SpellSlot.Q].Cast(qMinion);
+                        }
+                    }
                     break;
             }
         }
@@ -195,7 +191,7 @@ namespace iEzrealReworked
         /// </summary>
         private void CreateMenu()
         {
-            Menu = new Menu("iEzreal Reworked", "com.iezreal", true);
+            Menu = new Menu("iDzEzreal", "com.iezreal", true);
 
             var orbMenu = new Menu("Ezreal - Orbwalker", "com.iezreal.orbwalker");
             _orbwalker = new Orbwalking.Orbwalker(orbMenu);
@@ -219,7 +215,14 @@ namespace iEzrealReworked
             var farmMenu = new Menu("Ezreal - Farm", "com.iezreal.farm");
             farmMenu.AddModeMenu(Mode.Laneclear, new[] { SpellSlot.Q, SpellSlot.R }, new[] { true, false });
             farmMenu.AddManaManager(Mode.Laneclear, new[] { SpellSlot.Q, SpellSlot.R }, new[] { 35, 35 });
-            farmMenu.AddSlider("", 0, 0, 0);
+            //
+            farmMenu.AddModeMenu(Mode.Lasthit, new[] { SpellSlot.Q }, new[] { true });
+            farmMenu.AddManaManager(Mode.Lasthit, new[] { SpellSlot.Q }, new[] { 35 });
+            var farmOptions = new Menu("Farm Options", "com.iezreal.farm.farm");
+            {
+                farmOptions.AddItem(
+                    new MenuItem("com.iezreal.farm.r.lc.minhit", "Min Minions for R LC").SetValue(new Slider(10, 1, 20)));
+            }
             Menu.AddSubMenu(farmMenu);
 
             var miscMenu = new Menu("Ezreal - Misc", "com.iezreal.misc");
@@ -293,10 +296,6 @@ namespace iEzrealReworked
                     if (CanExecuteTarget(target))
                     {
                         _spells[SpellSlot.R].CastIfHitchanceEquals(target, MenuHelper.GetHitchance());
-                    }
-                    else
-                    {
-                        Game.PrintChat(string.Format("{0} is not killable..", target.ChampionName));
                     }
                 }
             }
