@@ -107,6 +107,9 @@ namespace iEzrealReworked
                 return;
             }
 
+            if (MenuHelper.IsMenuEnabled("ksEnabled"))
+                OnKillsteal();
+
             switch (_orbwalker.ActiveMode)
             {
                 case Orbwalking.OrbwalkingMode.Combo:
@@ -149,6 +152,22 @@ namespace iEzrealReworked
             CastEssenceFlux(target, Mode.Harass);
         }
 
+        private void OnKillsteal()
+        {
+            var target = TargetSelector.GetTarget(_spells[SpellSlot.Q].Range, TargetSelector.DamageType.Physical);
+            if (_player.GetSpellDamage(target, SpellSlot.Q) > target.Health + 10)
+            {
+                CastMysticShot(target, Mode.Killsteal);
+            }
+            if (_player.GetSpellDamage(target, SpellSlot.W) > target.Health + 10)
+            {
+                CastEssenceFlux(target, Mode.Killsteal);
+            }
+        }
+
+        /// <summary>
+        ///     Performs the farming sequence...
+        /// </summary>
         private void OnFarm()
         {
             var allMinions = MinionManager.GetMinions(_player.ServerPosition, _spells[SpellSlot.Q].Range);
@@ -193,13 +212,13 @@ namespace iEzrealReworked
         {
             Menu = new Menu("iDzEzreal", "com.iezreal", true);
 
-            var orbMenu = new Menu("Ezreal - Orbwalker", "com.iezreal.orbwalker");
-            _orbwalker = new Orbwalking.Orbwalker(orbMenu);
-            Menu.AddSubMenu(orbMenu);
-
             var tsMenu = new Menu("Ezreal - Target Selector", "com.iezreal.ts");
             TargetSelector.AddToMenu(tsMenu);
             Menu.AddSubMenu(tsMenu);
+
+            var orbMenu = new Menu("Ezreal - Orbwalker", "com.iezreal.orbwalker");
+            _orbwalker = new Orbwalking.Orbwalker(orbMenu);
+            Menu.AddSubMenu(orbMenu);
 
             var comboMenu = new Menu("Ezreal - Combo", "com.iezreal.combo");
             comboMenu.AddModeMenu(
@@ -224,6 +243,11 @@ namespace iEzrealReworked
                     new MenuItem("com.iezreal.farm.r.lc.minhit", "Min Minions for R LC").SetValue(new Slider(10, 1, 20)));
             }
             Menu.AddSubMenu(farmMenu);
+
+            var killstealMenu = new Menu("Ezreal - Killsteal", "com.iezreal.ks");
+            killstealMenu.AddItem(new MenuItem("ksEnabled", "Enable Killsteal").SetValue(true));
+            killstealMenu.AddModeMenu(Mode.Killsteal, new[] { SpellSlot.Q, SpellSlot.W }, new[] { true, true });
+            Menu.AddSubMenu(killstealMenu);
 
             var miscMenu = new Menu("Ezreal - Misc", "com.iezreal.misc");
             miscMenu.AddHitChanceSelector();

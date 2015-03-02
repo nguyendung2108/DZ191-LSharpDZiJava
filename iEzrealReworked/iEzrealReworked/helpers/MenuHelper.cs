@@ -173,6 +173,8 @@ namespace iEzrealReworked.helpers
                     return "LC";
                 case Mode.Farm:
                     return "F";
+                case Mode.Killsteal:
+                    return "K";
                 default:
                     return "unk";
             }
@@ -190,6 +192,7 @@ namespace iEzrealReworked.helpers
         Harass,
         Lasthit,
         Laneclear,
-        Farm
+        Farm,
+        Killsteal
     }
 }
