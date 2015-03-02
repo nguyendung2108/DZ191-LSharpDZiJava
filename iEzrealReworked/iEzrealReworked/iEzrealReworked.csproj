@@ -67,6 +67,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="helpers\DrawHelper.cs" />
     <Compile Include="helpers\MenuHelper.cs" />
     <Compile Include="iEzrealReworked.cs" />
     <Compile Include="Program.cs" />
