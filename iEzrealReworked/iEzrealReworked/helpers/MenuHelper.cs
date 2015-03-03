@@ -15,11 +15,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
-using SharpDX;
-using Color = System.Drawing.Color;
 
 namespace iEzrealReworked.helpers
 {
@@ -64,6 +63,18 @@ namespace iEzrealReworked.helpers
             menu.AddSubMenu(mmMenu);
         }
 
+        //TODO make it better?
+        public static void AddKillstealMenu(this Menu menu, SpellSlot[] spells, bool[] values)
+        {
+            for (int i = 0; i < spells.Count(); i++)
+            {
+                menu.AddItem(
+                    new MenuItem(
+                        "com.iezreal.killsteal.use" + GetStringFromSpellSlot(spells[i]).ToLowerInvariant(),
+                        "Use " + GetStringFromSpellSlot(spells[i]) + " Killsteal"));
+            }
+        }
+
         public static void AddModeMenu(this Menu menu, Mode mode, SpellSlot[] spellList, bool[] values)
         {
             for (var i = 0; i < spellList.Count(); i++)
@@ -77,9 +88,7 @@ namespace iEzrealReworked.helpers
             }
         }
 
-        public static void AddDrawMenu(this Menu menu,
-            Dictionary<SpellSlot, Spell> dictionary,
-            Color myColor)
+        public static void AddDrawMenu(this Menu menu, Dictionary<SpellSlot, Spell> dictionary, Color myColor)
         {
             foreach (var entry in dictionary)
             {
@@ -108,14 +117,16 @@ namespace iEzrealReworked.helpers
 
         public static int GetSliderValue(string item)
         {
-            return iEzrealReworked.Menu.Item(item) != null ? iEzrealReworked.Menu.Item(item).GetValue<Slider>().Value : -1;
+            return iEzrealReworked.Menu.Item(item) != null
+                ? iEzrealReworked.Menu.Item(item).GetValue<Slider>().Value
+                : -1;
         }
 
         public static Color GetCicleColour(string item)
         {
             return iEzrealReworked.Menu.Item(item) != null
                 ? iEzrealReworked.Menu.Item(item).GetValue<Circle>().Color
-                : System.Drawing.Color.DarkRed;
+                : Color.DarkRed;
         }
 
         public static bool GetKeybindValue(string item)

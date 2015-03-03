@@ -55,16 +55,18 @@ namespace iEzrealReworked
             var prediction = _spells[SpellSlot.R].GetPrediction(target);
             var count = prediction.CollisionObjects.Count;
 
+            damage += _player.GetSpellDamage(target, SpellSlot.R);
+
             if (count >= 7)
             {
-                damage = _player.GetSpellDamage(target, SpellSlot.R) * .3;
+                damage = damage * .3;
             }
             else if (count != 0)
             {
-                damage = _player.GetSpellDamage(target, SpellSlot.R) * (10 - count / 10);
+                damage = damage * (10 - count / 10);
             }
 
-            return damage > target.Health + 15;
+            return damage > target.Health + 10;
         }
 
         #endregion
@@ -239,15 +241,18 @@ namespace iEzrealReworked
             Menu.AddSubMenu(skillOptions);
 
             var farmMenu = new Menu("Ezreal - Farm", "com.iezreal.farm");
-            farmMenu.AddModeMenu(Mode.Laneclear, new[] { SpellSlot.Q, SpellSlot.R }, new[] { true, false });
-            farmMenu.AddManaManager(Mode.Laneclear, new[] { SpellSlot.Q, SpellSlot.R }, new[] { 35, 35 });
-            //
-            farmMenu.AddModeMenu(Mode.Lasthit, new[] { SpellSlot.Q }, new[] { true });
-            farmMenu.AddManaManager(Mode.Lasthit, new[] { SpellSlot.Q }, new[] { 35 });
-            var farmOptions = new Menu("Farm Options", "com.iezreal.farm.farm");
+            var laneclear = new Menu("Laneclear", "com.iezreal.farm.lc");
             {
-                farmOptions.AddItem(
-                    new MenuItem("com.iezreal.farm.r.lc.minhit", "Min Minions for R LC").SetValue(new Slider(10, 1, 20)));
+                laneclear.AddModeMenu(Mode.Laneclear, new[] { SpellSlot.Q, SpellSlot.R }, new[] { true, false });
+                laneclear.AddManaManager(Mode.Laneclear, new[] { SpellSlot.Q, SpellSlot.R }, new[] { 35, 35 });
+                laneclear.AddItem(
+                   new MenuItem("com.iezreal.farm.r.lc.minhit", "Min Minions hit for R").SetValue(new Slider(10, 1, 20)));
+            }
+            //
+            var lasthit = new Menu("Laneclear", "com.iezreal.farm.lh");
+            {
+                lasthit.AddModeMenu(Mode.Lasthit, new[] { SpellSlot.Q }, new[] { true });
+                lasthit.AddManaManager(Mode.Lasthit, new[] { SpellSlot.Q }, new[] { 35 });
             }
             Menu.AddSubMenu(farmMenu);
 
@@ -323,9 +328,7 @@ namespace iEzrealReworked
         /// </summary>
         private void CastTrueshotBarrage()
         {
-            //2500 range for ult ofc
-            var target = TargetSelector.GetTarget(
-                MenuHelper.GetSliderValue("rRange"), TargetSelector.DamageType.Physical);
+            var target = TargetSelector.GetTarget(20000, TargetSelector.DamageType.Physical);
             if (target.IsValidTarget(_spells[SpellSlot.R].Range))
             {
                 if (_spells[SpellSlot.R].IsEnabledAndReady(Mode.Combo) && _spells[SpellSlot.R].CanCast(target) &&
