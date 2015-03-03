@@ -72,7 +72,7 @@ namespace iEzrealReworked
         #region Events
 
         /// <summary>
-        ///     The onload function load your spells and other shit here before game starts.
+        ///     The OnLoad function load your spells and other shit here before game starts.
         /// </summary>
         /// <param name="args">The event arguments.</param>
         public void OnLoad(EventArgs args)
@@ -108,7 +108,9 @@ namespace iEzrealReworked
             }
 
             if (MenuHelper.IsMenuEnabled("ksEnabled"))
+            {
                 OnKillsteal();
+            }
 
             switch (_orbwalker.ActiveMode)
             {
@@ -136,10 +138,9 @@ namespace iEzrealReworked
         /// </summary>
         private void OnCombo()
         {
-            var target = TargetSelector.GetTarget(_spells[SpellSlot.Q].Range, TargetSelector.DamageType.Physical);
-            CastMysticShot(target, Mode.Combo);
-            CastEssenceFlux(target, Mode.Combo);
-            CastTrueshotBarrage(target);
+            CastMysticShot(Mode.Combo);
+            CastEssenceFlux(Mode.Combo);
+            CastTrueshotBarrage();
         }
 
         /// <summary>
@@ -147,9 +148,8 @@ namespace iEzrealReworked
         /// </summary>
         private void OnHarass()
         {
-            var target = TargetSelector.GetTarget(_spells[SpellSlot.Q].Range, TargetSelector.DamageType.Physical);
-            CastMysticShot(target, Mode.Harass);
-            CastEssenceFlux(target, Mode.Harass);
+            CastMysticShot(Mode.Harass);
+            CastEssenceFlux(Mode.Harass);
         }
 
         private void OnKillsteal()
@@ -157,11 +157,11 @@ namespace iEzrealReworked
             var target = TargetSelector.GetTarget(_spells[SpellSlot.Q].Range, TargetSelector.DamageType.Physical);
             if (_player.GetSpellDamage(target, SpellSlot.Q) > target.Health + 10)
             {
-                CastMysticShot(target, Mode.Killsteal);
+                CastMysticShot(Mode.Killsteal);
             }
             if (_player.GetSpellDamage(target, SpellSlot.W) > target.Health + 10)
             {
-                CastEssenceFlux(target, Mode.Killsteal);
+                CastEssenceFlux(Mode.Killsteal);
             }
         }
 
@@ -231,6 +231,13 @@ namespace iEzrealReworked
             harassMenu.AddManaManager(Mode.Harass, new[] { SpellSlot.Q, SpellSlot.W }, new[] { 35, 20 });
             Menu.AddSubMenu(harassMenu);
 
+            //TODO skilloptions
+            var skillOptions = new Menu("Ezreal - Skill Options", "com.iezreal.skilloptions");
+            skillOptions.AddItem(new MenuItem("qRange", "Min Q Range").SetValue(new Slider(900, 0, 1150)));
+            skillOptions.AddItem(new MenuItem("wRange", "Min W Range").SetValue(new Slider(800, 0, 1000)));
+            skillOptions.AddItem(new MenuItem("rRange", "Min R Range").SetValue(new Slider(2000, 0, 20000)));
+            Menu.AddSubMenu(skillOptions);
+
             var farmMenu = new Menu("Ezreal - Farm", "com.iezreal.farm");
             farmMenu.AddModeMenu(Mode.Laneclear, new[] { SpellSlot.Q, SpellSlot.R }, new[] { true, false });
             farmMenu.AddManaManager(Mode.Laneclear, new[] { SpellSlot.Q, SpellSlot.R }, new[] { 35, 35 });
@@ -278,15 +285,17 @@ namespace iEzrealReworked
         /// <summary>
         ///     Casts Ezreal's Mystic Shot
         /// </summary>
-        /// <param name="target">the target to cast the spell at</param>
         /// <param name="mode">the mode the player is currently using</param>
-        private void CastMysticShot(Obj_AI_Base target, Mode mode)
+        private void CastMysticShot(Mode mode)
         {
-            if (target.IsValidTarget(_spells[SpellSlot.Q].Range))
+            var target = TargetSelector.GetTarget(_spells[SpellSlot.Q].Range, TargetSelector.DamageType.Physical);
+            if (target.IsValidTarget(_spells[SpellSlot.Q].Range) &&
+                _player.Distance(target) <= MenuHelper.GetSliderValue("qRange"))
             {
                 if (_spells[SpellSlot.Q].IsEnabledAndReady(mode) && _spells[SpellSlot.Q].CanCast(target))
                 {
-                    _spells[SpellSlot.Q].CastIfHitchanceEquals(target, MenuHelper.GetHitchance());
+                    _spells[SpellSlot.Q].CastIfHitchanceEquals(
+                        target, target.IsMoving ? HitChance.High : MenuHelper.GetHitchance());
                 }
             }
         }
@@ -294,15 +303,17 @@ namespace iEzrealReworked
         /// <summary>
         ///     Casts Ezreal's Essence Flux
         /// </summary>
-        /// <param name="target">the target to cast the spell at</param>
         /// <param name="mode">the mode the player is currently using</param>
-        private void CastEssenceFlux(Obj_AI_Base target, Mode mode)
+        private void CastEssenceFlux(Mode mode)
         {
-            if (target.IsValidTarget(_spells[SpellSlot.W].Range))
+            var target = TargetSelector.GetTarget(_spells[SpellSlot.W].Range, TargetSelector.DamageType.Physical);
+            if (target.IsValidTarget(_spells[SpellSlot.W].Range) &&
+                _player.Distance(target) < MenuHelper.GetSliderValue("wRange"))
             {
                 if (_spells[SpellSlot.W].IsEnabledAndReady(mode) && _spells[SpellSlot.W].CanCast(target))
                 {
-                    _spells[SpellSlot.W].CastIfHitchanceEquals(target, MenuHelper.GetHitchance());
+                    _spells[SpellSlot.W].CastIfHitchanceEquals(
+                        target, target.IsMoving ? HitChance.High : MenuHelper.GetHitchance());
                 }
             }
         }
@@ -310,16 +321,20 @@ namespace iEzrealReworked
         /// <summary>
         ///     Casts Ezreal's Trueshot Barrage takes into account minion and champion collision for damage reduction
         /// </summary>
-        /// <param name="target">the target to cast the spell at</param>
-        private void CastTrueshotBarrage(Obj_AI_Hero target)
+        private void CastTrueshotBarrage()
         {
+            //2500 range for ult ofc
+            var target = TargetSelector.GetTarget(
+                MenuHelper.GetSliderValue("rRange"), TargetSelector.DamageType.Physical);
             if (target.IsValidTarget(_spells[SpellSlot.R].Range))
             {
-                if (_spells[SpellSlot.R].IsEnabledAndReady(Mode.Combo) && _spells[SpellSlot.R].CanCast(target))
+                if (_spells[SpellSlot.R].IsEnabledAndReady(Mode.Combo) && _spells[SpellSlot.R].CanCast(target) &&
+                    _player.Distance(target) <= MenuHelper.GetSliderValue("rRange"))
                 {
                     if (CanExecuteTarget(target))
                     {
-                        _spells[SpellSlot.R].CastIfHitchanceEquals(target, MenuHelper.GetHitchance());
+                        _spells[SpellSlot.R].CastIfHitchanceEquals(
+                            target, target.IsMoving ? HitChance.High : MenuHelper.GetHitchance());
                     }
                 }
             }
