@@ -57,7 +57,8 @@ namespace iDzLucian
             CreateMenu();
             Notifications.AddNotification(
                 new Notification("iDZLucian v" + Assembly.GetExecutingAssembly().GetName().Version + " loaded!", 2500));
-            Game.OnGameUpdate += OnGameUpdate;
+            Game.PrintChat("iDZLucian v" + Assembly.GetExecutingAssembly().GetName().Version + " loaded!");
+            Game.OnUpdate += OnGameUpdate;
             Obj_AI_Base.OnProcessSpellCast += Obj_AI_Base_OnProcessSpellCast;
             Orbwalking.AfterAttack += OrbwalkingAfterAttack;
         }
@@ -171,7 +172,7 @@ namespace iDzLucian
                     !_spells[SpellSlot.Q].IsEnabledAndReady(Mode.Combo) &&
                     !(HasPassive() && Orbwalking.InAutoAttackRange(target)))
                 {
-                    _spells[SpellSlot.W].CastIfHitchanceEquals(target, MenuHelper.GetHitchance());
+                    _spells[SpellSlot.W].Cast(target);
                     _orbwalker.ForceTarget(target);
                 }
             }
@@ -274,7 +275,7 @@ namespace iDzLucian
             }
             var target = TargetSelector.GetTarget(_spells[SpellSlot.Q].Range, TargetSelector.DamageType.Physical);
             var targetExtended = TargetSelector.GetTarget(_qExtended.Range, TargetSelector.DamageType.Physical);
-            if (!target.IsValidTarget() && targetExtended.IsValidTarget())
+            if (!target.IsValidTarget(_spells[SpellSlot.Q].Range) && targetExtended.IsValidTarget(_qExtended.Range))
             {
                 var targetPrediction = _qExtended.GetPrediction(targetExtended).CastPosition.To2D();
                 var qCollision = _qExtended.GetCollision(
@@ -349,10 +350,10 @@ namespace iDzLucian
 
             var comboMenu = new Menu("Lucian - Combo", "com.idzlucian.combo");
             comboMenu.AddModeMenu(
-                Mode.Combo, new[] { SpellSlot.Q, SpellSlot.W, SpellSlot.E, SpellSlot.R },
+                Mode.Combo, new[] { SpellSlot.Q, SpellSlot.W, SpellSlot.E },
                 new[] { true, true, false, false });
             comboMenu.AddManaManager(
-                Mode.Combo, new[] { SpellSlot.Q, SpellSlot.W, SpellSlot.E, SpellSlot.R }, new[] { 35, 35, 25, 10 });
+                Mode.Combo, new[] { SpellSlot.Q, SpellSlot.W, SpellSlot.E }, new[] { 35, 35, 25 });
 
             var skillOptionsCombo = new Menu("Skill Options", "com.idzlucian.combo.skilloptions");
             {
