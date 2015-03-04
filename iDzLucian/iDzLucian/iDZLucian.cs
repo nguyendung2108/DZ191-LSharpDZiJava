@@ -104,14 +104,9 @@ namespace iDzLucian
 
         private static void Obj_AI_Base_OnProcessSpellCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
         {
-            ////TODO Get Correct spell names DONE?
-            //Reset the AutoAttack timer after a Q, so we can attack immediately after.
-            //Logic for Spell Weaving would be:
-            //W AA Q AA (E AA)? // wouldn't it be Q aa, W aa, E, aa?
             if (sender.IsMe)
             {
                 if (ObjectManager.Player.GetSpellSlot(args.SData.Name) != SpellSlot.R)
-                    //TODO wait doesn't R have passive check fgt wat
                 {
                     _shouldHavePassive = true;
                     Utility.DelayAction.Add((int) Math.Floor(2000 - (Game.Ping / 2f)), () => _shouldHavePassive = false);
