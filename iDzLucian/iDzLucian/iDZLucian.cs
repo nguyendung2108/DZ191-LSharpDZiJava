@@ -78,6 +78,17 @@ namespace iDzLucian
                 {
                     var hypotheticalPosition = ObjectManager.Player.ServerPosition.Extend(
                         Game.CursorPos, _spells[SpellSlot.E].Range);
+                    if (ObjectManager.Player.HealthPercentage() <= 30 &&
+                        hero.HealthPercentage() >= ObjectManager.Player.HealthPercentage())
+                    {
+                        if (ObjectManager.Player.Position.Distance(ObjectManager.Player.ServerPosition) >= 35 &&
+                            hero.Distance(ObjectManager.Player.ServerPosition) <
+                            hero.Distance(ObjectManager.Player.Position) &&
+                            PositionHelper.IsSafePosition(hypotheticalPosition))
+                        {
+                            _spells[SpellSlot.E].Cast(hypotheticalPosition);
+                        }
+                    }
                     if (PositionHelper.IsSafePosition(hypotheticalPosition) &&
                         hypotheticalPosition.Distance(targ.ServerPosition) <= Orbwalking.GetRealAutoAttackRange(null) &&
                         (!_spells[SpellSlot.Q].IsEnabledAndReady(Mode.Combo) || !_spells[SpellSlot.Q].CanCast(targ)) &&
@@ -225,17 +236,7 @@ namespace iDzLucian
                         }
                     }
                     break;
-                case Orbwalking.OrbwalkingMode.LastHit:
-                    //TODO last hit with ExtendedQ hitting a target, then we are not just wasting Q for 1 cs...
-                    //or last hit if q will kill 3 >= minions
-                    break;
             }
-
-            #region laneclear
-
-            #endregion
-
-            //TODO Last hit.
         }
 
         #endregion
