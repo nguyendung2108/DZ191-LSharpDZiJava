@@ -350,10 +350,8 @@ namespace iDzLucian
 
             var comboMenu = new Menu("Lucian - Combo", "com.idzlucian.combo");
             comboMenu.AddModeMenu(
-                Mode.Combo, new[] { SpellSlot.Q, SpellSlot.W, SpellSlot.E },
-                new[] { true, true, false, false });
-            comboMenu.AddManaManager(
-                Mode.Combo, new[] { SpellSlot.Q, SpellSlot.W, SpellSlot.E }, new[] { 35, 35, 25 });
+                Mode.Combo, new[] { SpellSlot.Q, SpellSlot.W, SpellSlot.E }, new[] { true, true, false, false });
+            comboMenu.AddManaManager(Mode.Combo, new[] { SpellSlot.Q, SpellSlot.W, SpellSlot.E }, new[] { 35, 35, 25 });
 
             var skillOptionsCombo = new Menu("Skill Options", "com.idzlucian.combo.skilloptions");
             {
