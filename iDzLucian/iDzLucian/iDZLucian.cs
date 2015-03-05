@@ -133,6 +133,9 @@ namespace iDzLucian
             {
                 return;
             }
+
+            Killsteal();
+
             switch (_orbwalker.ActiveMode)
             {
                 case Orbwalking.OrbwalkingMode.Combo:
@@ -168,8 +171,8 @@ namespace iDzLucian
                         _orbwalker.ForceTarget(target);
                     }
                 }
-                if (_spells[SpellSlot.W].IsEnabledAndReady(Mode.Combo) && !(_spells[SpellSlot.Q].CanCast(target) ||
-                    _spells[SpellSlot.Q].IsEnabledAndReady(Mode.Combo)) &&
+                if (_spells[SpellSlot.W].IsEnabledAndReady(Mode.Combo) &&
+                    !(_spells[SpellSlot.Q].CanCast(target) || _spells[SpellSlot.Q].IsEnabledAndReady(Mode.Combo)) &&
                     !(HasPassive()) && Orbwalking.InAutoAttackRange(target))
                 {
                     _spells[SpellSlot.W].Cast(target);
@@ -235,6 +238,25 @@ namespace iDzLucian
             }
         }
 
+        private static void Killsteal()
+        {
+            var target = TargetSelector.GetTarget(_qExtended.Range, TargetSelector.DamageType.Physical);
+
+            if (_player.GetSpellDamage(target, SpellSlot.Q) > target.Health && !_spells[SpellSlot.Q].IsInRange(target))
+            {
+                ExtendedQ(Mode.Killsteal);
+            }
+
+            if (_player.GetSpellDamage(target, SpellSlot.Q) > target.Health && _spells[SpellSlot.Q].IsInRange(target))
+            {
+                if (_spells[SpellSlot.Q].IsEnabledAndReady(Mode.Killsteal) && _spells[SpellSlot.Q].CanCast(target))
+                {
+                    _spells[SpellSlot.Q].CastOnUnit(target);
+                }
+            }
+
+        }
+
         #endregion
 
         #region Calculations and Checks
@@ -282,7 +304,10 @@ namespace iDzLucian
                     ObjectManager.Player.ServerPosition.To2D(), new List<Vector2> { targetPrediction });
                 if (qCollision.Any())
                 {
-                    _spells[SpellSlot.Q].CastOnUnit(qCollision.First());
+                    if (_spells[SpellSlot.Q].IsEnabledAndReady(mode) && _spells[SpellSlot.Q].CanCast(qCollision.First()))
+                    {
+                        _spells[SpellSlot.Q].CastOnUnit(qCollision.First());
+                    }
                 }
             }
         }
@@ -360,6 +385,8 @@ namespace iDzLucian
                 skillOptionsCombo.AddItem(
                     new MenuItem("com.idzlucian.combo.useextendedq", "Use Extended Q Combo").SetValue(true));
                 skillOptionsCombo.AddItem(
+                    new MenuItem("com.idzlucian.killsteal.useextendedq", "Use Extended Q Killsteal").SetValue(true));
+                skillOptionsCombo.AddItem(
                     new MenuItem("com.idzlucian.harass.useextendedq", "Use Extended Q Harass").SetValue(true));
             }
             comboMenu.AddSubMenu(skillOptionsCombo);
@@ -382,8 +409,11 @@ namespace iDzLucian
                     new MenuItem("com.idzlucian.farm.q.lc.minhit", "Min Minions for Q LC").SetValue(new Slider(2, 1, 6)));
             }
             farmMenu.AddSubMenu(farmOptions);
-
             Menu.AddSubMenu(farmMenu);
+
+            var killstealMenu = new Menu("Lucian - Killsteal", "com.idzlucian.ks");
+            killstealMenu.AddModeMenu(Mode.Killsteal, new[] { SpellSlot.Q }, new[] { true });
+            Menu.AddSubMenu(killstealMenu);
 
             var miscMenu = new Menu("Lucian - Misc", "com.idzlucian.misc");
             {

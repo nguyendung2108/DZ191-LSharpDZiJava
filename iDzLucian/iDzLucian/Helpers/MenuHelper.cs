@@ -164,6 +164,8 @@ namespace iDzLucian.Helpers
                     return "LC";
                 case Mode.Farm:
                     return "F";
+                case Mode.Killsteal:
+                    return "KS";
                 default:
                     return "unk";
             }
@@ -181,6 +183,7 @@ namespace iDzLucian.Helpers
         Harass,
         Lasthit,
         Laneclear,
-        Farm
+        Farm,
+        Killsteal
     }
 }
