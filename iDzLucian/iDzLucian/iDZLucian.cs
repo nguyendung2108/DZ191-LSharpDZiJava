@@ -168,9 +168,9 @@ namespace iDzLucian
                         _orbwalker.ForceTarget(target);
                     }
                 }
-                if (_spells[SpellSlot.W].IsEnabledAndReady(Mode.Combo) && !_spells[SpellSlot.Q].CanCast(target) &&
-                    !_spells[SpellSlot.Q].IsEnabledAndReady(Mode.Combo) &&
-                    !(HasPassive() && Orbwalking.InAutoAttackRange(target)))
+                if (_spells[SpellSlot.W].IsEnabledAndReady(Mode.Combo) && !(_spells[SpellSlot.Q].CanCast(target) ||
+                    _spells[SpellSlot.Q].IsEnabledAndReady(Mode.Combo)) &&
+                    !(HasPassive()) && Orbwalking.InAutoAttackRange(target))
                 {
                     _spells[SpellSlot.W].Cast(target);
                     _orbwalker.ForceTarget(target);
