@@ -254,7 +254,7 @@ namespace iDzLucian
             int level = _spells[SpellSlot.R].Level;
             return
                 (float)
-                    (_player.GetSpellDamage(target, SpellSlot.Q) *
+                    (_player.GetSpellDamage(target, SpellSlot.R) *
                      (level == 1
                          ? 7.5 + 7.5 * (_player.AttackSpeedMod - .6) / 1.4
                          : level == 2
