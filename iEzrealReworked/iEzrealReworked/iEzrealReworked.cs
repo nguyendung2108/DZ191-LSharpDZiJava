@@ -94,7 +94,7 @@ namespace iEzrealReworked
             CreateMenu();
 
             //Event Subscribers
-            Game.OnGameUpdate += OnGameUpdate;
+            Game.OnUpdate += OnGameUpdate;
             Drawing.OnDraw += delegate { DrawHelper.DrawSpellsRanges(_spells); };
         }
 
