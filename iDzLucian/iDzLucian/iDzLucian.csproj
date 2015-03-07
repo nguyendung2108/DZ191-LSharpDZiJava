@@ -75,6 +75,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="cleansing\Cleanser.cs" />
+    <Compile Include="cleansing\SummonerSpells.cs" />
     <Compile Include="Helpers\MenuHelper.cs" />
     <Compile Include="Helpers\PositionHelper.cs" />
     <Compile Include="iDZLucian.cs" />
