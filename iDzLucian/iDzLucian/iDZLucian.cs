@@ -162,7 +162,7 @@ namespace iDzLucian
             {
                 if (_spells[SpellSlot.Q].IsEnabledAndReady(Mode.Combo))
                 {
-                    if (_spells[SpellSlot.Q].CanCast(target) && !(HasPassive()) && Orbwalking.InAutoAttackRange(target))
+                    if (_spells[SpellSlot.Q].CanCast(target) && !(HasPassive() && Orbwalking.InAutoAttackRange(target)))
                     {
                         _spells[SpellSlot.Q].CastOnUnit(target);
                         _orbwalker.ForceTarget(target);
@@ -170,7 +170,7 @@ namespace iDzLucian
                 }
                 if (_spells[SpellSlot.W].IsEnabledAndReady(Mode.Combo) && !(_spells[SpellSlot.Q].CanCast(target) ||
                     _spells[SpellSlot.Q].IsEnabledAndReady(Mode.Combo)) &&
-                    !(HasPassive()) && Orbwalking.InAutoAttackRange(target))
+                    !(HasPassive() && Orbwalking.InAutoAttackRange(target)))
                 {
                     _spells[SpellSlot.W].Cast(target);
                     _orbwalker.ForceTarget(target);
