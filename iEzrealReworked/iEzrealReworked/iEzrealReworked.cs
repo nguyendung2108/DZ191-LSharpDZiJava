@@ -348,13 +348,17 @@ namespace iEzrealReworked
             var target = TargetSelector.GetTarget(20000, TargetSelector.DamageType.Physical);
             if (target.IsValidTarget(_spells[SpellSlot.R].Range))
             {
-                if (_spells[SpellSlot.R].IsEnabledAndReady(Mode.Combo) && _spells[SpellSlot.R].CanCast(target) &&
+                if (_spells[SpellSlot.R].IsEnabledAndReady(Mode.Combo) &&
                     _player.Distance(target) <= MenuHelper.GetSliderValue("rRange"))
                 {
                     if (CanExecuteTarget(target))
                     {
                         _spells[SpellSlot.R].CastIfHitchanceEquals(
                             target, target.IsMoving ? HitChance.High : MenuHelper.GetHitchance());
+                    }
+                    else
+                    {
+                        CastAoeUltimate();
                     }
                 }
             }
