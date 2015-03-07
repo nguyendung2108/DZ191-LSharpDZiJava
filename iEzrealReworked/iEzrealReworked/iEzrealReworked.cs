@@ -174,13 +174,24 @@ namespace iEzrealReworked
         {
             var allMinions = MinionManager.GetMinions(_player.ServerPosition, _spells[SpellSlot.Q].Range);
             Obj_AI_Base qMinion = allMinions.FirstOrDefault(min => min.IsValidTarget(_spells[SpellSlot.Q].Range));
+            var minionHealth = HealthPrediction.GetHealthPrediction(
+                qMinion,
+                (int) (_spells[SpellSlot.Q].Delay + (_player.Distance(qMinion) / _spells[SpellSlot.Q].Speed) * 1000));
             switch (_orbwalker.ActiveMode)
             {
                 case Orbwalking.OrbwalkingMode.LaneClear:
 
                     if (_spells[SpellSlot.Q].IsEnabledAndReady(Mode.Laneclear) && _spells[SpellSlot.Q].CanCast(qMinion))
                     {
-                        _spells[SpellSlot.Q].Cast(qMinion);
+                        if (!Orbwalking.InAutoAttackRange(qMinion) &&
+                            _spells[SpellSlot.Q].GetDamage(qMinion) > minionHealth)
+                        {
+                            _spells[SpellSlot.Q].Cast(qMinion);
+                        }
+                        else
+                        {
+                            _spells[SpellSlot.Q].Cast(qMinion);
+                        }
                     }
                     var ultMinions = _spells[SpellSlot.R].GetLineFarmLocation(allMinions);
                     if (_spells[SpellSlot.R].IsEnabledAndReady(Mode.Laneclear))
@@ -196,7 +207,11 @@ namespace iEzrealReworked
                     {
                         if (qMinion != null && qMinion.Health < _player.GetSpellDamage(qMinion, SpellSlot.R))
                         {
-                            _spells[SpellSlot.Q].Cast(qMinion);
+                            if (!Orbwalking.InAutoAttackRange(qMinion) &&
+                                _spells[SpellSlot.Q].GetDamage(qMinion) > minionHealth)
+                            {
+                                _spells[SpellSlot.Q].Cast(qMinion);
+                            }
                         }
                     }
                     break;
@@ -238,6 +253,7 @@ namespace iEzrealReworked
             skillOptions.AddItem(new MenuItem("qRange", "Min Q Range").SetValue(new Slider(900, 0, 1150)));
             skillOptions.AddItem(new MenuItem("wRange", "Min W Range").SetValue(new Slider(800, 0, 1000)));
             skillOptions.AddItem(new MenuItem("rRange", "Min R Range").SetValue(new Slider(2000, 0, 20000)));
+            skillOptions.AddItem(new MenuItem("rMin", "Min Hit for R").SetValue(new Slider(3, 0, 5)));
             Menu.AddSubMenu(skillOptions);
 
             var farmMenu = new Menu("Ezreal - Farm", "com.iezreal.farm");
@@ -246,7 +262,8 @@ namespace iEzrealReworked
                 laneclear.AddModeMenu(Mode.Laneclear, new[] { SpellSlot.Q, SpellSlot.R }, new[] { true, false });
                 laneclear.AddManaManager(Mode.Laneclear, new[] { SpellSlot.Q, SpellSlot.R }, new[] { 35, 35 });
                 laneclear.AddItem(
-                   new MenuItem("com.iezreal.farm.r.lc.minhit", "Min Minions hit for R").SetValue(new Slider(10, 1, 20)));
+                    new MenuItem("com.iezreal.farm.r.lc.minhit", "Min Minions hit for R").SetValue(
+                        new Slider(10, 1, 20)));
             }
             //
             var lasthit = new Menu("Laneclear", "com.iezreal.farm.lh");
@@ -340,6 +357,24 @@ namespace iEzrealReworked
                             target, target.IsMoving ? HitChance.High : MenuHelper.GetHitchance());
                     }
                 }
+            }
+        }
+
+        /// <summary>
+        ///     Casts the ultimate if x amount of enemies will be hit.
+        /// </summary>
+        private void CastAoeUltimate()
+        {
+            foreach (
+                Obj_AI_Hero source in
+                    from source in HeroManager.Enemies.Where(hero => hero.IsValidTarget(_spells[SpellSlot.R].Range))
+                    let prediction = _spells[SpellSlot.R].GetPrediction(source, true)
+                    where
+                        _player.Distance(source) <= MenuHelper.GetSliderValue("rRange") &&
+                        prediction.AoeTargetsHitCount >= MenuHelper.GetSliderValue("rMin")
+                    select source)
+            {
+                _spells[SpellSlot.R].CastIfHitchanceEquals(source, MenuHelper.GetHitchance());
             }
         }
 
