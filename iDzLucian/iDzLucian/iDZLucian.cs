@@ -235,6 +235,19 @@ namespace iDzLucian
             }
         }
 
+        private static void Killsteal()
+        {
+            var target = TargetSelector.GetTarget(_spells[SpellSlot.Q].Range, TargetSelector.DamageType.Physical);
+            if (_spells[SpellSlot.Q].IsReady() && _spells[SpellSlot.Q].CanCast(target))
+            {
+                if (_spells[SpellSlot.Q].IsInRange(target) && _spells[SpellSlot.Q].GetDamage(target) > target.Health + 10)
+                {
+                    _spells[SpellSlot.Q].CastOnUnit(target);
+                    //TODO extended Q finisher
+                }
+            }
+        }
+
         #endregion
 
         #region Calculations and Checks
@@ -369,8 +382,6 @@ namespace iDzLucian
             var harassMenu = new Menu("Lucian - Harass", "com.idzlucian.harass");
             harassMenu.AddModeMenu(Mode.Harass, new[] { SpellSlot.Q, SpellSlot.W }, new[] { true, true });
             harassMenu.AddManaManager(Mode.Harass, new[] { SpellSlot.Q, SpellSlot.W }, new[] { 35, 35 });
-            //harassMenu.AddItem(
-            //    new MenuItem("com.idzlucian.harass.useextendedq", "Use Extended Q Harass").SetValue(true));
             Menu.AddSubMenu(harassMenu);
 
             var farmMenu = new Menu("Lucian - Farm", "com.idzlucian.farm");
@@ -382,8 +393,13 @@ namespace iDzLucian
                     new MenuItem("com.idzlucian.farm.q.lc.minhit", "Min Minions for Q LC").SetValue(new Slider(2, 1, 6)));
             }
             farmMenu.AddSubMenu(farmOptions);
-
             Menu.AddSubMenu(farmMenu);
+
+            var killstealMenu = new Menu("Lucian - Killsteal", "com.idzlucian.killsteal");
+            {
+                killstealMenu.AddItem(new MenuItem("com.idzlucian.ks.useQ", "Use Q Killsteal").SetValue(true));
+                killstealMenu.AddItem(new MenuItem("com.idzlucian.ks.useW", "Use W Killsteal").SetValue(false));
+            }
 
             var miscMenu = new Menu("Lucian - Misc", "com.idzlucian.misc");
             {
