@@ -140,6 +140,7 @@ namespace iEzrealReworked
         /// </summary>
         private void OnCombo()
         {
+            CastQImmobile();
             CastMysticShot(Mode.Combo);
             CastEssenceFlux(Mode.Combo);
             CastTrueshotBarrage();
@@ -172,6 +173,7 @@ namespace iEzrealReworked
         /// </summary>
         private void OnFarm()
         {
+            CastQImmobile();
             var allMinions = MinionManager.GetMinions(_player.ServerPosition, _spells[SpellSlot.Q].Range);
             Obj_AI_Base qMinion = allMinions.FirstOrDefault(min => min.IsValidTarget(_spells[SpellSlot.Q].Range));
             var minionHealth = HealthPrediction.GetHealthPrediction(
@@ -250,10 +252,15 @@ namespace iEzrealReworked
 
             //TODO skilloptions
             var skillOptions = new Menu("Ezreal - Skill Options", "com.iezreal.skilloptions");
-            skillOptions.AddItem(new MenuItem("qRange", "Min Q Range").SetValue(new Slider(900, 0, 1150)));
-            skillOptions.AddItem(new MenuItem("wRange", "Min W Range").SetValue(new Slider(800, 0, 1000)));
-            skillOptions.AddItem(new MenuItem("rRange", "Min R Range").SetValue(new Slider(2000, 0, 20000)));
+            skillOptions.AddItem(new MenuItem("autoQ", "Auto Q Immobile").SetValue(false));
             skillOptions.AddItem(new MenuItem("rMin", "Min Hit for R").SetValue(new Slider(3, 0, 5)));
+            var rangeOptions = new Menu("Range Settings", "com.iezreal.skilloptions.range");
+            {
+                rangeOptions.AddItem(new MenuItem("qRange", "Min Q Range").SetValue(new Slider(900, 0, 1150)));
+                rangeOptions.AddItem(new MenuItem("wRange", "Min W Range").SetValue(new Slider(800, 0, 1000)));
+                rangeOptions.AddItem(new MenuItem("rRange", "Min R Range").SetValue(new Slider(2000, 0, 20000)));
+            }
+            skillOptions.AddSubMenu(rangeOptions);
             Menu.AddSubMenu(skillOptions);
 
             var farmMenu = new Menu("Ezreal - Farm", "com.iezreal.farm");
@@ -369,16 +376,33 @@ namespace iEzrealReworked
         /// </summary>
         private void CastAoeUltimate()
         {
-            foreach (
-                Obj_AI_Hero source in
-                    from source in HeroManager.Enemies.Where(hero => hero.IsValidTarget(_spells[SpellSlot.R].Range))
-                    let prediction = _spells[SpellSlot.R].GetPrediction(source, true)
-                    where
-                        _player.Distance(source) <= MenuHelper.GetSliderValue("rRange") &&
-                        prediction.AoeTargetsHitCount >= MenuHelper.GetSliderValue("rMin")
-                    select source)
+            foreach (Obj_AI_Hero source in
+                from source in HeroManager.Enemies.Where(hero => hero.IsValidTarget(_spells[SpellSlot.R].Range))
+                let prediction = _spells[SpellSlot.R].GetPrediction(source, true)
+                where
+                    _player.Distance(source) <= MenuHelper.GetSliderValue("rRange") &&
+                    prediction.AoeTargetsHitCount >= MenuHelper.GetSliderValue("rMin")
+                select source)
             {
                 _spells[SpellSlot.R].CastIfHitchanceEquals(source, MenuHelper.GetHitchance());
+            }
+        }
+
+        private void CastQImmobile()
+        {
+            var target = TargetSelector.GetTarget(_spells[SpellSlot.Q].Range, TargetSelector.DamageType.Physical);
+            var prediction = _spells[SpellSlot.Q].GetPrediction(target);
+            var minions = MinionManager.GetMinions(_player.ServerPosition, 550);
+            int count = minions.Count(minion => _player.GetAutoAttackDamage(minion) > minion.Health);
+            if (MenuHelper.IsMenuEnabled("autoQ") && target.IsValidTarget(_spells[SpellSlot.Q].Range) &&
+                prediction.Hitchance == HitChance.Immobile)
+            {
+                if (count >= 1)
+                {
+                    return;
+                }
+
+                _spells[SpellSlot.Q].CastIfHitchanceEquals(target, MenuHelper.GetHitchance());
             }
         }
 
