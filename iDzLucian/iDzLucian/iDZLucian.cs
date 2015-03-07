@@ -133,6 +133,9 @@ namespace iDzLucian
             {
                 return;
             }
+
+            Killsteal();
+
             switch (_orbwalker.ActiveMode)
             {
                 case Orbwalking.OrbwalkingMode.Combo:
@@ -238,7 +241,7 @@ namespace iDzLucian
         private static void Killsteal()
         {
             var target = TargetSelector.GetTarget(_spells[SpellSlot.Q].Range, TargetSelector.DamageType.Physical);
-            if (_spells[SpellSlot.Q].IsReady() && _spells[SpellSlot.Q].CanCast(target))
+            if (_spells[SpellSlot.Q].IsReady() && _spells[SpellSlot.Q].CanCast(target) && MenuHelper.IsMenuEnabled("com.idzlucian.ks.useQ"))
             {
                 if (_spells[SpellSlot.Q].IsInRange(target) && _spells[SpellSlot.Q].GetDamage(target) > target.Health + 10)
                 {
