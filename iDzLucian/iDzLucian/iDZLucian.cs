@@ -110,11 +110,8 @@ namespace iDzLucian
         {
             if (sender.IsMe)
             {
-                if (ObjectManager.Player.GetSpellSlot(args.SData.Name) != SpellSlot.R)
-                {
                     _shouldHavePassive = true;
                     Utility.DelayAction.Add((int) Math.Floor(2000 - (Game.Ping / 2f)), () => _shouldHavePassive = false);
-                }
                 switch (args.SData.Name)
                 {
                     case "LucianQ":
