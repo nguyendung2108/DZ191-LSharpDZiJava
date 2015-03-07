@@ -110,8 +110,8 @@ namespace iDzLucian
         {
             if (sender.IsMe)
             {
-                    _shouldHavePassive = true;
-                    Utility.DelayAction.Add((int) Math.Floor(2000 - (Game.Ping / 2f)), () => _shouldHavePassive = false);
+                _shouldHavePassive = true;
+                Utility.DelayAction.Add((int) Math.Floor(2000 - (Game.Ping / 2f)), () => _shouldHavePassive = false);
                 switch (args.SData.Name)
                 {
                     case "LucianQ":
@@ -171,8 +171,8 @@ namespace iDzLucian
                         _orbwalker.ForceTarget(target);
                     }
                 }
-                if (_spells[SpellSlot.W].IsEnabledAndReady(Mode.Combo) && !(_spells[SpellSlot.Q].CanCast(target) ||
-                    _spells[SpellSlot.Q].IsEnabledAndReady(Mode.Combo)) &&
+                if (_spells[SpellSlot.W].IsEnabledAndReady(Mode.Combo) &&
+                    !(_spells[SpellSlot.Q].CanCast(target) || _spells[SpellSlot.Q].IsEnabledAndReady(Mode.Combo)) &&
                     !(HasPassive() && Orbwalking.InAutoAttackRange(target)))
                 {
                     _spells[SpellSlot.W].Cast(target);
@@ -241,9 +241,11 @@ namespace iDzLucian
         private static void Killsteal()
         {
             var target = TargetSelector.GetTarget(_spells[SpellSlot.Q].Range, TargetSelector.DamageType.Physical);
-            if (_spells[SpellSlot.Q].IsReady() && _spells[SpellSlot.Q].CanCast(target) && MenuHelper.IsMenuEnabled("com.idzlucian.ks.useQ"))
+            if (_spells[SpellSlot.Q].IsReady() && _spells[SpellSlot.Q].CanCast(target) &&
+                MenuHelper.IsMenuEnabled("com.idzlucian.ks.useQ"))
             {
-                if (_spells[SpellSlot.Q].IsInRange(target) && _spells[SpellSlot.Q].GetDamage(target) > target.Health + 10)
+                if (_spells[SpellSlot.Q].IsInRange(target) &&
+                    _spells[SpellSlot.Q].GetDamage(target) > target.Health + 10)
                 {
                     _spells[SpellSlot.Q].CastOnUnit(target);
                     //TODO extended Q finisher
