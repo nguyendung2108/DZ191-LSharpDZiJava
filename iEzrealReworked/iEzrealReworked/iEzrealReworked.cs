@@ -300,7 +300,6 @@ namespace iEzrealReworked
         /// <param name="mode">the mode the player is currently using</param>
         private void CastMysticShot(Mode mode)
         {
-            CastQImmobile();
             var target = TargetSelector.GetTarget(_spells[SpellSlot.Q].Range, TargetSelector.DamageType.Physical);
             if (target.IsValidTarget(_spells[SpellSlot.Q].Range) &&
                 _player.Distance(target) <= MenuHelper.GetSliderValue("qRange"))
