@@ -112,7 +112,7 @@ namespace iDzLucian.cleansing
             //Player Cleansing
             if (OneReady())
             {
-                var buffCount = Buffs.Count(buff => iDzLucian.Player.HasBuffOfType(buff) && BuffTypeEnabled(buff));
+                var buffCount = Buffs.Count(buff => ObjectManager.Player.HasBuffOfType(buff) && BuffTypeEnabled(buff));
                 if (buffCount >= MenuHelper.GetSliderValue("com.idzlucian.cleanser.bufftype.minbuffs"))
                 {
                     CastCleanseItem(ObjectManager.Player);
@@ -123,7 +123,7 @@ namespace iDzLucian.cleansing
             {
                 return;
             }
-            var allies = iDzLucian.Player.GetAlliesInRange(600f);
+            var allies = ObjectManager.Player.GetAlliesInRange(600f);
             var highestAlly = ObjectManager.Player;
             var highestCount = 0;
             foreach (var ally in allies)
@@ -157,7 +157,7 @@ namespace iDzLucian.cleansing
                 QssSpell mySpell = null;
                 if (
                     QssSpells.Where(
-                        spell => iDzLucian.Player.HasBuff(spell.SpellBuff, true) && SpellEnabledAlways(spell.SpellBuff))
+                        spell => ObjectManager.Player.HasBuff(spell.SpellBuff, true) && SpellEnabledAlways(spell.SpellBuff))
                         .OrderBy(
                             spell => GetChampByName(spell.ChampName).GetSpellDamage(ObjectManager.Player, spell.Slot))
                         .Any())
@@ -165,7 +165,7 @@ namespace iDzLucian.cleansing
                     mySpell =
                         QssSpells.Where(
                             spell =>
-                                iDzLucian.Player.HasBuff(spell.SpellBuff, true) && SpellEnabledAlways(spell.SpellBuff))
+                                ObjectManager.Player.HasBuff(spell.SpellBuff, true) && SpellEnabledAlways(spell.SpellBuff))
                             .OrderBy(
                                 spell =>
                                     GetChampByName(spell.ChampName).GetSpellDamage(ObjectManager.Player, spell.Slot))
@@ -181,7 +181,7 @@ namespace iDzLucian.cleansing
                 return;
             }
             //Ally Cleansing
-            var allies = iDzLucian.Player.GetAlliesInRange(600f);
+            var allies = ObjectManager.Player.GetAlliesInRange(600f);
             var highestAlly = ObjectManager.Player;
             var highestDamage = 0f;
             QssSpell highestSpell = null;
@@ -232,9 +232,9 @@ namespace iDzLucian.cleansing
                 if (
                     QssSpells.Where(
                         spell =>
-                            iDzLucian.Player.HasBuff(spell.SpellBuff, true) && SpellEnabledOnKill(spell.SpellBuff) &&
+                            ObjectManager.Player.HasBuff(spell.SpellBuff, true) && SpellEnabledOnKill(spell.SpellBuff) &&
                             GetChampByName(spell.ChampName).GetSpellDamage(ObjectManager.Player, spell.Slot) >
-                            iDzLucian.Player.Health + HealthBuffer)
+                            ObjectManager.Player.Health + HealthBuffer)
                         .OrderBy(
                             spell => GetChampByName(spell.ChampName).GetSpellDamage(ObjectManager.Player, spell.Slot))
                         .Any())
@@ -242,7 +242,7 @@ namespace iDzLucian.cleansing
                     mySpell =
                         QssSpells.Where(
                             spell =>
-                                iDzLucian.Player.HasBuff(spell.SpellBuff, true) && SpellEnabledOnKill(spell.SpellBuff))
+                                ObjectManager.Player.HasBuff(spell.SpellBuff, true) && SpellEnabledOnKill(spell.SpellBuff))
                             .OrderBy(
                                 spell =>
                                     GetChampByName(spell.ChampName).GetSpellDamage(ObjectManager.Player, spell.Slot))
@@ -258,7 +258,7 @@ namespace iDzLucian.cleansing
                 return;
             }
             //Ally Cleansing
-            var allies = iDzLucian.Player.GetAlliesInRange(600f);
+            var allies = ObjectManager.Player.GetAlliesInRange(600f);
             var highestAlly = ObjectManager.Player;
             var highestDamage = 0f;
             QssSpell highestSpell = null;
@@ -524,7 +524,7 @@ namespace iDzLucian.cleansing
 
         private static bool BuffTypeEnabled(BuffType buffType)
         {
-            return MenuHelper.IsMenuEnabled(iDzLucian.Player.ChampionName + buffType);
+            return MenuHelper.IsMenuEnabled(ObjectManager.Player.ChampionName + buffType);
         }
 
         private static int SpellDelay(String sName)

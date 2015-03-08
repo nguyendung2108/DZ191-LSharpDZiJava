@@ -17,7 +17,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using iDzLucian.cleansing;
 using iDzLucian.Helpers;
 using LeagueSharp;
 using LeagueSharp.Common;
@@ -28,7 +27,7 @@ namespace iDzLucian
     // ReSharper disable once InconsistentNaming
     internal class iDzLucian
     {
-        public static Obj_AI_Hero Player;
+        private static Obj_AI_Hero _player;
         private static Spell _qExtended;
         public static Menu Menu;
         private static Orbwalking.Orbwalker _orbwalker;
@@ -47,17 +46,15 @@ namespace iDzLucian
 
         public static void OnLoad(EventArgs args)
         {
-            Player = ObjectManager.Player;
+            _player = ObjectManager.Player;
 
-            if (Player.ChampionName != "Lucian")
+            if (_player.ChampionName != "Lucian")
             {
                 return;
             }
 
             LoadSpells();
             CreateMenu();
-            Cleanser.OnLoad();
-
             Notifications.AddNotification(
                 new Notification("iDZLucian v" + Assembly.GetExecutingAssembly().GetName().Version + " loaded!", 2500));
             Game.PrintChat("iDZLucian v" + Assembly.GetExecutingAssembly().GetName().Version + " loaded!");
@@ -110,17 +107,20 @@ namespace iDzLucian
         {
             if (sender.IsMe)
             {
-                _shouldHavePassive = true;
-                Utility.DelayAction.Add((int) Math.Floor(2000 - (Game.Ping / 2f)), () => _shouldHavePassive = false);
+                if (ObjectManager.Player.GetSpellSlot(args.SData.Name) != SpellSlot.R)
+                {
+                    _shouldHavePassive = true;
+                    Utility.DelayAction.Add((int)Math.Floor(2000 - (Game.Ping / 2f)), () => _shouldHavePassive = false);
+                }
                 switch (args.SData.Name)
                 {
                     case "LucianQ":
                         Utility.DelayAction.Add(
-                            (int) (Math.Ceiling(Game.Ping / 2f) + 250 + 325), Orbwalking.ResetAutoAttackTimer);
+                            (int)(Math.Ceiling(Game.Ping / 2f) + 250 + 325), Orbwalking.ResetAutoAttackTimer);
                         break;
                     case "LucianW":
                         Utility.DelayAction.Add(
-                            (int) (Math.Ceiling(Game.Ping / 2f) + 250 + 325), Orbwalking.ResetAutoAttackTimer);
+                            (int)(Math.Ceiling(Game.Ping / 2f) + 250 + 325), Orbwalking.ResetAutoAttackTimer);
                         break;
                 }
                 //Console.WriteLine(args.SData.Name);
@@ -133,9 +133,6 @@ namespace iDzLucian
             {
                 return;
             }
-
-            Killsteal();
-
             switch (_orbwalker.ActiveMode)
             {
                 case Orbwalking.OrbwalkingMode.Combo:
@@ -171,8 +168,8 @@ namespace iDzLucian
                         _orbwalker.ForceTarget(target);
                     }
                 }
-                if (_spells[SpellSlot.W].IsEnabledAndReady(Mode.Combo) &&
-                    !(_spells[SpellSlot.Q].CanCast(target) || _spells[SpellSlot.Q].IsEnabledAndReady(Mode.Combo)) &&
+                if (_spells[SpellSlot.W].IsEnabledAndReady(Mode.Combo) && !_spells[SpellSlot.Q].CanCast(target) &&
+                    !_spells[SpellSlot.Q].IsEnabledAndReady(Mode.Combo) &&
                     !(HasPassive() && Orbwalking.InAutoAttackRange(target)))
                 {
                     _spells[SpellSlot.W].Cast(target);
@@ -210,7 +207,7 @@ namespace iDzLucian
 
         private static void Farm()
         {
-            var allMinions = MinionManager.GetMinions(Player.ServerPosition, _spells[SpellSlot.Q].Range);
+            var allMinions = MinionManager.GetMinions(_player.ServerPosition, _spells[SpellSlot.Q].Range);
             switch (_orbwalker.ActiveMode)
             {
                 case Orbwalking.OrbwalkingMode.LaneClear:
@@ -238,21 +235,6 @@ namespace iDzLucian
             }
         }
 
-        private static void Killsteal()
-        {
-            var target = TargetSelector.GetTarget(_spells[SpellSlot.Q].Range, TargetSelector.DamageType.Physical);
-            if (_spells[SpellSlot.Q].IsReady() && _spells[SpellSlot.Q].CanCast(target) &&
-                MenuHelper.IsMenuEnabled("com.idzlucian.ks.useQ"))
-            {
-                if (_spells[SpellSlot.Q].IsInRange(target) &&
-                    _spells[SpellSlot.Q].GetDamage(target) > target.Health + 10)
-                {
-                    _spells[SpellSlot.Q].CastOnUnit(target);
-                    //TODO extended Q finisher
-                }
-            }
-        }
-
         #endregion
 
         #region Calculations and Checks
@@ -272,12 +254,12 @@ namespace iDzLucian
             int level = _spells[SpellSlot.R].Level;
             return
                 (float)
-                    (Player.GetSpellDamage(target, SpellSlot.R) *
+                    (_player.GetSpellDamage(target, SpellSlot.Q) *
                      (level == 1
-                         ? 7.5 + 7.5 * (Player.AttackSpeedMod - .6) / 1.4
+                         ? 7.5 + 7.5 * (_player.AttackSpeedMod - .6) / 1.4
                          : level == 2
-                             ? 7.5 + 9 * (Player.AttackSpeedMod - .6) / 1.4
-                             : level == 3 ? 7.5 + 10.5 * (Player.AttackSpeedMod - .6) : 0));
+                             ? 7.5 + 9 * (_player.AttackSpeedMod - .6) / 1.4
+                             : level == 3 ? 7.5 + 10.5 * (_player.AttackSpeedMod - .6) : 0));
         }
 
         private static void ExtendedQ(Mode mode)
@@ -311,7 +293,7 @@ namespace iDzLucian
         private static void DashKillsteal()
         {
             //TODO test this, remains untesed due to my high ping. cmon dz embaress me
-            var minions = MinionManager.GetMinions(Player.ServerPosition, _spells[SpellSlot.Q].Range);
+            var minions = MinionManager.GetMinions(_player.ServerPosition, _spells[SpellSlot.Q].Range);
             var extendedQTarget = TargetSelector.GetTarget(_qExtended.Range, TargetSelector.DamageType.Physical);
 
             if (extendedQTarget == null || !extendedQTarget.IsValidTarget(_qExtended.Range) ||
@@ -328,7 +310,7 @@ namespace iDzLucian
                 var collisionObjects = _qExtended.GetCollision(
                     selectedMinion.Position.To2D(), new List<Vector2> { bestPosition }); // FROM e endPositiono
 
-                if (_spells[SpellSlot.E].IsInRange(bestPosition) && bestPosition != Player.Position.To2D())
+                if (_spells[SpellSlot.E].IsInRange(bestPosition) && bestPosition != _player.Position.To2D())
                 {
                     _spells[SpellSlot.E].Cast(bestPosition);
                 }
@@ -368,8 +350,10 @@ namespace iDzLucian
 
             var comboMenu = new Menu("Lucian - Combo", "com.idzlucian.combo");
             comboMenu.AddModeMenu(
-                Mode.Combo, new[] { SpellSlot.Q, SpellSlot.W, SpellSlot.E }, new[] { true, true, false, false });
-            comboMenu.AddManaManager(Mode.Combo, new[] { SpellSlot.Q, SpellSlot.W, SpellSlot.E }, new[] { 35, 35, 25 });
+                Mode.Combo, new[] { SpellSlot.Q, SpellSlot.W, SpellSlot.E },
+                new[] { true, true, false, false });
+            comboMenu.AddManaManager(
+                Mode.Combo, new[] { SpellSlot.Q, SpellSlot.W, SpellSlot.E }, new[] { 35, 35, 25 });
 
             var skillOptionsCombo = new Menu("Skill Options", "com.idzlucian.combo.skilloptions");
             {
@@ -387,6 +371,8 @@ namespace iDzLucian
             var harassMenu = new Menu("Lucian - Harass", "com.idzlucian.harass");
             harassMenu.AddModeMenu(Mode.Harass, new[] { SpellSlot.Q, SpellSlot.W }, new[] { true, true });
             harassMenu.AddManaManager(Mode.Harass, new[] { SpellSlot.Q, SpellSlot.W }, new[] { 35, 35 });
+            //harassMenu.AddItem(
+            //    new MenuItem("com.idzlucian.harass.useextendedq", "Use Extended Q Harass").SetValue(true));
             Menu.AddSubMenu(harassMenu);
 
             var farmMenu = new Menu("Lucian - Farm", "com.idzlucian.farm");
@@ -398,13 +384,8 @@ namespace iDzLucian
                     new MenuItem("com.idzlucian.farm.q.lc.minhit", "Min Minions for Q LC").SetValue(new Slider(2, 1, 6)));
             }
             farmMenu.AddSubMenu(farmOptions);
-            Menu.AddSubMenu(farmMenu);
 
-            var killstealMenu = new Menu("Lucian - Killsteal", "com.idzlucian.killsteal");
-            {
-                killstealMenu.AddItem(new MenuItem("com.idzlucian.ks.useQ", "Use Q Killsteal").SetValue(true));
-                killstealMenu.AddItem(new MenuItem("com.idzlucian.ks.useW", "Use W Killsteal").SetValue(false));
-            }
+            Menu.AddSubMenu(farmMenu);
 
             var miscMenu = new Menu("Lucian - Misc", "com.idzlucian.misc");
             {
@@ -412,6 +393,7 @@ namespace iDzLucian
                 miscMenu.AddItem(new MenuItem("com.idzlucian.misc.debug", "Debug").SetValue(false));
             }
             Menu.AddSubMenu(miscMenu);
+            cleansing.Cleanser.OnLoad();
 
             Menu.AddToMainMenu();
         }
