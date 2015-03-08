@@ -109,11 +109,6 @@ namespace iEzrealReworked
                 return;
             }
 
-            if (MenuHelper.IsMenuEnabled("ksEnabled"))
-            {
-                OnKillsteal();
-            }
-
             switch (_orbwalker.ActiveMode)
             {
                 case Orbwalking.OrbwalkingMode.Combo:
@@ -140,7 +135,6 @@ namespace iEzrealReworked
         /// </summary>
         private void OnCombo()
         {
-            CastQImmobile();
             CastMysticShot(Mode.Combo);
             CastEssenceFlux(Mode.Combo);
             CastTrueshotBarrage();
@@ -153,19 +147,6 @@ namespace iEzrealReworked
         {
             CastMysticShot(Mode.Harass);
             CastEssenceFlux(Mode.Harass);
-        }
-
-        private void OnKillsteal()
-        {
-            var target = TargetSelector.GetTarget(_spells[SpellSlot.Q].Range, TargetSelector.DamageType.Physical);
-            if (_player.GetSpellDamage(target, SpellSlot.Q) > target.Health + 10)
-            {
-                CastMysticShot(Mode.Killsteal);
-            }
-            if (_player.GetSpellDamage(target, SpellSlot.W) > target.Health + 10)
-            {
-                CastEssenceFlux(Mode.Killsteal);
-            }
         }
 
         /// <summary>
@@ -278,6 +259,8 @@ namespace iEzrealReworked
                 lasthit.AddModeMenu(Mode.Lasthit, new[] { SpellSlot.Q }, new[] { true });
                 lasthit.AddManaManager(Mode.Lasthit, new[] { SpellSlot.Q }, new[] { 35 });
             }
+            farmMenu.AddSubMenu(laneclear);
+            farmMenu.AddSubMenu(lasthit);
             Menu.AddSubMenu(farmMenu);
 
             var killstealMenu = new Menu("Ezreal - Killsteal", "com.iezreal.ks");
@@ -317,6 +300,7 @@ namespace iEzrealReworked
         /// <param name="mode">the mode the player is currently using</param>
         private void CastMysticShot(Mode mode)
         {
+            CastQImmobile();
             var target = TargetSelector.GetTarget(_spells[SpellSlot.Q].Range, TargetSelector.DamageType.Physical);
             if (target.IsValidTarget(_spells[SpellSlot.Q].Range) &&
                 _player.Distance(target) <= MenuHelper.GetSliderValue("qRange"))
@@ -393,7 +377,7 @@ namespace iEzrealReworked
             var target = TargetSelector.GetTarget(_spells[SpellSlot.Q].Range, TargetSelector.DamageType.Physical);
             var prediction = _spells[SpellSlot.Q].GetPrediction(target);
             var minions = MinionManager.GetMinions(_player.ServerPosition, 550);
-            int count = minions.Count(minion => _player.GetAutoAttackDamage(minion) > minion.Health);
+            var count = minions.Count(minion => _player.GetAutoAttackDamage(minion) > minion.Health);
             if (MenuHelper.IsMenuEnabled("autoQ") && target.IsValidTarget(_spells[SpellSlot.Q].Range) &&
                 prediction.Hitchance == HitChance.Immobile)
             {
