@@ -66,6 +66,8 @@ namespace iEzrealReworked
                 damage = damage * (10 - count / 10);
             }
 
+            // Game.PrintChat("Damage collision: "+damage);
+
             return damage > target.Health + 10;
         }
 
@@ -109,6 +111,8 @@ namespace iEzrealReworked
                 return;
             }
 
+            CastQImmobile();
+
             switch (_orbwalker.ActiveMode)
             {
                 case Orbwalking.OrbwalkingMode.Combo:
@@ -118,6 +122,7 @@ namespace iEzrealReworked
                     OnHarass();
                     break;
                 case Orbwalking.OrbwalkingMode.LaneClear:
+                    OnJungleClear();
                     OnFarm();
                     break;
                 case Orbwalking.OrbwalkingMode.LastHit:
@@ -154,7 +159,6 @@ namespace iEzrealReworked
         /// </summary>
         private void OnFarm()
         {
-            CastQImmobile();
             var allMinions = MinionManager.GetMinions(_player.ServerPosition, _spells[SpellSlot.Q].Range);
             Obj_AI_Base qMinion = allMinions.FirstOrDefault(min => min.IsValidTarget(_spells[SpellSlot.Q].Range));
             var minionHealth = HealthPrediction.GetHealthPrediction(
@@ -177,7 +181,8 @@ namespace iEzrealReworked
                         }
                     }
                     var ultMinions = _spells[SpellSlot.R].GetLineFarmLocation(allMinions);
-                    if (_spells[SpellSlot.R].IsEnabledAndReady(Mode.Laneclear))
+                    if (_spells[SpellSlot.R].IsEnabledAndReady(Mode.Laneclear) &&
+                        _player.Distance(ultMinions.Position) <= MenuHelper.GetSliderValue("rRange"))
                     {
                         if (ultMinions.MinionsHit >= MenuHelper.GetSliderValue("com.iezreal.farm.r.lc.minhit"))
                         {
@@ -198,6 +203,16 @@ namespace iEzrealReworked
                         }
                     }
                     break;
+            }
+        }
+
+        private void OnJungleClear()
+        {
+            var jungleMinions = MinionManager.GetMinions(
+                _player.Position, _spells[SpellSlot.Q].Range, MinionTypes.All, MinionTeam.Neutral,
+                MinionOrderTypes.MaxHealth);
+            foreach (Obj_AI_Base minion in from minion in jungleMinions where MenuHelper.IsMenuEnabled("com.iezreal.farm.jc.useQ") where _spells[SpellSlot.Q].IsReady() && minion.IsValidTarget(1000) where minion != null && _player.Distance(minion) <= 1000 select minion) {
+                _spells[SpellSlot.Q].Cast(minion);
             }
         }
 
@@ -254,19 +269,19 @@ namespace iEzrealReworked
                         new Slider(10, 1, 20)));
             }
             //
-            var lasthit = new Menu("Laneclear", "com.iezreal.farm.lh");
+            var lasthit = new Menu("Lasthit", "com.iezreal.farm.lh");
             {
                 lasthit.AddModeMenu(Mode.Lasthit, new[] { SpellSlot.Q }, new[] { true });
                 lasthit.AddManaManager(Mode.Lasthit, new[] { SpellSlot.Q }, new[] { 35 });
             }
+            var jungleClear = new Menu("Jungleclear", "com.iezreal.farm.jc");
+            {
+                jungleClear.AddItem(new MenuItem("com.iezreal.farm.jc.useQ", "Use Q Jungleclear").SetValue(true));
+            }
             farmMenu.AddSubMenu(laneclear);
             farmMenu.AddSubMenu(lasthit);
+            farmMenu.AddSubMenu(jungleClear);
             Menu.AddSubMenu(farmMenu);
-
-            var killstealMenu = new Menu("Ezreal - Killsteal", "com.iezreal.ks");
-            killstealMenu.AddItem(new MenuItem("ksEnabled", "Enable Killsteal").SetValue(true));
-            killstealMenu.AddModeMenu(Mode.Killsteal, new[] { SpellSlot.Q, SpellSlot.W }, new[] { true, true });
-            Menu.AddSubMenu(killstealMenu);
 
             var miscMenu = new Menu("Ezreal - Misc", "com.iezreal.misc");
             miscMenu.AddHitChanceSelector();

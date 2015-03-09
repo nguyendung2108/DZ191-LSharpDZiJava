@@ -186,6 +186,8 @@ namespace iEzrealReworked.helpers
                     return "F";
                 case Mode.Killsteal:
                     return "K";
+                case Mode.Jungleclear:
+                    return "JC";
                 default:
                     return "unk";
             }
@@ -204,6 +206,7 @@ namespace iEzrealReworked.helpers
         Lasthit,
         Laneclear,
         Farm,
-        Killsteal
+        Killsteal,
+        Jungleclear
     }
 }
