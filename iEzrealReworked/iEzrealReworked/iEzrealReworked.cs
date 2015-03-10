@@ -66,8 +66,6 @@ namespace iEzrealReworked
                 damage = damage * (10 - count / 10);
             }
 
-            // Game.PrintChat("Damage collision: "+damage);
-
             return damage > target.Health + 10;
         }
 
@@ -163,7 +161,7 @@ namespace iEzrealReworked
             Obj_AI_Base qMinion = allMinions.FirstOrDefault(min => min.IsValidTarget(_spells[SpellSlot.Q].Range));
             var minionHealth = HealthPrediction.GetHealthPrediction(
                 qMinion,
-                (int) (_spells[SpellSlot.Q].Delay + (_player.Distance(qMinion) / _spells[SpellSlot.Q].Speed) * 1000));
+                (int) (_spells[SpellSlot.Q].Delay + (_player.Distance(qMinion) / _spells[SpellSlot.Q].Speed) * 1000f));
             switch (_orbwalker.ActiveMode)
             {
                 case Orbwalking.OrbwalkingMode.LaneClear:
@@ -211,7 +209,12 @@ namespace iEzrealReworked
             var jungleMinions = MinionManager.GetMinions(
                 _player.Position, _spells[SpellSlot.Q].Range, MinionTypes.All, MinionTeam.Neutral,
                 MinionOrderTypes.MaxHealth);
-            foreach (Obj_AI_Base minion in from minion in jungleMinions where MenuHelper.IsMenuEnabled("com.iezreal.farm.jc.useQ") where _spells[SpellSlot.Q].IsReady() && minion.IsValidTarget(1000) where minion != null && _player.Distance(minion) <= 1000 select minion) {
+            foreach (Obj_AI_Base minion in from minion in jungleMinions
+                where MenuHelper.IsMenuEnabled("com.iezreal.farm.jc.useQ")
+                where _spells[SpellSlot.Q].IsReady() && minion.IsValidTarget(1000)
+                where minion != null && _player.Distance(minion) <= 1000
+                select minion)
+            {
                 _spells[SpellSlot.Q].Cast(minion);
             }
         }
