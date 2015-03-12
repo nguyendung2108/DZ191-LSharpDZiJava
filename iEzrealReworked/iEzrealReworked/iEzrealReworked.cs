@@ -50,7 +50,7 @@ namespace iEzrealReworked
         /// <returns>if the player can kill the target with ult...</returns>
         private bool CanExecuteTarget(Obj_AI_Hero target)
         {
-            double damage = 0;
+            double damage = 1f;
 
             var prediction = _spells[SpellSlot.R].GetPrediction(target);
             var count = prediction.CollisionObjects.Count;
