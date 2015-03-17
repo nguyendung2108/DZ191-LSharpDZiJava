@@ -61,6 +61,7 @@ namespace iDzLucian
             Game.OnUpdate += OnGameUpdate;
             Obj_AI_Base.OnProcessSpellCast += Obj_AI_Base_OnProcessSpellCast;
             Orbwalking.AfterAttack += OrbwalkingAfterAttack;
+            Drawing.OnDraw += OnDraw;
         }
 
         private static void OrbwalkingAfterAttack(AttackableUnit unit, AttackableUnit target)
@@ -110,17 +111,26 @@ namespace iDzLucian
                 if (ObjectManager.Player.GetSpellSlot(args.SData.Name) != SpellSlot.R)
                 {
                     _shouldHavePassive = true;
-                    Utility.DelayAction.Add((int)Math.Floor(2000 - (Game.Ping / 2f)), () => _shouldHavePassive = false);
+                    Utility.DelayAction.Add((int) Math.Floor(2000 - (Game.Ping / 2f)), () => _shouldHavePassive = false);
+                }
+                else
+                {
+                    if (MenuHelper.IsMenuEnabled("com.idzlucian.skilloptions.lockR"))
+                        UltimateLock();
                 }
                 switch (args.SData.Name)
                 {
                     case "LucianQ":
                         Utility.DelayAction.Add(
-                            (int)(Math.Ceiling(Game.Ping / 2f) + 250 + 325), Orbwalking.ResetAutoAttackTimer);
+                            (int) (Math.Ceiling(Game.Ping / 2f) + 250 + 325), Orbwalking.ResetAutoAttackTimer);
                         break;
                     case "LucianW":
                         Utility.DelayAction.Add(
-                            (int)(Math.Ceiling(Game.Ping / 2f) + 250 + 325), Orbwalking.ResetAutoAttackTimer);
+                            (int) (Math.Ceiling(Game.Ping / 2f) + 250 + 325), Orbwalking.ResetAutoAttackTimer);
+                        break;
+                    case "LucianE":
+                        Utility.DelayAction.Add(
+                            (int) (Math.Ceiling(Game.Ping / 2f) + 250 + 325), Orbwalking.ResetAutoAttackTimer);
                         break;
                 }
                 //Console.WriteLine(args.SData.Name);
@@ -150,6 +160,8 @@ namespace iDzLucian
             }
         }
 
+        private static void OnDraw(EventArgs args) {}
+
         #endregion
 
         #region ActiveModes
@@ -175,6 +187,12 @@ namespace iDzLucian
                     _spells[SpellSlot.W].Cast(target);
                     _orbwalker.ForceTarget(target);
                 }
+            }
+            if (_spells[SpellSlot.R].IsEnabledAndReady(Mode.Combo) && target.IsValidTarget(_spells[SpellSlot.R].Range) &&
+                _spells[SpellSlot.R].GetPrediction(target).Hitchance >= HitChance.Medium &&
+                !_player.IsCastingInterruptableSpell(true))
+            {
+                _spells[SpellSlot.R].Cast(target.Position);
             }
         }
 
@@ -287,6 +305,34 @@ namespace iDzLucian
             }
         }
 
+        private static void UltimateLock()
+        {
+            var target = TargetSelector.GetTarget(_spells[SpellSlot.R].Range, TargetSelector.DamageType.Physical);
+            var targetPrediction = _spells[SpellSlot.R].GetPrediction(target);
+
+            Vector3 endPosition = Vector3.Normalize(_player.ServerPosition - target.ServerPosition);
+            Vector3 castPosition = targetPrediction.CastPosition;
+
+            Vector3 fullPoint =
+                new Vector2(
+                    castPosition.X + endPosition.X * _spells[SpellSlot.R].Range * 0.98f,
+                    castPosition.Y + endPosition.Y * _spells[SpellSlot.R].Range * 0.98f).To3D();
+            Vector3 closestPoint =
+                _player.ServerPosition.To2D().Closest(new List<Vector3> { castPosition, fullPoint }.To2D()).To3D();
+
+            if (closestPoint.IsValid() && !closestPoint.IsWall() &&
+                castPosition.Distance(closestPoint) > _spells[SpellSlot.E].Range)
+            {
+                _player.IssueOrder(GameObjectOrder.MoveTo, closestPoint);
+            }
+            else if (fullPoint.IsValid() && !fullPoint.IsWall() &&
+                     castPosition.Distance(fullPoint) < _spells[SpellSlot.R].Range &&
+                     castPosition.Distance(fullPoint) > 100)
+            {
+                _player.IssueOrder(GameObjectOrder.MoveTo, fullPoint);
+            }
+        }
+
         /// <summary>
         ///     Goes ham on a target using a minion for collision, and finishing the target with an extended Q
         /// </summary>
@@ -350,10 +396,8 @@ namespace iDzLucian
 
             var comboMenu = new Menu("Lucian - Combo", "com.idzlucian.combo");
             comboMenu.AddModeMenu(
-                Mode.Combo, new[] { SpellSlot.Q, SpellSlot.W, SpellSlot.E },
-                new[] { true, true, false, false });
-            comboMenu.AddManaManager(
-                Mode.Combo, new[] { SpellSlot.Q, SpellSlot.W, SpellSlot.E }, new[] { 35, 35, 25 });
+                Mode.Combo, new[] { SpellSlot.Q, SpellSlot.W, SpellSlot.E, SpellSlot.R }, new[] { true, true, false, false });
+            comboMenu.AddManaManager(Mode.Combo, new[] { SpellSlot.Q, SpellSlot.W, SpellSlot.E }, new[] { 35, 35, 25 });
 
             var skillOptionsCombo = new Menu("Skill Options", "com.idzlucian.combo.skilloptions");
             {
@@ -363,6 +407,7 @@ namespace iDzLucian
                     new MenuItem("com.idzlucian.combo.useextendedq", "Use Extended Q Combo").SetValue(true));
                 skillOptionsCombo.AddItem(
                     new MenuItem("com.idzlucian.harass.useextendedq", "Use Extended Q Harass").SetValue(true));
+                skillOptionsCombo.AddItem(new MenuItem("com.idzlucian.skilloptions.lockR", "Auto Lock Ultimate").SetValue(false));
             }
             comboMenu.AddSubMenu(skillOptionsCombo);
 

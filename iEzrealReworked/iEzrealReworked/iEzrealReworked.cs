@@ -19,6 +19,7 @@ using System.Linq;
 using iEzrealReworked.helpers;
 using LeagueSharp;
 using LeagueSharp.Common;
+using SharpDX;
 
 namespace iEzrealReworked
 {
@@ -110,6 +111,7 @@ namespace iEzrealReworked
             }
 
             CastQImmobile();
+            //TODO add sheen logic!!
 
             switch (_orbwalker.ActiveMode)
             {
