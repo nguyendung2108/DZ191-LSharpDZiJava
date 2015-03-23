@@ -61,6 +61,7 @@ namespace iDzLucian
             Game.OnUpdate += OnGameUpdate;
             Obj_AI_Base.OnProcessSpellCast += Obj_AI_Base_OnProcessSpellCast;
             Orbwalking.AfterAttack += OrbwalkingAfterAttack;
+            AntiGapcloser.OnEnemyGapcloser += OnGapcloser;
             Drawing.OnDraw += OnDraw;
         }
 
@@ -100,6 +101,18 @@ namespace iDzLucian
                     {
                         _spells[SpellSlot.E].Cast(hypotheticalPosition);
                     }
+                }
+            }
+        }
+
+        private static void OnGapcloser(ActiveGapcloser gapcloser)
+        {
+            if (MenuHelper.IsMenuEnabled("com.idzlucian.misc.antigpe") && _spells[SpellSlot.E].IsReady())
+            {
+                var extended = gapcloser.Start.Extend(_player.Position, gapcloser.Start.Distance(_player.ServerPosition) + _spells[SpellSlot.E].Range);
+                if (PositionHelper.IsSafePosition(extended))
+                {
+                    _spells[SpellSlot.E].Cast(extended);
                 }
             }
         }
@@ -435,6 +448,8 @@ namespace iDzLucian
             var miscMenu = new Menu("Lucian - Misc", "com.idzlucian.misc");
             {
                 miscMenu.AddHitChanceSelector();
+                miscMenu.AddItem(
+                    new MenuItem("com.idzlucian.misc.antigpe", "Use E Against enemy gapclosers").SetValue(false));
                 miscMenu.AddItem(new MenuItem("com.idzlucian.misc.debug", "Debug").SetValue(false));
             }
             Menu.AddSubMenu(miscMenu);

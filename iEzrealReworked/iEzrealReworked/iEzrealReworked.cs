@@ -19,7 +19,6 @@ using System.Linq;
 using iEzrealReworked.helpers;
 using LeagueSharp;
 using LeagueSharp.Common;
-using SharpDX;
 
 namespace iEzrealReworked
 {
@@ -143,6 +142,7 @@ namespace iEzrealReworked
             CastMysticShot(Mode.Combo);
             CastEssenceFlux(Mode.Combo);
             CastTrueshotBarrage();
+            CastAoeUltimate();
         }
 
         /// <summary>
@@ -259,7 +259,7 @@ namespace iEzrealReworked
             {
                 rangeOptions.AddItem(new MenuItem("qRange", "Min Q Range").SetValue(new Slider(900, 0, 1150)));
                 rangeOptions.AddItem(new MenuItem("wRange", "Min W Range").SetValue(new Slider(800, 0, 1000)));
-                rangeOptions.AddItem(new MenuItem("rRange", "Min R Range").SetValue(new Slider(2000, 0, 20000)));
+                rangeOptions.AddItem(new MenuItem("rRange", "Min R Range").SetValue(new Slider(2000, 0, 5000)));
             }
             skillOptions.AddSubMenu(rangeOptions);
             Menu.AddSubMenu(skillOptions);
@@ -365,10 +365,6 @@ namespace iEzrealReworked
                     {
                         _spells[SpellSlot.R].CastIfHitchanceEquals(
                             target, target.IsMoving ? HitChance.High : MenuHelper.GetHitchance());
-                    }
-                    else
-                    {
-                        CastAoeUltimate();
                     }
                 }
             }
