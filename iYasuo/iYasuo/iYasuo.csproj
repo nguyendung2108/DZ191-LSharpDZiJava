@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Release</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{7FA27FE2-BBF6-464B-BD86-F58520B81465}</ProjectGuid>
+    <ProjectGuid>{FF91D74B-7AA6-4924-8991-F6A39A719743}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>iDzLucian</RootNamespace>
-    <AssemblyName>iDzLucian</AssemblyName>
+    <RootNamespace>iYasuo</RootNamespace>
+    <AssemblyName>iYasuo</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <PreBuildEvent />
@@ -56,18 +56,8 @@
     <Reference Include="SharpDX.XInput">
       <HintPath>C:\Users\CoreyJames\Desktop\LeagueSharp\System\SharpDX.XInput.dll</HintPath>
     </Reference>
-    <Reference Include="LeagueSharp">
-      <HintPath>C:\Users\CoreyJames\Desktop\LeagueSharp\System\LeagueSharp.dll</HintPath>
-    </Reference>
-    <Reference Include="LeagueSharp.Common">
-      <HintPath>C:\Users\CoreyJames\Desktop\LeagueSharp\System\LeagueSharp.Common.dll</HintPath>
-    </Reference>
-    <Reference Include="SharpDX">
-      <HintPath>C:\Users\CoreyJames\Desktop\LeagueSharp\System\SharpDX.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Drawing" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -75,19 +65,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="cleansing\Cleanser.cs" />
-    <Compile Include="cleansing\SummonerSpells.cs" />
-    <Compile Include="Helpers\MenuHelper.cs" />
-    <Compile Include="Helpers\PositionHelper.cs" />
-    <Compile Include="iDZLucian.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <WCFMetadata Include="Service References\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
