@@ -600,7 +600,7 @@ namespace iYasuo
                             return;
                         }
 
-                        Game.PrintChat("BLOCK IT");
+                        //Game.PrintChat("BLOCK IT");
 
                         Vector3 castVector = _player.ServerPosition.Extend(skillshot.MissilePosition.To3D(), 10);
                         _spells[Spells.W].Cast(castVector);
@@ -619,6 +619,7 @@ namespace iYasuo
                     var dashableTargets =
                         ObjectManager.Get<Obj_AI_Base>()
                             .Where(x => _player.CanDash(x) && x.IsValidTarget(_spells[Spells.E].Range));
+
                 }
             }
         }
