@@ -174,7 +174,7 @@ namespace iYasuo
         {
             var target = TargetSelector.GetTarget(1500f, TargetSelector.DamageType.Physical);
 
-           //TODO
+            //TODO
         }
 
         /// <summary>
@@ -203,7 +203,7 @@ namespace iYasuo
 
                 _spells[Spells.E].CastOnUnit(dashTarget);
                 if (_menu.Item("stackQ").GetValue<bool>() && !_player.HasEmpoweredSpell() && _spells[Spells.Q].IsReady() &&
-                    _spells[Spells.Q].IsInRange(dashTarget))
+                    _spells[Spells.Q].IsInRange(dashTarget) && dashTarget.IsValidTarget(_spells[Spells.Q].Range))
                 {
                     Utility.DelayAction.Add(
                         dashTarget.GetDistanceCastTime(_spells[Spells.E]), () => _spells[Spells.Q].Cast(dashTarget));
@@ -247,6 +247,8 @@ namespace iYasuo
             SkillshotDetector.OnDetectSkillshot += OnDetectSkillshot;
             SkillshotDetector.OnDeleteMissile += OnDeleteMissile;
             DamagePrediction.OnSpellWillKill += OnKillableSpell;
+            GameObject.OnCreate += OnCreateObject;
+            Obj_AI_Base.OnProcessSpellCast += OnProcessSpell;
         }
 
         /// <summary>
@@ -287,34 +289,71 @@ namespace iYasuo
             }
         }
 
-        private static void OnKillableSpell(Obj_AI_Hero sender, Obj_AI_Hero target, SpellData sdata)
+        private static void OnCreateObject(GameObject sender, EventArgs arguments)
         {
-            if (sender.IsAlly)
+            if (!(sender is Obj_SpellMissile) || !sender.IsValid)
             {
                 return;
             }
 
-            if (_menu.Item("useWC").GetValue<bool>() && _spells[Spells.W].IsReady())
+            Obj_SpellMissile args = (Obj_SpellMissile) sender;
+
+            if (args.SData.Name == "CaitlynAceintheHoleMissile" && args.Name == "LineMissile")
             {
-                Game.PrintChat("Spell WIll kill: " + sdata.Name);
-                string[] exceptions = { "SejuaniArcticAssault" };
+                Vector3 startPosition = args.StartPosition;
+                Vector3 castPosition = _player.ServerPosition.Extend(startPosition, 10);
 
-                foreach (Skillshot skillshot in EvadeDetectedSkillshots)
+                if (_spells[Spells.W].IsReady() && _menu.Item("blockDangerous").GetValue<bool>())
                 {
-                    if (skillshot.SpellData.Type != SkillShotType.SkillshotCircle ||
-                        skillshot.SpellData.Type != SkillShotType.SkillshotRing)
-                    {
-                        if (!skillshot.IsAboutToHit(200, _player) ||
-                            exceptions.Any(exception => skillshot.SpellData.SpellName == exception))
-                        {
-                            return;
-                        }
-
-                        Vector3 castVector = _player.ServerPosition.Extend(skillshot.MissilePosition.To3D(), 10);
-                        _spells[Spells.W].Cast(castVector);
-                    }
+                    Utility.DelayAction.Add(
+                        ((int) (startPosition.Distance(_player.Position) / 2000f + Game.Ping / 2f)),
+                        () => _spells[Spells.W].Cast(castPosition));
                 }
             }
+        }
+
+        private static void OnProcessSpell(Obj_AI_Base sender1, GameObjectProcessSpellCastEventArgs args)
+        {
+            var sender = sender1 as Obj_AI_Hero;
+            if (sender == null || sender.IsMe || sender.IsAlly)
+            {
+                //Game.PrintChat(string.Format("Spell Name: {0} - Delay: {1}", args.SData.Name, args.SData.SpellCastTime));
+                return;
+            }
+
+            Vector3 startPosition = args.Start;
+            Vector3 castPosition = _player.ServerPosition.Extend(startPosition, 10);
+
+            //TODO - Get correct spell names Kappo
+            if (_menu.Item("blockDangerous").GetValue<bool>() && _spells[Spells.W].IsReady())
+            {
+                if (sender.ChampionName == "Syndra" && args.SData.Name == "SyndraR")
+                {
+                    Utility.DelayAction.Add((int) 0.25f, () => _spells[Spells.W].Cast(castPosition));
+                }
+                else if (sender.ChampionName == "Vayne" && args.SData.Name == "VayneCondemn")
+                {
+                    Utility.DelayAction.Add((int) 0.25f, () => _spells[Spells.W].Cast(castPosition));
+                        // REMOVED FOR NOW CAUSE ITS NOT RLY THAT BAD :S
+                    // TODO possible check if the condem is going to stun, if not then dont block.
+                }
+                else if (sender.ChampionName == "Tristana" && args.SData.Name == "TristanaR")
+                {
+                    //Game.PrintChat(string.Format("Spell Name: {0} - Delay: {1}", args.SData.Name, args.SData.SpellCastTime));
+                    Utility.DelayAction.Add((int) 0.25f, () => _spells[Spells.W].Cast(castPosition));
+                }
+                else if (sender.ChampionName == "Brand" && args.SData.Name == "BrandR")
+                {
+                    Utility.DelayAction.Add((int) 0.25f, () => _spells[Spells.W].Cast(castPosition));
+                }
+            }
+        }
+
+        private static void OnKillableSpell(Obj_AI_Hero sender, Obj_AI_Hero target, SpellData sdata)
+        {
+            if (sender.IsAlly) {}
+
+            //TODO: blockable targeded spells :S
         }
 
         private static void OnDetectSkillshot(Skillshot skillshot)
@@ -546,7 +585,13 @@ namespace iYasuo
                 if (skillshot.SpellData.Type != SkillShotType.SkillshotCircle ||
                     skillshot.SpellData.Type != SkillShotType.SkillshotRing)
                 {
-                    if (skillshot.SpellData.IsDangerous && skillshot.SpellData.DangerValue >= 3)
+                    var damage =
+                        skillshot.Caster.GetDamageSpell(_player, skillshot.SpellData.SpellName).CalculatedDamage;
+
+                    //Game.PrintChat("Damage from: "+skillshot.SpellData.SpellName+ " is: "+damage);
+
+                    if (skillshot.SpellData.IsDangerous && skillshot.SpellData.DangerValue >= 3 ||
+                        _player.Health < damage + 15)
                         // only block dangerous spells todo: get the skillshot damage and if is higher then my health > block.
                     {
                         if (!skillshot.IsAboutToHit(200, _player) ||
@@ -554,6 +599,8 @@ namespace iYasuo
                         {
                             return;
                         }
+
+                        Game.PrintChat("BLOCK IT");
 
                         Vector3 castVector = _player.ServerPosition.Extend(skillshot.MissilePosition.To3D(), 10);
                         _spells[Spells.W].Cast(castVector);
