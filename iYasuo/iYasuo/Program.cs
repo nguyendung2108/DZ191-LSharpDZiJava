@@ -57,10 +57,8 @@ namespace iYasuo
             { Spells.R, new Spell(SpellSlot.R, 1200f) }
         };
 
-        public static List<Skillshot> DetectedSkillShots = new List<Skillshot>();
+        public static readonly List<Skillshot> DetectedSkillShots = new List<Skillshot>();
         private static readonly List<Skillshot> EvadeDetectedSkillshots = new List<Skillshot>();
-
-        private static Vector3 _positionBeforeQe;
 
         private static void Main(string[] args)
         {
@@ -76,6 +74,20 @@ namespace iYasuo
         {
             var target = TargetSelector.GetTarget(1500f, TargetSelector.DamageType.Physical);
 
+            //E - Gapclosing
+            var bestMinion = GetBestMinion(target);
+            if (_menu.Item("useEGap").GetValue<bool>() && _player.Distance(target) > _spells[Spells.Q].Range)
+            {
+                if (_spells[Spells.E].IsReady() && _spells[Spells.E].IsInRange(bestMinion) && bestMinion != null &&
+                    _player.CanDash(bestMinion))
+                {
+                    if (V3E(_player.ServerPosition, target.ServerPosition, _spells[Spells.E].Range).UnderTurret(true))
+                    {
+                        return;
+                    }
+                    _spells[Spells.E].CastOnUnit(bestMinion);
+                }
+            }
 
             if (_menu.Item("useQC").GetValue<bool>() && _menu.Item("useEC").GetValue<bool>() &&
                 _spells[Spells.Q].IsReady() && _spells[Spells.E].IsReady() && _spells[Spells.E].IsInRange(target))
@@ -96,21 +108,6 @@ namespace iYasuo
                 _spells[Spells.Q2].IsInRange(target) && _player.HasEmpoweredSpell())
             {
                 _spells[Spells.Q2].CastIfHitchanceEquals(target, HitChance.High);
-            }
-
-            //E - Gapclosing
-            var bestMinion = GetBestMinion(target);
-            if (_menu.Item("useEGap").GetValue<bool>() && _player.Distance(target) > _spells[Spells.Q].Range)
-            {
-                if (_spells[Spells.E].IsReady() && _spells[Spells.E].IsInRange(bestMinion) && bestMinion != null &&
-                    _player.CanDash(bestMinion))
-                {
-                    if (V3E(_player.ServerPosition, target.ServerPosition, _spells[Spells.E].Range).UnderTurret(true))
-                    {
-                        return;
-                    }
-                    _spells[Spells.E].CastOnUnit(bestMinion);
-                }
             }
 
             //Normal E cast
@@ -177,32 +174,7 @@ namespace iYasuo
         {
             var target = TargetSelector.GetTarget(1500f, TargetSelector.DamageType.Physical);
 
-            if (_menu.Item("useQEH").GetValue<bool>() && _spells[Spells.Q].IsReady() && _spells[Spells.E].IsReady() &&
-                _spells[Spells.E].IsInRange(target))
-            {
-                _positionBeforeQe = _player.ServerPosition;
-
-                _spells[Spells.E].CastOnUnit(target);
-                Utility.DelayAction.Add(
-                    target.GetDistanceCastTime(_spells[Spells.E]), delegate
-                    {
-                        _spells[Spells.Q].Cast(target);
-                        Utility.DelayAction.Add(
-                            (int) (_spells[Spells.Q].Delay + Game.Ping / 2f), delegate
-                            {
-                                // Find closest minion to last pos
-                                var bestMinion =
-                                    ObjectManager.Get<Obj_AI_Minion>()
-                                        .Where(x => x.IsValidTarget(_spells[Spells.E].Range))
-                                        .OrderBy(x => x.Distance(_positionBeforeQe))
-                                        .FirstOrDefault();
-                                if (bestMinion != null)
-                                {
-                                    _spells[Spells.E].Cast(bestMinion);
-                                }
-                            });
-                    });
-            }
+           //TODO
         }
 
         /// <summary>
@@ -294,6 +266,8 @@ namespace iYasuo
                 AutoWindwall();
             }
 
+            DodgeSkillshot();
+
             if (_menu.Item("fleeKey").GetValue<KeyBind>().Active)
             {
                 OnFlee();
@@ -330,7 +304,7 @@ namespace iYasuo
                     if (skillshot.SpellData.Type != SkillShotType.SkillshotCircle ||
                         skillshot.SpellData.Type != SkillShotType.SkillshotRing)
                     {
-                        if (!skillshot.IsAboutToHit(500, _player) ||
+                        if (!skillshot.IsAboutToHit(200, _player) ||
                             exceptions.Any(exception => skillshot.SpellData.SpellName == exception))
                         {
                             return;
@@ -575,7 +549,7 @@ namespace iYasuo
                     if (skillshot.SpellData.IsDangerous && skillshot.SpellData.DangerValue >= 3)
                         // only block dangerous spells todo: get the skillshot damage and if is higher then my health > block.
                     {
-                        if (!skillshot.IsAboutToHit(500, _player) ||
+                        if (!skillshot.IsAboutToHit(200, _player) ||
                             exceptions.Any(exception => skillshot.SpellData.SpellName == exception))
                         {
                             return;
@@ -584,6 +558,20 @@ namespace iYasuo
                         Vector3 castVector = _player.ServerPosition.Extend(skillshot.MissilePosition.To3D(), 10);
                         _spells[Spells.W].Cast(castVector);
                     }
+                }
+            }
+        }
+
+        private static void DodgeSkillshot()
+        {
+            foreach (Skillshot skillshot in EvadeDetectedSkillshots)
+            {
+                if (skillshot.IsAboutToHit(200, _player))
+                {
+                    //Game.PrintChat("GONNA GET REKT PLS USE E on minions");
+                    var dashableTargets =
+                        ObjectManager.Get<Obj_AI_Base>()
+                            .Where(x => _player.CanDash(x) && x.IsValidTarget(_spells[Spells.E].Range));
                 }
             }
         }
