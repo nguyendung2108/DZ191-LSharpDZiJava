@@ -18,9 +18,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using iYasuo.Evade;
+using iYasuo.utils;
 using LeagueSharp;
 using LeagueSharp.Common;
 using SharpDX;
+using SpellData = LeagueSharp.SpellData;
 
 #endregion
 
@@ -54,6 +57,11 @@ namespace iYasuo
             { Spells.R, new Spell(SpellSlot.R, 1200f) }
         };
 
+        public static List<Skillshot> DetectedSkillShots = new List<Skillshot>();
+        private static readonly List<Skillshot> EvadeDetectedSkillshots = new List<Skillshot>();
+
+        private static Vector3 _positionBeforeQe;
+
         private static void Main(string[] args)
         {
             CustomEvents.Game.OnGameLoad += OnGameLoad;
@@ -66,7 +74,76 @@ namespace iYasuo
         /// </summary>
         private static void OnCombo()
         {
-            //TODO :S
+            var target = TargetSelector.GetTarget(1500f, TargetSelector.DamageType.Physical);
+
+
+            if (_menu.Item("useQC").GetValue<bool>() && _menu.Item("useEC").GetValue<bool>() &&
+                _spells[Spells.Q].IsReady() && _spells[Spells.E].IsReady() && _spells[Spells.E].IsInRange(target))
+            {
+                _spells[Spells.E].CastOnUnit(target);
+                Utility.DelayAction.Add(target.GetDistanceCastTime(_spells[Spells.E]), () => _spells[Spells.Q].Cast());
+            }
+
+            if (_menu.Item("useQC").GetValue<bool>() && _spells[Spells.Q].IsReady() && !_player.HasEmpoweredSpell())
+            {
+                if (_spells[Spells.Q].IsInRange(target))
+                {
+                    _spells[Spells.Q].CastIfHitchanceEquals(target, HitChance.High);
+                }
+            }
+
+            if (_menu.Item("useQC2").GetValue<bool>() && _spells[Spells.Q2].IsReady() &&
+                _spells[Spells.Q2].IsInRange(target) && _player.HasEmpoweredSpell())
+            {
+                _spells[Spells.Q2].CastIfHitchanceEquals(target, HitChance.High);
+            }
+
+            //E - Gapclosing
+            var bestMinion = GetBestMinion(target);
+            if (_menu.Item("useEGap").GetValue<bool>() && _player.Distance(target) > _spells[Spells.Q].Range)
+            {
+                if (_spells[Spells.E].IsReady() && _spells[Spells.E].IsInRange(bestMinion) && bestMinion != null &&
+                    _player.CanDash(bestMinion))
+                {
+                    if (V3E(_player.ServerPosition, target.ServerPosition, _spells[Spells.E].Range).UnderTurret(true))
+                    {
+                        return;
+                    }
+                    _spells[Spells.E].CastOnUnit(bestMinion);
+                }
+            }
+
+            //Normal E cast
+            if (_menu.Item("useEC").GetValue<bool>() && _spells[Spells.E].IsReady() &&
+                _spells[Spells.E].IsInRange(target) && _player.CanDash(target))
+            {
+                if (V3E(_player.ServerPosition, target.ServerPosition, _spells[Spells.E].Range).UnderTurret(true))
+                {
+                    return;
+                }
+                _spells[Spells.E].CastOnUnit(target);
+            }
+
+            //R cast delay
+            if (_menu.Item("useRC").GetValue<bool>() && _spells[Spells.R].IsReady() &&
+                _spells[Spells.R].IsInRange(target) && target.IsAirborne())
+            {
+                var knockedUpEnemies =
+                    HeroManager.Enemies.Count(x => x.IsAirborne() && x.IsValidTarget(_spells[Spells.R].Range));
+
+                if (knockedUpEnemies >= _menu.Item("rCount").GetValue<Slider>().Value)
+                {
+                    _spells[Spells.R].Cast();
+                }
+                else
+                {
+                    if (_menu.Item("delayUltimate").GetValue<bool>())
+                    {
+                        Utility.DelayAction.Add(
+                            (int) (AirborneTimeLeft(target) * 1000 - 200), () => _spells[Spells.R].Cast());
+                    }
+                }
+            }
         }
 
         private static void OnFarm()
@@ -74,12 +151,6 @@ namespace iYasuo
             List<Obj_AI_Base> minions = MinionManager.GetMinions(
                 _spells[Spells.Q2].Range, MinionTypes.All, MinionTeam.NotAlly);
             Obj_AI_Base qMinion = minions.FirstOrDefault(min => min.IsValidTarget(_spells[Spells.Q].Range));
-
-            if (qMinion != null && qMinion.IsValidTarget(_spells[Spells.Q].Range) && _spells[Spells.Q].IsReady() &&
-                !_player.HasEmpoweredSpell() && _menu.Item("useQF").GetValue<bool>())
-            {
-                _spells[Spells.Q].Cast(qMinion);
-            }
 
             Obj_AI_Minion minion =
                 ObjectManager.Get<Obj_AI_Minion>()
@@ -90,6 +161,47 @@ namespace iYasuo
                 _menu.Item("useEF").GetValue<bool>())
             {
                 _spells[Spells.E].CastOnUnit(minion);
+            }
+
+            if (qMinion != null && qMinion.IsValidTarget(_spells[Spells.Q].Range) && _spells[Spells.Q].IsReady() &&
+                !_player.HasEmpoweredSpell() && _menu.Item("useQF").GetValue<bool>())
+            {
+                if (!_player.IsDashing())
+                {
+                    _spells[Spells.Q].Cast(qMinion);
+                }
+            }
+        }
+
+        private static void OnHarass()
+        {
+            var target = TargetSelector.GetTarget(1500f, TargetSelector.DamageType.Physical);
+
+            if (_menu.Item("useQEH").GetValue<bool>() && _spells[Spells.Q].IsReady() && _spells[Spells.E].IsReady() &&
+                _spells[Spells.E].IsInRange(target))
+            {
+                _positionBeforeQe = _player.ServerPosition;
+
+                _spells[Spells.E].CastOnUnit(target);
+                Utility.DelayAction.Add(
+                    target.GetDistanceCastTime(_spells[Spells.E]), delegate
+                    {
+                        _spells[Spells.Q].Cast(target);
+                        Utility.DelayAction.Add(
+                            (int) (_spells[Spells.Q].Delay + Game.Ping / 2f), delegate
+                            {
+                                // Find closest minion to last pos
+                                var bestMinion =
+                                    ObjectManager.Get<Obj_AI_Minion>()
+                                        .Where(x => x.IsValidTarget(_spells[Spells.E].Range))
+                                        .OrderBy(x => x.Distance(_positionBeforeQe))
+                                        .FirstOrDefault();
+                                if (bestMinion != null)
+                                {
+                                    _spells[Spells.E].Cast(bestMinion);
+                                }
+                            });
+                    });
             }
         }
 
@@ -102,8 +214,7 @@ namespace iYasuo
                 ObjectManager.Get<Obj_AI_Base>()
                     .Where(
                         min =>
-                            min.Distance(Game.CursorPos) < 400 && _player.Distance(min) <= 475f && _player.CanDash(min) &&
-                            !V3E(_player.ServerPosition, min.ServerPosition, _spells[Spells.E].Range).UnderTurret(true))
+                            min.Distance(Game.CursorPos) < 400 && _player.Distance(min) <= 475f && _player.CanDash(min))
                     .OrderBy(min => min.Distance(Game.CursorPos))
                     .FirstOrDefault();
 
@@ -111,7 +222,31 @@ namespace iYasuo
 
             if (_spells[Spells.E].IsReady() && _spells[Spells.E].IsInRange(dashTarget))
             {
+                if (dashTarget != null &&
+                    (_menu.Item("turretCheck").GetValue<bool>() &&
+                     V3E(_player.ServerPosition, dashTarget.ServerPosition, _spells[Spells.E].Range).UnderTurret(true)))
+                {
+                    return;
+                }
+
                 _spells[Spells.E].CastOnUnit(dashTarget);
+                if (_menu.Item("stackQ").GetValue<bool>() && !_player.HasEmpoweredSpell() && _spells[Spells.Q].IsReady() &&
+                    _spells[Spells.Q].IsInRange(dashTarget))
+                {
+                    Utility.DelayAction.Add(
+                        dashTarget.GetDistanceCastTime(_spells[Spells.E]), () => _spells[Spells.Q].Cast(dashTarget));
+                }
+            }
+        }
+
+        private static void OnGapcloser(ActiveGapcloser gapcloser)
+        {
+            if (_player.HasEmpoweredSpell() && _spells[Spells.Q2].IsReady())
+            {
+                if (_player.Distance(gapcloser.End) < 200)
+                {
+                    _spells[Spells.Q2].Cast(gapcloser.Sender);
+                }
             }
         }
 
@@ -136,6 +271,10 @@ namespace iYasuo
 
             //Event Subscribers
             Game.OnUpdate += OnGameUpdate;
+            AntiGapcloser.OnEnemyGapcloser += OnGapcloser;
+            SkillshotDetector.OnDetectSkillshot += OnDetectSkillshot;
+            SkillshotDetector.OnDeleteMissile += OnDeleteMissile;
+            DamagePrediction.OnSpellWillKill += OnKillableSpell;
         }
 
         /// <summary>
@@ -144,9 +283,15 @@ namespace iYasuo
         /// <param name="args">The event arguments.</param>
         private static void OnGameUpdate(EventArgs args)
         {
+            EvadeDetectedSkillshots.RemoveAll(skillshot => !skillshot.IsActive());
             if (_player.IsDead)
             {
                 return;
+            }
+
+            if (_menu.Item("blockDangerous").GetValue<bool>() && _spells[Spells.W].IsReady())
+            {
+                AutoWindwall();
             }
 
             if (_menu.Item("fleeKey").GetValue<KeyBind>().Active)
@@ -160,99 +305,239 @@ namespace iYasuo
                     OnCombo();
                     break;
                 case Orbwalking.OrbwalkingMode.Mixed:
-                    //harass and last hit :S
+                    OnHarass();
                     break;
                 case Orbwalking.OrbwalkingMode.LaneClear:
-                    //TODO laneclear
                     OnFarm();
                     break;
             }
         }
 
-        #endregion
-
-        #region Spell Casting
-
-        private static void CastQ()
+        private static void OnKillableSpell(Obj_AI_Hero sender, Obj_AI_Hero target, SpellData sdata)
         {
-            Obj_AI_Hero target = TargetSelector.GetTarget(_spells[Spells.Q2].Range, TargetSelector.DamageType.Physical);
-
-            if (!target.IsValidTarget(_spells[Spells.Q2].Range))
+            if (sender.IsAlly)
             {
                 return;
             }
 
-            if (_menu.Item("useQC").GetValue<bool>() && _spells[Spells.Q].IsReady() &&
-                _spells[Spells.Q].IsInRange(target))
+            if (_menu.Item("useWC").GetValue<bool>() && _spells[Spells.W].IsReady())
             {
-                _spells[Spells.Q].CastIfHitchanceEquals(target, HitChance.High);
-            }
+                Game.PrintChat("Spell WIll kill: " + sdata.Name);
+                string[] exceptions = { "SejuaniArcticAssault" };
 
-            if (_menu.Item("useQC2").GetValue<bool>() && _player.HasEmpoweredSpell() && _spells[Spells.Q2].IsReady() &&
-                _spells[Spells.Q2].IsInRange(target))
-            {
-                _spells[Spells.Q2].CastIfHitchanceEquals(target, HitChance.High);
+                foreach (Skillshot skillshot in EvadeDetectedSkillshots)
+                {
+                    if (skillshot.SpellData.Type != SkillShotType.SkillshotCircle ||
+                        skillshot.SpellData.Type != SkillShotType.SkillshotRing)
+                    {
+                        if (!skillshot.IsAboutToHit(500, _player) ||
+                            exceptions.Any(exception => skillshot.SpellData.SpellName == exception))
+                        {
+                            return;
+                        }
+
+                        Vector3 castVector = _player.ServerPosition.Extend(skillshot.MissilePosition.To3D(), 10);
+                        _spells[Spells.W].Cast(castVector);
+                    }
+                }
             }
         }
 
-        // ReSharper disable once InconsistentNaming
-        private static void CastEQ()
+        private static void OnDetectSkillshot(Skillshot skillshot)
         {
-            Obj_AI_Hero target = TargetSelector.GetTarget(_spells[Spells.E].Range, TargetSelector.DamageType.Physical);
-
-            if (!target.IsValidTarget(_spells[Spells.E].Range))
+            //Check if the skillshot is already added.
+            var alreadyAdded = false;
+            foreach (var item in EvadeDetectedSkillshots)
+            {
+                if (item.SpellData.SpellName == skillshot.SpellData.SpellName &&
+                    (item.Caster.NetworkId == skillshot.Caster.NetworkId &&
+                     (skillshot.Direction).AngleBetween(item.Direction) < 5 &&
+                     (skillshot.Start.Distance(item.Start) < 100 || skillshot.SpellData.FromObjects.Length == 0)))
+                {
+                    alreadyAdded = true;
+                }
+            }
+            //Check if the skillshot is from an ally.
+            if (skillshot.Caster.Team == ObjectManager.Player.Team)
             {
                 return;
             }
-
-            if (_menu.Item("useQC").GetValue<bool>() && _menu.Item("useEC").GetValue<bool>() &&
-                _spells[Spells.Q].IsReady() && _spells[Spells.E].IsReady() &&
-                _player.Distance(target) <= _spells[Spells.E].Range)
+            //Check if the skillshot is too far away.
+            if (skillshot.Start.Distance(ObjectManager.Player.ServerPosition.To2D()) >
+                (skillshot.SpellData.Range + skillshot.SpellData.Radius + 1000) * 1.5)
             {
-                _spells[Spells.E].CastOnUnit(target);
-                Utility.DelayAction.Add(target.GetDistanceCastTime(_spells[Spells.E]), () => _spells[Spells.Q].Cast());
+                return;
+            }
+            //Add the skillshot to the detected skillshot list.
+            if (!alreadyAdded)
+            {
+                //Multiple skillshots like twisted fate Q.
+                if (skillshot.DetectionType == DetectionType.ProcessSpell)
+                {
+                    if (skillshot.SpellData.MultipleNumber != -1)
+                    {
+                        var originalDirection = skillshot.Direction;
+                        for (var i = -(skillshot.SpellData.MultipleNumber - 1) / 2;
+                            i <= (skillshot.SpellData.MultipleNumber - 1) / 2;
+                            i++)
+                        {
+                            var end = skillshot.Start +
+                                      skillshot.SpellData.Range *
+                                      originalDirection.Rotated(skillshot.SpellData.MultipleAngle * i);
+                            var skillshotToAdd = new Skillshot(
+                                skillshot.DetectionType, skillshot.SpellData, skillshot.StartTick, skillshot.Start, end,
+                                skillshot.Caster);
+                            EvadeDetectedSkillshots.Add(skillshotToAdd);
+                        }
+                        return;
+                    }
+                    if (skillshot.SpellData.SpellName == "UFSlash")
+                    {
+                        skillshot.SpellData.MissileSpeed = 1600 + (int) skillshot.Caster.MoveSpeed;
+                    }
+                    if (skillshot.SpellData.Invert)
+                    {
+                        var newDirection = -(skillshot.End - skillshot.Start).Normalized();
+                        var end = skillshot.Start + newDirection * skillshot.Start.Distance(skillshot.End);
+                        var skillshotToAdd = new Skillshot(
+                            skillshot.DetectionType, skillshot.SpellData, skillshot.StartTick, skillshot.Start, end,
+                            skillshot.Caster);
+                        EvadeDetectedSkillshots.Add(skillshotToAdd);
+                        return;
+                    }
+                    if (skillshot.SpellData.Centered)
+                    {
+                        var start = skillshot.Start - skillshot.Direction * skillshot.SpellData.Range;
+                        var end = skillshot.Start + skillshot.Direction * skillshot.SpellData.Range;
+                        var skillshotToAdd = new Skillshot(
+                            skillshot.DetectionType, skillshot.SpellData, skillshot.StartTick, start, end,
+                            skillshot.Caster);
+                        EvadeDetectedSkillshots.Add(skillshotToAdd);
+                        return;
+                    }
+                    if (skillshot.SpellData.SpellName == "SyndraE" || skillshot.SpellData.SpellName == "syndrae5")
+                    {
+                        const int angle = 60;
+                        const int fraction = -angle / 2;
+                        var edge1 =
+                            (skillshot.End - skillshot.Caster.ServerPosition.To2D()).Rotated(
+                                fraction * (float) Math.PI / 180);
+                        var edge2 = edge1.Rotated(angle * (float) Math.PI / 180);
+                        foreach (var minion in ObjectManager.Get<Obj_AI_Minion>())
+                        {
+                            var v = minion.ServerPosition.To2D() - skillshot.Caster.ServerPosition.To2D();
+                            if (minion.Name == "Seed" && edge1.CrossProduct(v) > 0 && v.CrossProduct(edge2) > 0 &&
+                                minion.Distance(skillshot.Caster) < 800 && (minion.Team != ObjectManager.Player.Team))
+                            {
+                                var start = minion.ServerPosition.To2D();
+                                var end = skillshot.Caster.ServerPosition.To2D()
+                                    .Extend(
+                                        minion.ServerPosition.To2D(),
+                                        skillshot.Caster.Distance(minion) > 200 ? 1300 : 1000);
+                                var skillshotToAdd = new Skillshot(
+                                    skillshot.DetectionType, skillshot.SpellData, skillshot.StartTick, start, end,
+                                    skillshot.Caster);
+                                EvadeDetectedSkillshots.Add(skillshotToAdd);
+                            }
+                        }
+                        return;
+                    }
+                    if (skillshot.SpellData.SpellName == "AlZaharCalloftheVoid")
+                    {
+                        var start = skillshot.End - skillshot.Direction.Perpendicular() * 400;
+                        var end = skillshot.End + skillshot.Direction.Perpendicular() * 400;
+                        var skillshotToAdd = new Skillshot(
+                            skillshot.DetectionType, skillshot.SpellData, skillshot.StartTick, start, end,
+                            skillshot.Caster);
+                        EvadeDetectedSkillshots.Add(skillshotToAdd);
+                        return;
+                    }
+                    if (skillshot.SpellData.SpellName == "ZiggsQ")
+                    {
+                        var d1 = skillshot.Start.Distance(skillshot.End);
+                        var d2 = d1 * 0.4f;
+                        var d3 = d2 * 0.69f;
+                        var bounce1SpellData = SpellDatabase.GetByName("ZiggsQBounce1");
+                        var bounce2SpellData = SpellDatabase.GetByName("ZiggsQBounce2");
+                        var bounce1Pos = skillshot.End + skillshot.Direction * d2;
+                        var bounce2Pos = bounce1Pos + skillshot.Direction * d3;
+                        bounce1SpellData.Delay =
+                            (int) (skillshot.SpellData.Delay + d1 * 1000f / skillshot.SpellData.MissileSpeed + 500);
+                        bounce2SpellData.Delay =
+                            (int) (bounce1SpellData.Delay + d2 * 1000f / bounce1SpellData.MissileSpeed + 500);
+                        var bounce1 = new Skillshot(
+                            skillshot.DetectionType, bounce1SpellData, skillshot.StartTick, skillshot.End, bounce1Pos,
+                            skillshot.Caster);
+                        var bounce2 = new Skillshot(
+                            skillshot.DetectionType, bounce2SpellData, skillshot.StartTick, bounce1Pos, bounce2Pos,
+                            skillshot.Caster);
+                        EvadeDetectedSkillshots.Add(bounce1);
+                        EvadeDetectedSkillshots.Add(bounce2);
+                    }
+                    if (skillshot.SpellData.SpellName == "ZiggsR")
+                    {
+                        skillshot.SpellData.Delay =
+                            (int) (1500 + 1500 * skillshot.End.Distance(skillshot.Start) / skillshot.SpellData.Range);
+                    }
+                    if (skillshot.SpellData.SpellName == "JarvanIVDragonStrike")
+                    {
+                        var endPos = new Vector2();
+                        foreach (var s in EvadeDetectedSkillshots)
+                        {
+                            if (s.Caster.NetworkId == skillshot.Caster.NetworkId && s.SpellData.Slot == SpellSlot.E)
+                            {
+                                endPos = s.End;
+                            }
+                        }
+                        foreach (var m in ObjectManager.Get<Obj_AI_Minion>())
+                        {
+                            if (m.BaseSkinName == "jarvanivstandard" && m.Team == skillshot.Caster.Team &&
+                                skillshot.IsDanger(m.Position.To2D()))
+                            {
+                                endPos = m.Position.To2D();
+                            }
+                        }
+                        if (!endPos.IsValid())
+                        {
+                            return;
+                        }
+                        skillshot.End = endPos + 200 * (endPos - skillshot.Start).Normalized();
+                        skillshot.Direction = (skillshot.End - skillshot.Start).Normalized();
+                    }
+                }
+                if (skillshot.SpellData.SpellName == "OriannasQ")
+                {
+                    var endCSpellData = SpellDatabase.GetByName("OriannaQend");
+                    var skillshotToAdd = new Skillshot(
+                        skillshot.DetectionType, endCSpellData, skillshot.StartTick, skillshot.Start, skillshot.End,
+                        skillshot.Caster);
+                    EvadeDetectedSkillshots.Add(skillshotToAdd);
+                }
+                //Dont allow fow detection.
+                if (skillshot.SpellData.DisableFowDetection && skillshot.DetectionType == DetectionType.RecvPacket)
+                {
+                    return;
+                }
+                EvadeDetectedSkillshots.Add(skillshot);
             }
         }
 
-        private static void CastE()
+        private static void OnDeleteMissile(Skillshot skillshot, Obj_SpellMissile missile)
         {
-            Obj_AI_Hero target = TargetSelector.GetTarget(_spells[Spells.Q].Range, TargetSelector.DamageType.Physical);
-            Obj_AI_Base bestMinion = GetBestMinion(target);
-
-            if (_menu.Item("useEGap").GetValue<bool>() && _player.Distance(target) > _spells[Spells.Q].Range)
+            if (skillshot.SpellData.SpellName == "VelkozQ")
             {
-                if (_spells[Spells.E].IsReady() && bestMinion != null &&
-                    bestMinion.IsValidTarget(_spells[Spells.E].Range) && _spells[Spells.E].IsInRange(bestMinion))
+                var spellData = SpellDatabase.GetByName("VelkozQSplit");
+                var direction = skillshot.Direction.Perpendicular();
+                if (EvadeDetectedSkillshots.Count(s => s.SpellData.SpellName == "VelkozQSplit") == 0)
                 {
-                    _spells[Spells.E].CastOnUnit(bestMinion);
+                    for (var i = -1; i <= 1; i = i + 2)
+                    {
+                        var skillshotToAdd = new Skillshot(
+                            DetectionType.ProcessSpell, spellData, Environment.TickCount, missile.Position.To2D(),
+                            missile.Position.To2D() + i * direction * spellData.Range, skillshot.Caster);
+                        EvadeDetectedSkillshots.Add(skillshotToAdd);
+                    }
                 }
-            }
-            else
-            {
-                if (_menu.Item("useEC").GetValue<bool>() && _spells[Spells.E].IsReady() &&
-                    _spells[Spells.E].IsInRange(target) && target.IsValidTarget(_spells[Spells.E].Range))
-                {
-                    _spells[Spells.E].CastOnUnit(target);
-                }
-            }
-        }
-
-        private static void CastR()
-        {
-            IEnumerable<Obj_AI_Hero> knockedUpEnemies =
-                HeroManager.Enemies.Where(hero => hero.IsValidTarget(_spells[Spells.R].Range) && hero.IsAirborne());
-
-            if (knockedUpEnemies.Count() >= _menu.Item("rCount").GetValue<Slider>().Value)
-            {
-                if (_spells[Spells.R].IsReady() && ShouldCastR())
-                {
-                    _spells[Spells.R].Cast();
-                }
-            }
-
-            if (_menu.Item("delayUltimate").GetValue<bool>() && _spells[Spells.R].IsReady())
-            {
-                //TODO :S
             }
         }
 
@@ -278,13 +563,29 @@ namespace iYasuo
             return (int) (((_player.Distance(target) / spell.Speed) + spell.Delay) + Game.Ping / 2f);
         }
 
-        private static bool ShouldCastR()
+        private static void AutoWindwall()
         {
-            Obj_AI_Hero target = TargetSelector.GetTarget(_spells[Spells.R].Range, TargetSelector.DamageType.Physical);
-            Vector3 extendedPosition = _player.ServerPosition.Extend(target.ServerPosition, _spells[Spells.R].Range);
+            string[] exceptions = { "SejuaniArcticAssault" };
 
-            return extendedPosition.CountEnemiesInRange(_spells[Spells.Q2].Range) <= 2 &&
-                   !extendedPosition.UnderTurret(true); // TODO get combo damage.
+            foreach (Skillshot skillshot in EvadeDetectedSkillshots)
+            {
+                if (skillshot.SpellData.Type != SkillShotType.SkillshotCircle ||
+                    skillshot.SpellData.Type != SkillShotType.SkillshotRing)
+                {
+                    if (skillshot.SpellData.IsDangerous && skillshot.SpellData.DangerValue >= 3)
+                        // only block dangerous spells todo: get the skillshot damage and if is higher then my health > block.
+                    {
+                        if (!skillshot.IsAboutToHit(500, _player) ||
+                            exceptions.Any(exception => skillshot.SpellData.SpellName == exception))
+                        {
+                            return;
+                        }
+
+                        Vector3 castVector = _player.ServerPosition.Extend(skillshot.MissilePosition.To3D(), 10);
+                        _spells[Spells.W].Cast(castVector);
+                    }
+                }
+            }
         }
 
         private static float AirborneTimeLeft(Obj_AI_Hero target)
@@ -355,12 +656,15 @@ namespace iYasuo
                 {
                     qMenu.AddItem(new MenuItem("useQC", "Enabled").SetValue(true));
                     qMenu.AddItem(new MenuItem("useQC2", "Use Whirlwind").SetValue(true));
+                    qMenu.AddItem(new MenuItem("priorEQ", "Prioritize E - Q").SetValue(true));
                     comboMenu.AddSubMenu(qMenu);
                 }
                 //W Menu
                 Menu wMenu = new Menu("Windwall (W)", "windwall");
                 {
                     wMenu.AddItem(new MenuItem("useWC", "Enabled").SetValue(true));
+                    wMenu.AddItem(new MenuItem("blockDangerous", "Only Block Dangerous Spells").SetValue(true));
+
                     //TODO only wall dangerous etc etc
                     //TODO spell customizability
                     comboMenu.AddSubMenu(wMenu);
@@ -387,7 +691,7 @@ namespace iYasuo
 
             Menu harassMenu = new Menu("iYasuo - Harass", "com.iyasuo.harass");
             {
-                harassMenu.AddItem(new MenuItem("useQH", "Use Q in harass").SetValue(false));
+                harassMenu.AddItem(new MenuItem("useEQH", "Use E - Q Harass").SetValue(false));
                 _menu.AddSubMenu(harassMenu);
             }
 
@@ -404,6 +708,7 @@ namespace iYasuo
                     new MenuItem("fleeKey", "Fleeing Key").SetValue(
                         new KeyBind("V".ToCharArray()[0], KeyBindType.Press)));
                 fleeMenu.AddItem(new MenuItem("stackQ", "Stack Q while fleeing").SetValue(true));
+                fleeMenu.AddItem(new MenuItem("turretCheck", "Don't flee under turrets").SetValue(true));
                 _menu.AddSubMenu(fleeMenu);
             }
 
