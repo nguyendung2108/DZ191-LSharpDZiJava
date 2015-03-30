@@ -89,14 +89,15 @@ namespace iYasuo
                 }
             }
 
-            if (_menu.Item("useQC").GetValue<bool>() && _menu.Item("useEC").GetValue<bool>() &&
+            /* if (_menu.Item("useQC").GetValue<bool>() && _menu.Item("useEC").GetValue<bool>() &&
                 _spells[Spells.Q].IsReady() && _spells[Spells.E].IsReady() && _spells[Spells.E].IsInRange(target))
             {
                 _spells[Spells.E].CastOnUnit(target);
                 Utility.DelayAction.Add(target.GetDistanceCastTime(_spells[Spells.E]), () => _spells[Spells.Q].Cast());
-            }
+            }*/
 
-            if (_menu.Item("useQC").GetValue<bool>() && _spells[Spells.Q].IsReady() && !_player.HasEmpoweredSpell())
+            if (_menu.Item("useQC").GetValue<bool>() && _spells[Spells.Q].IsReady() && !_player.HasEmpoweredSpell() &&
+                !_player.IsDashing())
             {
                 if (_spells[Spells.Q].IsInRange(target))
                 {
@@ -268,7 +269,10 @@ namespace iYasuo
                 AutoWindwall();
             }
 
-            DodgeSkillshot();
+            if (_menu.Item("dodgeE").GetValue<bool>())
+            {
+                DodgeSkillshot();
+            }
 
             if (_menu.Item("fleeKey").GetValue<KeyBind>().Active)
             {
@@ -334,7 +338,7 @@ namespace iYasuo
                 else if (sender.ChampionName == "Vayne" && args.SData.Name == "VayneCondemn")
                 {
                     Utility.DelayAction.Add((int) 0.25f, () => _spells[Spells.W].Cast(castPosition));
-                        // REMOVED FOR NOW CAUSE ITS NOT RLY THAT BAD :S
+                    // REMOVED FOR NOW CAUSE ITS NOT RLY THAT BAD :S
                     // TODO possible check if the condem is going to stun, if not then dont block.
                 }
                 else if (sender.ChampionName == "Tristana" && args.SData.Name == "TristanaR")
@@ -611,16 +615,21 @@ namespace iYasuo
 
         private static void DodgeSkillshot()
         {
+            if (!_menu.Item("dodgeE").GetValue<bool>())
+                return;
+
             foreach (Skillshot skillshot in EvadeDetectedSkillshots)
             {
-                if (skillshot.IsAboutToHit(200, _player))
+                if (skillshot.IsAboutToHit(500, _player))
                 {
-                    //Game.PrintChat("GONNA GET REKT PLS USE E on minions");
-                    var dashableTargets =
-                        ObjectManager.Get<Obj_AI_Base>()
-                            .Where(x => _player.CanDash(x) && x.IsValidTarget(_spells[Spells.E].Range));
+                    var dashObjects =
+                        ObjectManager.Get<Obj_AI_Base>().Where(x => _player.CanDash(x) && x.IsValidTarget(_spells[Spells.E].Range)).OrderBy(x => x.Distance(_player.Position)).FirstOrDefault();
 
-                }
+                    bool isSafe = dashObjects != null && skillshot.IsSafe(V3E(_player.Position, dashObjects.Position, 475).To2D());
+
+                     if (dashObjects != null && _spells[Spells.E].IsReady() && isSafe)
+                       _spells[Spells.E].Cast(dashObjects);
+                }//
             }
         }
 
@@ -710,7 +719,9 @@ namespace iYasuo
                 {
                     eMenu.AddItem(new MenuItem("useEC", "Enabled").SetValue(true));
                     eMenu.AddItem(new MenuItem("useEGap", "Gapclose With E").SetValue(true));
-                    eMenu.AddItem(new MenuItem("eGapRange", "Gapclosing Range").SetValue(new Slider(1200, 0, 2000)));
+                    eMenu.AddItem(new MenuItem("eGapRange", "Gapclosing Range").SetValue(new Slider(1500, 0, 2000)));
+                    eMenu.AddItem(new MenuItem("safetyCheck", "Safety Checks for dashing").SetValue(true));
+                    eMenu.AddItem(new MenuItem("dodgeE", "Dodge with E").SetValue(true));
                     //OTHER CUSTOMIZABLE STOOF?
                     comboMenu.AddSubMenu(eMenu);
                 }
