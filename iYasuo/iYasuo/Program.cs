@@ -89,37 +89,54 @@ namespace iYasuo
                 }
             }
 
-            /* if (_menu.Item("useQC").GetValue<bool>() && _menu.Item("useEC").GetValue<bool>() &&
+            if (_menu.Item("priorEQ").GetValue<bool>() &&
                 _spells[Spells.Q].IsReady() && _spells[Spells.E].IsReady() && _spells[Spells.E].IsInRange(target))
             {
                 _spells[Spells.E].CastOnUnit(target);
                 Utility.DelayAction.Add(target.GetDistanceCastTime(_spells[Spells.E]), () => _spells[Spells.Q].Cast());
-            }*/
+                return;
+            }
 
+            //Q Casting
             if (_menu.Item("useQC").GetValue<bool>() && _spells[Spells.Q].IsReady() && !_player.HasEmpoweredSpell() &&
-                !_player.IsDashing())
+                target != null)
             {
-                if (_spells[Spells.Q].IsInRange(target))
+                if (!_player.IsDashing())
                 {
-                    _spells[Spells.Q].CastIfHitchanceEquals(target, HitChance.High);
+                    PredictionOutput prediction = _spells[Spells.Q].GetPrediction(target);
+                    if (prediction.Hitchance >= HitChance.Medium && _player.Distance(target) <= _spells[Spells.Q].Range)
+                    {
+                        _spells[Spells.Q].Cast(prediction.CastPosition);
+                        return;
+                    }
                 }
             }
 
-            if (_menu.Item("useQC2").GetValue<bool>() && _spells[Spells.Q2].IsReady() &&
-                _spells[Spells.Q2].IsInRange(target) && _player.HasEmpoweredSpell())
+            if (_menu.Item("useQC2").GetValue<bool>() && _spells[Spells.Q2].IsReady() && _player.HasEmpoweredSpell() &&
+                target != null)
             {
-                _spells[Spells.Q2].CastIfHitchanceEquals(target, HitChance.High);
+                if (!_player.IsDashing())
+                {
+                    PredictionOutput prediction = _spells[Spells.Q2].GetPrediction(target);
+                    if (prediction.Hitchance >= HitChance.Medium && _player.Distance(target) <= _spells[Spells.Q2].Range)
+                    {
+                        _spells[Spells.Q2].Cast(prediction.CastPosition);
+                        return;
+                    }
+                }
             }
 
             //Normal E cast
             if (_menu.Item("useEC").GetValue<bool>() && _spells[Spells.E].IsReady() &&
                 _spells[Spells.E].IsInRange(target) && _player.CanDash(target))
             {
-                if (V3E(_player.ServerPosition, target.ServerPosition, _spells[Spells.E].Range).UnderTurret(true))
+                if (target != null &&
+                    V3E(_player.ServerPosition, target.ServerPosition, _spells[Spells.E].Range).UnderTurret(true))
                 {
                     return;
                 }
                 _spells[Spells.E].CastOnUnit(target);
+                return;
             }
 
             //R cast delay
@@ -671,7 +688,7 @@ namespace iYasuo
 
         private static bool HasEmpoweredSpell(this Obj_AI_Hero source)
         {
-            return source.HasBuff("YasuoQ3W");
+            return source.HasBuff("YasuoQ3W", true);
         }
 
         #endregion
