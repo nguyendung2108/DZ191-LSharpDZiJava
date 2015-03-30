@@ -616,20 +616,28 @@ namespace iYasuo
         private static void DodgeSkillshot()
         {
             if (!_menu.Item("dodgeE").GetValue<bool>())
+            {
                 return;
+            }
 
             foreach (Skillshot skillshot in EvadeDetectedSkillshots)
             {
                 if (skillshot.IsAboutToHit(500, _player))
                 {
                     var dashObjects =
-                        ObjectManager.Get<Obj_AI_Base>().Where(x => _player.CanDash(x) && x.IsValidTarget(_spells[Spells.E].Range)).OrderBy(x => x.Distance(_player.Position)).FirstOrDefault();
+                        ObjectManager.Get<Obj_AI_Base>()
+                            .Where(x => _player.CanDash(x) && x.IsValidTarget(_spells[Spells.E].Range))
+                            .OrderBy(x => x.Distance(_player.Position))
+                            .FirstOrDefault();
 
-                    bool isSafe = dashObjects != null && skillshot.IsSafe(V3E(_player.Position, dashObjects.Position, 475).To2D());
+                    bool isSafe = dashObjects != null &&
+                                  skillshot.IsSafe(V3E(_player.Position, dashObjects.Position, 475).To2D());
 
-                     if (dashObjects != null && _spells[Spells.E].IsReady() && isSafe)
-                       _spells[Spells.E].Cast(dashObjects);
-                }//
+                    if (dashObjects != null && _spells[Spells.E].IsReady() && isSafe)
+                    {
+                        _spells[Spells.E].Cast(dashObjects);
+                    }
+                } //
             }
         }
 
