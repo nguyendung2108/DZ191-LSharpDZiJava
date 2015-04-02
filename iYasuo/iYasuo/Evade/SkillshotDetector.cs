@@ -316,8 +316,8 @@ namespace iYasuo.Evade
 
                 //Trigger the skillshot detection callbacks.
                 TriggerOnDetectSkillshot(
-                    DetectionType.RecvPacket, spellData, castTime, Geometry.SwitchYZ(unitPosition).To2D(),
-                    Geometry.SwitchYZ(endPos).To2D(), unit);
+                    DetectionType.RecvPacket, spellData, castTime, unitPosition.SwitchYZ().To2D(),
+                    endPos.SwitchYZ().To2D(), unit);
             }
         }
     }
