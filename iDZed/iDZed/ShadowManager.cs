@@ -1,4 +1,19 @@
-﻿using System;
+﻿// This file is part of LeagueSharp.Common.
+// 
+// LeagueSharp.Common is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+// 
+// LeagueSharp.Common is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with LeagueSharp.Common.  If not, see <http://www.gnu.org/licenses/>.
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using LeagueSharp;
@@ -6,25 +21,38 @@ using LeagueSharp.Common;
 
 namespace iDZed
 {
-    class ShadowManager
+    internal static class ShadowManager
     {
-        public static List<Shadow> _shadowsList = new List<Shadow>
+        // ReSharper disable once InconsistentNaming
+        public static readonly List<Shadow> _shadowsList = new List<Shadow>
         {
             new Shadow { State = ShadowState.NotActive, Type = ShadowType.Normal },
-            new Shadow { State = ShadowState.NotActive, Type = ShadowType.Ult}
+            new Shadow { State = ShadowState.NotActive, Type = ShadowType.Ult }
         };
-        private const String ZedWMissileName = "ZedShadowDashMissile";
-        private const String ZedRMissileName = "ZedUltMissile";
-        private const String ZedShadowName = "zedshadow";
-        private const String ZedW2SsName = "ZedW2";
-        private const String ZedR2SsName = "ZedR2";//TODO Check this
+
+        private const string ZedWMissileName = "ZedShadowDashMissile";
+        private const string ZedRMissileName = "ZedUltMissile";
+        private const string ZedShadowName = "zedshadow";
+        private const string ZedW2SsName = "ZedW2";
+        private const string ZedR2SsName = "ZedR2"; //TODO Check this
+
+        public static Shadow WShadow
+        {
+            get { return _shadowsList.Find(x => x.Type == ShadowType.Normal); }
+        }
+
+        public static Shadow RShadow
+        {
+            get { return _shadowsList.Find(x => x.Type == ShadowType.Ult); }
+        }
 
         public static void OnLoad()
         {
             GameObject.OnCreate += GameObject_OnCreate;
             GameObject.OnDelete += GameObject_OnDelete;
         }
-        static void GameObject_OnCreate(GameObject sender, EventArgs args)
+
+        private static void GameObject_OnCreate(GameObject sender, EventArgs args)
         {
             if (!(sender is Obj_AI_Minion) && !(sender is Obj_SpellMissile))
             {
@@ -42,21 +70,22 @@ namespace iDZed
                             myShadow.State = ShadowState.Created;
                             myShadow.ShadowObject = minion;
                             //Hacky workaround, TODO: Find a better way
-                            Utility.DelayAction.Add(4200, () =>
-                            {
+                            Utility.DelayAction.Add(
+                                4200, () =>
+                                {
                                     myShadow.State = ShadowState.NotActive;
                                     myShadow.ShadowObject = null;
-                            });
+                                });
                         }
                     }
                     break;
                 default:
-                    var spell = (Obj_SpellMissile)sender;
+                    var spell = (Obj_SpellMissile) sender;
                     var caster = spell.SpellCaster;
                     var spellName = spell.SData.Name;
-                    if (caster.IsMe) 
+                    if (caster.IsMe)
                     {
-                        switch (spellName) 
+                        switch (spellName)
                         {
                             case ZedRMissileName:
                                 var rShadow = _shadowsList.FirstOrDefault(shadow => shadow.Type == ShadowType.Ult);
@@ -78,12 +107,14 @@ namespace iDZed
             }
         }
 
-        static void GameObject_OnDelete(GameObject sender, EventArgs args)
+        private static void GameObject_OnDelete(GameObject sender, EventArgs args)
         {
             //This is bugged and does not happen immediately as the zed shadow disappear, but instead 3-4 seconds later.
             if (sender != null && sender.IsAlly)
             {
-                var myShadow = _shadowsList.Find(shadow => shadow.ShadowObject != null && shadow.ShadowObject.NetworkId.Equals(sender.NetworkId));
+                var myShadow =
+                    _shadowsList.Find(
+                        shadow => shadow.ShadowObject != null && shadow.ShadowObject.NetworkId.Equals(sender.NetworkId));
                 if (myShadow != null)
                 {
                     myShadow.State = ShadowState.NotActive;
@@ -98,20 +129,20 @@ namespace iDZed
         }
     }
 
-    class Shadow
+    internal class Shadow
     {
         public Obj_AI_Minion ShadowObject { get; set; }
         public ShadowState State { get; set; }
         public ShadowType Type { get; set; }
     }
 
-    enum ShadowType
+    internal enum ShadowType
     {
         Normal,
         Ult
     }
 
-    enum ShadowState
+    internal enum ShadowState
     {
         NotActive,
         Travelling,
