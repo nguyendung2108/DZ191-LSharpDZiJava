@@ -363,6 +363,7 @@ namespace iYasuo
             Obj_SpellMissile args = (Obj_SpellMissile) sender;
 
 
+            if (args.SData.Name == "CaitlynAceintheHoleMissile" && args.Type == GameObjectType.obj_SpellLineMissile && args.Target.IsMe)
             {
                 if (_spells[Spells.W].IsReady() && Menu.Item("blockDangerous").GetValue<bool>())
                 {
