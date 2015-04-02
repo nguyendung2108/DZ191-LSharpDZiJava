@@ -12,10 +12,11 @@ namespace iDZed
             new Shadow { State = ShadowState.NotActive, Type = ShadowType.Normal },
             new Shadow { State = ShadowState.NotActive, Type = ShadowType.Ult}
         };
-        private const String ZedWShadowName = "";
-        private const String ZedRShadowName = "";
-        private const String ZedW2SsName = "";
-        private const String ZedR2SsName = "";
+        private const String ZedWMissileName = "ZedShadowDashMissile";
+        private const String ZedRMissileName = "ZedUltMissile";
+        private const String ZedShadowName = "ZedShadow";
+        private const String ZedW2SsName = "ZedW2";
+        private const String ZedR2SsName = "ZedR2";//TODO Check this
 
         public static void OnLoad()
         {
@@ -24,13 +25,55 @@ namespace iDZed
         }
         static void GameObject_OnCreate(GameObject sender, EventArgs args)
         {
-            throw new NotImplementedException();
+            switch (sender.Type)
+            {
+                case GameObjectType.obj_AI_Minion:
+                    var minion = sender as Obj_AI_Minion;
+                    if (minion != null && minion.Name.Equals(ZedShadowName))
+                    {
+                        var myShadow = _shadowsList.FirstOrDefault(shadow => (shadow.State == ShadowState.Travelling));
+                        if (myShadow != null)
+                        {
+                            myShadow.State = ShadowState.Created;
+                        }
+                    }
+                    break;
+                case GameObjectType.obj_SpellMissile:
+                    var spell = (Obj_SpellMissile)sender;
+                    var caster = spell.SpellCaster;
+                    var spellName = spell.SData.Name;
+                    if (caster.IsMe) 
+                    {
+                        switch (spellName) 
+                        {
+                            case ZedRMissileName:
+                                var rShadow = _shadowsList.FirstOrDefault(shadow => shadow.Type == ShadowType.Ult);
+                                if (rShadow != null)
+                                {
+                                    rShadow.State = ShadowState.Travelling;
+                                }
+                                break;
+                            case ZedWMissileName:
+                                var wShadow = _shadowsList.FirstOrDefault(shadow => shadow.Type == ShadowType.Normal);
+                                if (wShadow != null)
+                                {
+                                    wShadow.State = ShadowState.Travelling;
+                                }
+                                break;
+                        }
+                    }
+                    break;
+            }
         }
 
         static void GameObject_OnDelete(GameObject sender, EventArgs args)
         {
-            throw new NotImplementedException();
-        }  
+        }
+
+        public static bool CanGoToShadow(Shadow shadow)
+        {
+            return shadow.State == ShadowState.Created;
+        }
     }
 
     class Shadow

@@ -42,15 +42,12 @@ namespace iDZed
         #region Modes Region
         private static void Combo()
         {
-            throw new NotImplementedException();
         }
         private static void Harass()
         {
-            throw new NotImplementedException();
         }
         private static void Farm()
         {
-            throw new NotImplementedException();
         }
         #endregion
 
@@ -58,17 +55,20 @@ namespace iDZed
         private static void InitMenu()
         {
             _menu = new Menu("iDZed - Reloaded","com.idz.zed",true);
-            TargetSelector.AddToMenu(_menu);
+            var tsMenu = new Menu("[iDZed] TargetSelector", "com.idz.zed.targetselector");
+            TargetSelector.AddToMenu(tsMenu);
+            _menu.AddSubMenu(tsMenu);
             var orbwalkMenu = new Menu("[iDZed] Orbwalker", "com.idz.zed.orbwalker");
             _orbwalker = new Orbwalking.Orbwalker(orbwalkMenu);
+            _menu.AddSubMenu(orbwalkMenu);
             var comboMenu = new Menu("[iDZed] Combo", "com.idz.zed.combo");
             {
-                comboMenu.AddItem(new MenuItem("com.idz.zed.combo.useq", "Use Q"));
-                comboMenu.AddItem(new MenuItem("com.idz.zed.combo.usew", "Use W"));
-                comboMenu.AddItem(new MenuItem("com.idz.zed.combo.usee", "Use E"));
-                comboMenu.AddItem(new MenuItem("com.idz.zed.combo.user", "Use R"));
-                comboMenu.AddItem(new MenuItem("com.idz.zed.combo.swapw", "Swap W For Follow"));
-                comboMenu.AddItem(new MenuItem("com.idz.zed.combo.swapr", "Swap R On kill"));
+                comboMenu.AddItem(new MenuItem("com.idz.zed.combo.useq", "Use Q").SetValue(true));
+                comboMenu.AddItem(new MenuItem("com.idz.zed.combo.usew", "Use W").SetValue(true));
+                comboMenu.AddItem(new MenuItem("com.idz.zed.combo.usee", "Use E").SetValue(true));
+                comboMenu.AddItem(new MenuItem("com.idz.zed.combo.user", "Use R").SetValue(true));
+                comboMenu.AddItem(new MenuItem("com.idz.zed.combo.swapw", "Swap W For Follow").SetValue(false));
+                comboMenu.AddItem(new MenuItem("com.idz.zed.combo.swapr", "Swap R On kill").SetValue(true));
             };
             _menu.AddSubMenu(comboMenu);
             _menu.AddToMainMenu();
