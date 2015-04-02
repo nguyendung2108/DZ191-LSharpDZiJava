@@ -32,7 +32,6 @@ namespace iYasuo
     internal enum Spells
     {
         Q,
-        Q2,
         W,
         E,
         R
@@ -41,7 +40,7 @@ namespace iYasuo
     internal static class Program
     {
         //The menu instance
-        private static Menu _menu;
+        public static Menu Menu;
         //The common orbwalker
         private static Orbwalking.Orbwalker _orbwalker;
         //The player
@@ -50,8 +49,7 @@ namespace iYasuo
         // ReSharper disable once InconsistentNaming
         private static readonly Dictionary<Spells, Spell> _spells = new Dictionary<Spells, Spell>
         {
-            { Spells.Q, new Spell(SpellSlot.Q, 475f) },
-            { Spells.Q2, new Spell(SpellSlot.Q, 900f) },
+            { Spells.Q, new Spell(SpellSlot.Q, 500f) },
             { Spells.W, new Spell(SpellSlot.W, 400f) },
             { Spells.E, new Spell(SpellSlot.E, 475f) },
             { Spells.R, new Spell(SpellSlot.R, 1200f) }
@@ -72,33 +70,26 @@ namespace iYasuo
         /// </summary>
         private static void OnCombo()
         {
-            var target = TargetSelector.GetTarget(1500f, TargetSelector.DamageType.Physical);
+            Obj_AI_Hero target = GetEnemy(1500f);
 
-            //E - Gapclosing
-            var bestMinion = GetBestMinion(target);
-            if (_menu.Item("useEGap").GetValue<bool>() && _player.Distance(target) > _spells[Spells.Q].Range)
+            if (Menu.Item("useEGap").GetValue<bool>() && _spells[Spells.E].IsReady())
             {
-                if (_spells[Spells.E].IsReady() && _spells[Spells.E].IsInRange(bestMinion) && bestMinion != null &&
-                    _player.CanDash(bestMinion))
+                Obj_AI_Base dashObject = GetBestDashObject(GetEnemy(1500f));
+                Vector3 positionAfterE = V3E(_player.ServerPosition, dashObject.ServerPosition, 475);
+                if (_player.Distance(dashObject) <= _spells[Spells.E].Range && _player.Distance(target) > _spells[Spells.Q].Range)
                 {
-                    if (V3E(_player.ServerPosition, target.ServerPosition, _spells[Spells.E].Range).UnderTurret(true))
+                    if (Menu.Item("safetyCheck").GetValue<bool>() && positionAfterE.UnderTurret(true))
                     {
                         return;
                     }
-                    _spells[Spells.E].CastOnUnit(bestMinion);
+
+                    _spells[Spells.E].Cast(dashObject);
                 }
             }
 
-            if (_menu.Item("priorEQ").GetValue<bool>() &&
-                _spells[Spells.Q].IsReady() && _spells[Spells.E].IsReady() && _spells[Spells.E].IsInRange(target))
-            {
-                _spells[Spells.E].CastOnUnit(target);
-                Utility.DelayAction.Add(target.GetDistanceCastTime(_spells[Spells.E]), () => _spells[Spells.Q].Cast());
-                return;
-            }
 
             //Q Casting
-            if (_menu.Item("useQC").GetValue<bool>() && _spells[Spells.Q].IsReady() && !_player.HasEmpoweredSpell() &&
+            if (Menu.Item("useQC").GetValue<bool>() && _spells[Spells.Q].IsReady() &&
                 target != null)
             {
                 if (!_player.IsDashing())
@@ -107,27 +98,12 @@ namespace iYasuo
                     if (prediction.Hitchance >= HitChance.Medium && _player.Distance(target) <= _spells[Spells.Q].Range)
                     {
                         _spells[Spells.Q].Cast(prediction.CastPosition);
-                        return;
-                    }
-                }
-            }
-
-            if (_menu.Item("useQC2").GetValue<bool>() && _spells[Spells.Q2].IsReady() && _player.HasEmpoweredSpell() &&
-                target != null)
-            {
-                if (!_player.IsDashing())
-                {
-                    PredictionOutput prediction = _spells[Spells.Q2].GetPrediction(target);
-                    if (prediction.Hitchance >= HitChance.Medium && _player.Distance(target) <= _spells[Spells.Q2].Range)
-                    {
-                        _spells[Spells.Q2].Cast(prediction.CastPosition);
-                        return;
                     }
                 }
             }
 
             //Normal E cast
-            if (_menu.Item("useEC").GetValue<bool>() && _spells[Spells.E].IsReady() &&
+            if (Menu.Item("useEC").GetValue<bool>() && _spells[Spells.E].IsReady() &&
                 _spells[Spells.E].IsInRange(target) && _player.CanDash(target))
             {
                 if (target != null &&
@@ -136,23 +112,22 @@ namespace iYasuo
                     return;
                 }
                 _spells[Spells.E].CastOnUnit(target);
-                return;
             }
 
             //R cast delay
-            if (_menu.Item("useRC").GetValue<bool>() && _spells[Spells.R].IsReady() &&
+            if (Menu.Item("useRC").GetValue<bool>() && _spells[Spells.R].IsReady() &&
                 _spells[Spells.R].IsInRange(target) && target.IsAirborne())
             {
                 var knockedUpEnemies =
-                    HeroManager.Enemies.Count(x => x.IsAirborne() && x.IsValidTarget(_spells[Spells.R].Range));
+                    HeroManager.Enemies.Where(x => x.IsAirborne() && x.IsValidTarget(_spells[Spells.R].Range));
 
-                if (knockedUpEnemies >= _menu.Item("rCount").GetValue<Slider>().Value)
+                if (knockedUpEnemies.Count() >= Menu.Item("rCount").GetValue<Slider>().Value)
                 {
                     _spells[Spells.R].Cast();
                 }
                 else
                 {
-                    if (_menu.Item("delayUltimate").GetValue<bool>())
+                    if (Menu.Item("delayUltimate").GetValue<bool>())
                     {
                         Utility.DelayAction.Add(
                             (int) (AirborneTimeLeft(target) * 1000 - 200), () => _spells[Spells.R].Cast());
@@ -164,26 +139,27 @@ namespace iYasuo
         private static void OnFarm()
         {
             List<Obj_AI_Base> minions = MinionManager.GetMinions(
-                _spells[Spells.Q2].Range, MinionTypes.All, MinionTeam.NotAlly);
+                _spells[Spells.Q].Range, MinionTypes.All, MinionTeam.NotAlly);
             Obj_AI_Base qMinion = minions.FirstOrDefault(min => min.IsValidTarget(_spells[Spells.Q].Range));
 
             Obj_AI_Minion minion =
                 ObjectManager.Get<Obj_AI_Minion>()
                     .Where(x => x.IsValidTarget(_spells[Spells.E].Range))
                     .FirstOrDefault(x => _player.GetSpellDamage(x, SpellSlot.E) > x.Health);
+
             if (minion != null &&
                 !V3E(_player.ServerPosition, minion.ServerPosition, _spells[Spells.E].Range).UnderTurret(true) &&
-                _menu.Item("useEF").GetValue<bool>())
+                Menu.Item("useEF").GetValue<bool>())
             {
                 _spells[Spells.E].CastOnUnit(minion);
             }
 
-            if (qMinion != null && qMinion.IsValidTarget(_spells[Spells.Q].Range) && _spells[Spells.Q].IsReady() &&
-                !_player.HasEmpoweredSpell() && _menu.Item("useQF").GetValue<bool>())
+            if (qMinion != null && qMinion.IsValidTarget(_spells[Spells.Q].Range) && _spells[Spells.Q].IsReady() && Menu.Item("useQF").GetValue<bool>())
             {
+                var bestPosition = _spells[Spells.Q].GetLineFarmLocation(minions);
                 if (!_player.IsDashing())
                 {
-                    _spells[Spells.Q].Cast(qMinion);
+                   _spells[Spells.Q].Cast(bestPosition.Position);
                 }
             }
         }
@@ -192,7 +168,39 @@ namespace iYasuo
         {
             var target = TargetSelector.GetTarget(1500f, TargetSelector.DamageType.Physical);
 
-            //TODO
+            //Q Casting
+            if (Menu.Item("useQH").GetValue<bool>() && _spells[Spells.Q].IsReady() &&
+                target != null)
+            {
+                if (!_player.IsDashing())
+                {
+                    PredictionOutput prediction = _spells[Spells.Q].GetPrediction(target);
+                    if (prediction.Hitchance >= HitChance.High && _player.Distance(target) <= _spells[Spells.Q].Range)
+                    {
+                        _spells[Spells.Q].Cast(prediction.CastPosition);
+                    }
+                }
+                else
+                {
+                    if (_player.Distance(V3E(_player.Position, target.Position, 475)) < 40 &&
+                        target.Distance(V3E(_player.Position, target.Position, 475)) < 315)
+                    {
+                        _spells[Spells.Q].Cast(target.Position);
+                    }
+                }
+            }
+
+            if (Menu.Item("useEH").GetValue<bool>() && _spells[Spells.E].IsReady() &&
+                _spells[Spells.E].IsInRange(target) && target != null)
+            {
+                if (Menu.Item("safetyCheck").GetValue<bool>() &&
+                    V3E(_player.Position, target.Position, 475).UnderTurret(true))
+                {
+                    return;
+                }
+
+                _spells[Spells.E].CastOnUnit(target);
+            }
         }
 
         /// <summary>
@@ -204,38 +212,38 @@ namespace iYasuo
                 ObjectManager.Get<Obj_AI_Base>()
                     .Where(
                         min =>
-                            min.Distance(Game.CursorPos) < 400 && _player.Distance(min) <= 475f && _player.CanDash(min))
+                            min.Distance(Game.CursorPos) < 400 && _player.Distance(min) <= 475f)
                     .OrderBy(min => min.Distance(Game.CursorPos))
                     .FirstOrDefault();
 
             _player.IssueOrder(GameObjectOrder.MoveTo, Game.CursorPos);
 
-            if (_spells[Spells.E].IsReady() && _spells[Spells.E].IsInRange(dashTarget))
+            if (_spells[Spells.E].IsReady() && _spells[Spells.E].IsInRange(dashTarget) && _player.CanDash(dashTarget))
             {
                 if (dashTarget != null &&
-                    (_menu.Item("turretCheck").GetValue<bool>() &&
+                    (Menu.Item("safetyCheck").GetValue<bool>() &&
                      V3E(_player.ServerPosition, dashTarget.ServerPosition, _spells[Spells.E].Range).UnderTurret(true)))
                 {
                     return;
                 }
 
                 _spells[Spells.E].CastOnUnit(dashTarget);
-                if (_menu.Item("stackQ").GetValue<bool>() && !_player.HasEmpoweredSpell() && _spells[Spells.Q].IsReady() &&
-                    _spells[Spells.Q].IsInRange(dashTarget) && dashTarget.IsValidTarget(_spells[Spells.Q].Range))
-                {
-                    Utility.DelayAction.Add(
-                        dashTarget.GetDistanceCastTime(_spells[Spells.E]), () => _spells[Spells.Q].Cast(dashTarget));
-                }
+            }
+            if (Menu.Item("stackQ").GetValue<bool>() && !_player.HasEmpoweredSpell() && _spells[Spells.Q].IsReady() &&
+                   _spells[Spells.Q].IsInRange(dashTarget) && dashTarget.IsValidTarget(_spells[Spells.Q].Range))
+            {
+                Utility.DelayAction.Add(
+                    dashTarget.GetDistanceCastTime(_spells[Spells.E]), () => _spells[Spells.Q].Cast(dashTarget));
             }
         }
 
         private static void OnGapcloser(ActiveGapcloser gapcloser)
         {
-            if (_player.HasEmpoweredSpell() && _spells[Spells.Q2].IsReady())
+            if (_spells[Spells.Q].IsReady() && _player.HasEmpoweredSpell())
             {
                 if (_player.Distance(gapcloser.End) < 200)
                 {
-                    _spells[Spells.Q2].Cast(gapcloser.Sender);
+                    _spells[Spells.Q].Cast(gapcloser.Sender);
                 }
             }
         }
@@ -281,17 +289,28 @@ namespace iYasuo
                 return;
             }
 
-            if (_menu.Item("blockDangerous").GetValue<bool>() && _spells[Spells.W].IsReady())
+            if (_player.HasEmpoweredSpell())
+            {
+                _spells[Spells.Q].Range = 1000;
+                _spells[Spells.Q].SetSkillshot(0.75f, 90, 1500, false, SkillshotType.SkillshotLine);
+            }
+            else
+            {
+                _spells[Spells.Q].Range = 500;
+                _spells[Spells.Q].SetSkillshot(0.35f, 15, 8700, false, SkillshotType.SkillshotLine);
+            }
+
+            if (Menu.Item("blockDangerous").GetValue<bool>() && _spells[Spells.W].IsReady())
             {
                 AutoWindwall();
             }
 
-            if (_menu.Item("dodgeE").GetValue<bool>())
+            if (Menu.Item("dodgeE").GetValue<bool>())
             {
                 DodgeSkillshot();
             }
 
-            if (_menu.Item("fleeKey").GetValue<KeyBind>().Active)
+            if (Menu.Item("fleeKey").GetValue<KeyBind>().Active)
             {
                 OnFlee();
             }
@@ -324,7 +343,7 @@ namespace iYasuo
                 Vector3 startPosition = args.StartPosition;
                 Vector3 castPosition = _player.ServerPosition.Extend(startPosition, 10);
 
-                if (_spells[Spells.W].IsReady() && _menu.Item("blockDangerous").GetValue<bool>())
+                if (_spells[Spells.W].IsReady() && Menu.Item("blockDangerous").GetValue<bool>())
                 {
                     Utility.DelayAction.Add(
                         ((int) (startPosition.Distance(_player.Position) / 2000f + Game.Ping / 2f)),
@@ -336,7 +355,7 @@ namespace iYasuo
         private static void OnProcessSpell(Obj_AI_Base sender1, GameObjectProcessSpellCastEventArgs args)
         {
             var sender = sender1 as Obj_AI_Hero;
-            if (sender == null || sender.IsMe || sender.IsAlly)
+            if (sender == null || sender.IsMe || sender.IsAlly || !args.Target.IsMe)
             {
                 //Game.PrintChat(string.Format("Spell Name: {0} - Delay: {1}", args.SData.Name, args.SData.SpellCastTime));
                 return;
@@ -346,7 +365,7 @@ namespace iYasuo
             Vector3 castPosition = _player.ServerPosition.Extend(startPosition, 10);
 
             //TODO - Get correct spell names Kappo
-            if (_menu.Item("blockDangerous").GetValue<bool>() && _spells[Spells.W].IsReady())
+            if (Menu.Item("blockDangerous").GetValue<bool>() && _spells[Spells.W].IsReady())
             {
                 if (sender.ChampionName == "Syndra" && args.SData.Name == "SyndraR")
                 {
@@ -355,7 +374,6 @@ namespace iYasuo
                 else if (sender.ChampionName == "Vayne" && args.SData.Name == "VayneCondemn")
                 {
                     Utility.DelayAction.Add((int) 0.25f, () => _spells[Spells.W].Cast(castPosition));
-                    // REMOVED FOR NOW CAUSE ITS NOT RLY THAT BAD :S
                     // TODO possible check if the condem is going to stun, if not then dont block.
                 }
                 else if (sender.ChampionName == "Tristana" && args.SData.Name == "TristanaR")
@@ -405,7 +423,7 @@ namespace iYasuo
             //Add the skillshot to the detected skillshot list.
             if (!alreadyAdded)
             {
-                //Multiple skillshots like twisted fate Q.
+                //Multiple skillshots like twisted fate _spells[Spells.Q].
                 if (skillshot.DetectionType == DetectionType.ProcessSpell)
                 {
                     if (skillshot.SpellData.MultipleNumber != -1)
@@ -579,24 +597,20 @@ namespace iYasuo
 
         #region calculations and shit
 
-        private static Obj_AI_Base GetBestMinion(Obj_AI_Hero target)
-        {
-            return
-                MinionManager.GetMinions(
-                    _player.ServerPosition, _spells[Spells.E].Range, MinionTypes.All, MinionTeam.NotAlly)
-                    .OrderByDescending(minion => minion.Distance(_player))
-                    .FirstOrDefault(
-                        minion =>
-                            minion.IsValidTarget(_spells[Spells.E].Range) &&
-                            _player.Distance(minion) <= _menu.Item("eGapRange").GetValue<Slider>().Value &&
-                            minion.Distance(target.ServerPosition) < _player.Distance(target.ServerPosition));
-        }
-
+        /// <summary>
+        ///     Gets the time that it takes for the spell to reach the target
+        /// </summary>
+        /// <param name="target"> the target </param>
+        /// <param name="spell"> the spell </param>
+        /// <returns></returns>
         private static int GetDistanceCastTime(this Obj_AI_Base target, Spell spell)
         {
             return (int) (((_player.Distance(target) / spell.Speed) + spell.Delay) + Game.Ping / 2f);
         }
 
+        /// <summary>
+        ///     Uses windwall on any spell, that is dangerous or has a danger value above or equal to 3
+        /// </summary>
         private static void AutoWindwall()
         {
             string[] exceptions = { "SejuaniArcticAssault" };
@@ -609,13 +623,11 @@ namespace iYasuo
                     var damage =
                         skillshot.Caster.GetDamageSpell(_player, skillshot.SpellData.SpellName).CalculatedDamage;
 
-                    //Game.PrintChat("Damage from: "+skillshot.SpellData.SpellName+ " is: "+damage);
-
                     if (skillshot.SpellData.IsDangerous && skillshot.SpellData.DangerValue >= 3 ||
                         _player.Health < damage + 15)
                         // only block dangerous spells todo: get the skillshot damage and if is higher then my health > block.
                     {
-                        if (!skillshot.IsAboutToHit(200, _player) ||
+                        if (!skillshot.IsAboutToHit(350, _player) ||
                             exceptions.Any(exception => skillshot.SpellData.SpellName == exception))
                         {
                             return;
@@ -630,32 +642,83 @@ namespace iYasuo
             }
         }
 
+        private static bool HasEmpoweredSpell(this Obj_AI_Hero player)
+        {
+            return player.HasBuff("yasuoQ3W", true);
+        }
+
         private static void DodgeSkillshot()
         {
-            if (!_menu.Item("dodgeE").GetValue<bool>())
+            if (!Menu.Item("dodgeE").GetValue<bool>())
             {
                 return;
             }
 
             foreach (Skillshot skillshot in EvadeDetectedSkillshots)
             {
-                if (skillshot.IsAboutToHit(500, _player))
+                if (!skillshot.IsAboutToHit(250, _player))
                 {
-                    var dashObjects =
-                        ObjectManager.Get<Obj_AI_Base>()
-                            .Where(x => _player.CanDash(x) && x.IsValidTarget(_spells[Spells.E].Range))
-                            .OrderBy(x => x.Distance(_player.Position))
-                            .FirstOrDefault();
+                    continue;
+                }
+                var dashObjects =
+                    ObjectManager.Get<Obj_AI_Base>()
+                        .Where(x => _player.CanDash(x) && x.IsValidTarget(_spells[Spells.E].Range))
+                        .OrderBy(x => x.Distance(_player.Position))
+                        .FirstOrDefault();
 
-                    bool isSafe = dashObjects != null &&
-                                  skillshot.IsSafe(V3E(_player.Position, dashObjects.Position, 475).To2D());
+                bool isSafe = dashObjects != null &&
+                              skillshot.IsSafe(V3E(_player.Position, dashObjects.Position, 475).To2D());
 
-                    if (dashObjects != null && _spells[Spells.E].IsReady() && isSafe)
-                    {
-                        _spells[Spells.E].Cast(dashObjects);
-                    }
-                } //
+                if (dashObjects != null && _spells[Spells.E].IsReady() && isSafe)
+                {
+                    _spells[Spells.E].Cast(dashObjects);
+                }
             }
+        }
+
+        private static Obj_AI_Base GetBestDashObject(Obj_AI_Hero target)
+        {
+            return
+                ObjectManager.Get<Obj_AI_Base>()
+                    .OrderByDescending(x => x.Distance(_player))
+                    .FirstOrDefault(
+                        x =>
+                            x.IsValidTarget(_spells[Spells.E].Range) &&
+                            x.Distance(target.ServerPosition) < _player.Distance(target.ServerPosition));
+        }
+
+
+        private static Obj_AI_Hero GetEnemy(float range = 0, TargetSelector.DamageType damageType = TargetSelector.DamageType.Physical)
+        {
+            if (Math.Abs(range) < 0.00001)
+                range = _spells[Spells.Q].Range;
+
+            if (!Menu.Item("AssassinActive").GetValue<bool>())
+                return TargetSelector.GetTarget(range, damageType);
+
+            var assassinRange = Menu.Item("AssassinSearchRange").GetValue<Slider>().Value;
+
+            var vEnemy =
+                HeroManager.Enemies
+                    .Where(
+                        enemy =>
+                            enemy.Team != _player.Team && !enemy.IsDead && enemy.IsVisible &&
+                            Menu.Item("Assassin" + enemy.ChampionName) != null &&
+                            Menu.Item("Assassin" + enemy.ChampionName).GetValue<bool>() &&
+                            _player.Distance(enemy) < assassinRange);
+
+            if (Menu.Item("AssassinSelectOption").GetValue<StringList>().SelectedIndex == 1)
+            {
+                vEnemy = (from vEn in vEnemy select vEn).OrderByDescending(vEn => vEn.MaxHealth);
+            }
+
+            Obj_AI_Hero[] objAiHeroes = vEnemy as Obj_AI_Hero[] ?? vEnemy.ToArray();
+
+            Obj_AI_Hero target = !objAiHeroes.Any()
+                ? TargetSelector.GetTarget(range, damageType)
+                : objAiHeroes[0];
+
+            return target;
         }
 
         private static float AirborneTimeLeft(Obj_AI_Hero target)
@@ -686,11 +749,6 @@ namespace iYasuo
                    !target.HasBuff("YasuoDashWrapper");
         }
 
-        private static bool HasEmpoweredSpell(this Obj_AI_Hero source)
-        {
-            return source.HasBuff("YasuoQ3W", true);
-        }
-
         #endregion
 
         #region menu and spells
@@ -700,8 +758,7 @@ namespace iYasuo
         /// </summary>
         private static void LoadSpells()
         {
-            _spells[Spells.Q].SetSkillshot(0.36f, 350f, 20000f, false, SkillshotType.SkillshotLine);
-            _spells[Spells.Q2].SetSkillshot(0.36f, 120, 1200f, false, SkillshotType.SkillshotLine);
+            //NOP
         }
 
         /// <summary>
@@ -709,15 +766,16 @@ namespace iYasuo
         /// </summary>
         private static void CreateMenu()
         {
-            _menu = new Menu("iYasuo", "com.iyasuo", true);
+            Menu = new Menu("iYasuo", "com.iyasuo", true);
 
             Menu tsMenu = new Menu("iYasuo - Target Selector", "com.iyasuo.ts");
             TargetSelector.AddToMenu(tsMenu);
-            _menu.AddSubMenu(tsMenu);
+            Menu.AddSubMenu(tsMenu);
+            new AssassinManager();
 
             Menu orbMenu = new Menu("iYasuo - Orbwalker", "com.iyasuo.orbwalker");
             _orbwalker = new Orbwalking.Orbwalker(orbMenu);
-            _menu.AddSubMenu(orbMenu);
+            Menu.AddSubMenu(orbMenu);
 
             Menu comboMenu = new Menu("iYasuo - Combo", "com.iyasuo.combo");
             {
@@ -725,8 +783,7 @@ namespace iYasuo
                 Menu qMenu = new Menu("Steel Tempest (Q)", "steelTempest");
                 {
                     qMenu.AddItem(new MenuItem("useQC", "Enabled").SetValue(true));
-                    qMenu.AddItem(new MenuItem("useQC2", "Use Whirlwind").SetValue(true));
-                    qMenu.AddItem(new MenuItem("priorEQ", "Prioritize E - Q").SetValue(true));
+                    //TODO add options for q gapclosers and interrupts
                     comboMenu.AddSubMenu(qMenu);
                 }
                 //W Menu
@@ -744,7 +801,6 @@ namespace iYasuo
                 {
                     eMenu.AddItem(new MenuItem("useEC", "Enabled").SetValue(true));
                     eMenu.AddItem(new MenuItem("useEGap", "Gapclose With E").SetValue(true));
-                    eMenu.AddItem(new MenuItem("eGapRange", "Gapclosing Range").SetValue(new Slider(1500, 0, 2000)));
                     eMenu.AddItem(new MenuItem("safetyCheck", "Safety Checks for dashing").SetValue(true));
                     eMenu.AddItem(new MenuItem("dodgeE", "Dodge with E").SetValue(true));
                     //OTHER CUSTOMIZABLE STOOF?
@@ -758,20 +814,21 @@ namespace iYasuo
                     rMenu.AddItem(new MenuItem("rCount", "Auto Ult on X enemies").SetValue(new Slider(3, 0, 5)));
                     comboMenu.AddSubMenu(rMenu);
                 }
-                _menu.AddSubMenu(comboMenu);
+                Menu.AddSubMenu(comboMenu);
             }
 
             Menu harassMenu = new Menu("iYasuo - Harass", "com.iyasuo.harass");
             {
-                harassMenu.AddItem(new MenuItem("useEQH", "Use E - Q Harass").SetValue(false));
-                _menu.AddSubMenu(harassMenu);
+                harassMenu.AddItem(new MenuItem("useQH", "Use Q Harass").SetValue(false));
+                harassMenu.AddItem(new MenuItem("useEH", "Use E Harass").SetValue(false));
+                Menu.AddSubMenu(harassMenu);
             }
 
             Menu farmMenu = new Menu("iYasuo - Farm", "com.iyasuo.farm");
             {
                 farmMenu.AddItem(new MenuItem("useQF", "Use Q to Farm").SetValue(true));
                 farmMenu.AddItem(new MenuItem("useEF", "Use E to Farm").SetValue(true));
-                _menu.AddSubMenu(farmMenu);
+                Menu.AddSubMenu(farmMenu);
             }
 
             Menu fleeMenu = new Menu("iYasuo - Flee", "com.iyasuo.flee");
@@ -780,11 +837,10 @@ namespace iYasuo
                     new MenuItem("fleeKey", "Fleeing Key").SetValue(
                         new KeyBind("V".ToCharArray()[0], KeyBindType.Press)));
                 fleeMenu.AddItem(new MenuItem("stackQ", "Stack Q while fleeing").SetValue(true));
-                fleeMenu.AddItem(new MenuItem("turretCheck", "Don't flee under turrets").SetValue(true));
-                _menu.AddSubMenu(fleeMenu);
+                Menu.AddSubMenu(fleeMenu);
             }
 
-            _menu.AddToMainMenu();
+            Menu.AddToMainMenu();
         }
 
         #endregion
