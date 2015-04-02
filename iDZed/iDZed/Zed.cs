@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using LeagueSharp;
 using LeagueSharp.Common;
+using SharpDX;
 
 namespace iDZed
 {
@@ -25,6 +26,7 @@ namespace iDZed
 
         public static void OnLoad()
         {
+            Game.PrintChat("iDZed loaded!");
             ShadowManager.OnLoad();
             _orbwalkingModesDictionary = new Dictionary<Orbwalking.OrbwalkingMode, OnOrbwalkingMode>()
             {
@@ -82,13 +84,23 @@ namespace iDZed
         private static void InitEvents()
         {
             Game.OnUpdate += Game_OnUpdate;
+            Drawing.OnDraw += Drawing_OnDraw;
         }
+
+
         #endregion
 
         #region Events Region
         static void Game_OnUpdate(EventArgs args)
         {
             _orbwalkingModesDictionary[_orbwalker.ActiveMode]();
+        }
+        static void Drawing_OnDraw(EventArgs args)
+        {
+            foreach (var shadow in ShadowManager._shadowsList.Where(sh => sh.State != ShadowState.NotActive && sh.ShadowObject != null))
+            {
+                Render.Circle.DrawCircle(shadow.ShadowObject.Position,60f,System.Drawing.Color.Orange);
+            }
         }
         #endregion
     }
