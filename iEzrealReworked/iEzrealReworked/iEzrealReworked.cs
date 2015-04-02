@@ -163,7 +163,9 @@ namespace iEzrealReworked
             Obj_AI_Base qMinion = allMinions.FirstOrDefault(min => min.IsValidTarget(_spells[SpellSlot.Q].Range));
             var minionHealth = HealthPrediction.GetHealthPrediction(
                 qMinion,
-                (int) (_spells[SpellSlot.Q].Delay + (_player.Distance(qMinion) / _spells[SpellSlot.Q].Speed) * 1000f));
+                ((int)
+                    (_spells[SpellSlot.Q].Delay + (_player.Distance(qMinion) / _spells[SpellSlot.Q].Speed) * 1000f +
+                     Game.Ping / 2f)));
             switch (_orbwalker.ActiveMode)
             {
                 case Orbwalking.OrbwalkingMode.LaneClear:
