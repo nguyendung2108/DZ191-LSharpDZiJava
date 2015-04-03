@@ -244,8 +244,7 @@ namespace iDZed
                     CastE();
                     break;
                 case 1: //"W-E-Q"
-                    if (_spells[SpellSlot.W].IsReady() && ShadowManager.WShadow.ShadowObject == null &&
-                        ShadowManager.WShadow.State == ShadowState.NotActive && _wShadowSpell.ToggleState == 0 &&
+                    if (_spells[SpellSlot.W].IsReady() && ShadowManager.WShadow.IsUsable && _wShadowSpell.ToggleState == 0 &&
                         Environment.TickCount - _spells[SpellSlot.W].LastCastAttemptT > 0)
                     {
                         if (wPosition.Distance(target) <= _spells[SpellSlot.Q].Range)
@@ -274,8 +273,7 @@ namespace iDZed
 
                     break;
                 case 2: //"W-Q-E" 
-                    if (_spells[SpellSlot.W].IsReady() && ShadowManager.WShadow.ShadowObject == null &&
-                        ShadowManager.WShadow.State == ShadowState.NotActive && _wShadowSpell.ToggleState == 0 &&
+                    if (_spells[SpellSlot.W].IsReady() && ShadowManager.WShadow.IsUsable && _wShadowSpell.ToggleState == 0 &&
                         Environment.TickCount - _spells[SpellSlot.W].LastCastAttemptT > 0)
                     {
                         if (wPosition.Distance(target) <= _spells[SpellSlot.Q].Range)

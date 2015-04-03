@@ -8,7 +8,7 @@ using LeagueSharp.Common;
 
 namespace iDZed
 {
-    class Program
+    static class Program
     {
         static void Main(string[] args)
         {
