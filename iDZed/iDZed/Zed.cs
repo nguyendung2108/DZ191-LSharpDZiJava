@@ -238,13 +238,15 @@ namespace iDZed
                     break;
                 case 1: //"W-E-Q"
                     if (ShadowManager.WShadow.ShadowObject == null &&
-                        ShadowManager.WShadow.State == ShadowState.NotActive)
+                        ShadowManager.WShadow.State == ShadowState.NotActive &&_wShadowSpell.ToggleState == 0 &&
+                    Environment.TickCount - _spells[SpellSlot.W].LastCastAttemptT > 0)
                     {
                         var position = Player.ServerPosition.To2D()
                             .Extend(target.ServerPosition.To2D(), _spells[SpellSlot.E].Range);
                         if (position.Distance(target) <= _spells[SpellSlot.Q].Range)
                         {
                             _spells[SpellSlot.W].Cast(target);
+                            _spells[SpellSlot.W].LastCastAttemptT = Environment.TickCount + 500;
                         }
                     }
                     if (ShadowManager.WShadow.State == ShadowState.Travelling) //TODO this is fast harass m8 :S
@@ -267,13 +269,15 @@ namespace iDZed
                     break;
                 case 2: //"W-Q-E" 
                     if (ShadowManager.WShadow.ShadowObject == null &&
-                        ShadowManager.WShadow.State == ShadowState.NotActive)
+                      ShadowManager.WShadow.State == ShadowState.NotActive && _wShadowSpell.ToggleState == 0 &&
+                  Environment.TickCount - _spells[SpellSlot.W].LastCastAttemptT > 0)
                     {
                         var position = Player.ServerPosition.To2D()
                             .Extend(target.ServerPosition.To2D(), _spells[SpellSlot.E].Range);
                         if (position.Distance(target) <= _spells[SpellSlot.Q].Range)
                         {
                             _spells[SpellSlot.W].Cast(target);
+                            _spells[SpellSlot.W].LastCastAttemptT = Environment.TickCount + 500;
                         }
                     }
                     if (ShadowManager.WShadow.State == ShadowState.Travelling) //TODO this is fast harass m8 :S
