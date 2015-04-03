@@ -381,17 +381,6 @@ namespace iDZed
             {
                 Render.Circle.DrawCircle(shadow.ShadowObject.Position, 60f, System.Drawing.Color.Orange);
             }
-
-            if (_spells[SpellSlot.W].IsReady())
-            {
-                Vector3 wCastLocation = Player.ServerPosition -
-                                        Vector3.Normalize(
-                                            TargetSelector.GetTarget(
-                                                _spells[SpellSlot.W].Range + _spells[SpellSlot.Q].Range,
-                                                TargetSelector.DamageType.Physical).ServerPosition -
-                                            Player.ServerPosition) * 400;
-                Render.Circle.DrawCircle(wCastLocation, 80f, System.Drawing.Color.Crimson);
-            }
         }
 
         #endregion
