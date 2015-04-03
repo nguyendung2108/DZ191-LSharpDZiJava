@@ -26,6 +26,8 @@ namespace iDZed
     {
         private static Menu _menu;
         private static Orbwalking.Orbwalker _orbwalker;
+        private static readonly SpellDataInst _wShadowSpell = Player.Spellbook.GetSpell(SpellSlot.W);
+        private static SpellDataInst _rShadowSpell = Player.Spellbook.GetSpell(SpellSlot.R);
 
         private static Obj_AI_Hero Player
         {
@@ -79,9 +81,11 @@ namespace iDZed
                 Vector3 wCastLocation = Player.ServerPosition -
                                         Vector3.Normalize(target.ServerPosition - Player.ServerPosition) * 400;
 
-                if (ShadowManager.WShadow.ShadowObject == null && ShadowManager.WShadow.State == ShadowState.NotActive)
+                if (ShadowManager.WShadow.ShadowObject == null && ShadowManager.WShadow.State == ShadowState.NotActive &&
+                    _wShadowSpell.ToggleState == 0 && Environment.TickCount - _spells[SpellSlot.W].LastCastAttemptT > 0)
                 {
                     _spells[SpellSlot.W].Cast(wCastLocation);
+                    _spells[SpellSlot.W].LastCastAttemptT = Environment.TickCount + 500;
                 }
             }
 
@@ -93,7 +97,10 @@ namespace iDZed
             }
         }
 
-        private static void DoShadowCoax(Obj_AI_Hero target) {}
+        private static void DoShadowCoax(Obj_AI_Hero target)
+        {
+            
+        }
 
         #endregion
 
@@ -134,7 +141,6 @@ namespace iDZed
                     else
                     {
                         _spells[SpellSlot.Q].Cast(target);
-
                     }
                 }
             }
@@ -144,13 +150,15 @@ namespace iDZed
         {
             if (ShadowManager.WShadow.State == ShadowState.NotActive)
             {
-                if (_spells[SpellSlot.W].IsReady())
+                if (_spells[SpellSlot.W].IsReady() && _wShadowSpell.ToggleState == 0 &&
+                    Environment.TickCount - _spells[SpellSlot.W].LastCastAttemptT > 0)
                 {
                     Vector2 position = Player.ServerPosition.To2D()
                         .Extend(target.ServerPosition.To2D(), _spells[SpellSlot.W].Range);
                     if (position.Distance(target) <= _spells[SpellSlot.Q].Range)
                     {
                         _spells[SpellSlot.W].Cast(position);
+                        _spells[SpellSlot.W].LastCastAttemptT = Environment.TickCount + 500;
                     }
                 }
             }
@@ -185,6 +193,8 @@ namespace iDZed
         {
             Obj_AI_Hero target = TargetSelector.GetTarget(
                 _spells[SpellSlot.W].Range + _spells[SpellSlot.Q].Range, TargetSelector.DamageType.Physical);
+
+            //Game.PrintChat(string.Format("W toggle state = {0}", _wShadowSpell.ToggleState));
 
             if (_spells[SpellSlot.R].IsReady() && _spells[SpellSlot.W].IsReady() && _spells[SpellSlot.E].IsReady() &&
                 _spells[SpellSlot.Q].IsReady())
@@ -248,6 +258,11 @@ namespace iDZed
                             _spells[SpellSlot.Q].Cast(target.ServerPosition);
                         }
                     }
+                    else if (ShadowManager.WShadow.State == ShadowState.Created)
+                    {
+                        CastQ(target, true);
+                        CastE();
+                    }
 
                     break;
                 case 2: //"W-Q-E" 
@@ -273,6 +288,11 @@ namespace iDZed
                             _spells[SpellSlot.E].Cast();
                         }
                     }
+                    else if (ShadowManager.WShadow.State == ShadowState.Created)
+                    {
+                        CastQ(target, true);
+                        CastE();
+                    }
                     break;
             }
         }
@@ -280,7 +300,7 @@ namespace iDZed
         private static void Farm()
         {
             var allMinions = MinionManager.GetMinions(Player.ServerPosition, 1000f);
-            var qMinion =
+            Obj_AI_Base qMinion =
                 allMinions.FirstOrDefault(
                     x => x.IsValidTarget(_spells[SpellSlot.Q].Range) && _spells[SpellSlot.Q].IsInRange(x));
             if (_menu.Item("com.idz.zed.farm.useQ").GetValue<bool>() && _spells[SpellSlot.Q].IsReady())
