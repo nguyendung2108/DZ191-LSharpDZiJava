@@ -123,7 +123,8 @@ namespace iDZed
                 if (ShadowManager.WShadow.Exists)
                 {
                     _spells[SpellSlot.Q].UpdateSourcePosition(
-                        ShadowManager.WShadow.ShadowObject.ServerPosition, ShadowManager.WShadow.ShadowObject.ServerPosition);
+                        ShadowManager.WShadow.ShadowObject.ServerPosition,
+                        ShadowManager.WShadow.ShadowObject.ServerPosition);
                     if (usePrediction)
                     {
                         PredictionOutput prediction = _spells[SpellSlot.Q].GetPrediction(target);
@@ -138,6 +139,30 @@ namespace iDZed
                     else
                     {
                         if (ShadowManager.WShadow.ShadowObject.Distance(target) <= _spells[SpellSlot.Q].Range)
+                        {
+                            _spells[SpellSlot.Q].Cast(target);
+                        }
+                    }
+                }
+                else if (ShadowManager.RShadow.Exists)
+                {
+                    _spells[SpellSlot.Q].UpdateSourcePosition(
+                        ShadowManager.RShadow.ShadowObject.ServerPosition,
+                        ShadowManager.RShadow.ShadowObject.ServerPosition);
+                    if (usePrediction)
+                    {
+                        PredictionOutput prediction = _spells[SpellSlot.Q].GetPrediction(target);
+                        if (prediction.Hitchance >= HitChance.Medium)
+                        {
+                            if (ShadowManager.RShadow.ShadowObject.Distance(target) <= _spells[SpellSlot.Q].Range)
+                            {
+                                _spells[SpellSlot.Q].Cast(prediction.CastPosition);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (ShadowManager.RShadow.ShadowObject.Distance(target) <= _spells[SpellSlot.Q].Range)
                         {
                             _spells[SpellSlot.Q].Cast(target);
                         }
@@ -239,22 +264,25 @@ namespace iDZed
 
             //Game.PrintChat("Has Energy for QWE - "+HasEnergy(new []{SpellSlot.Q, SpellSlot.W, SpellSlot.E}));
 
-            switch (_menu.Item("com.idz.zed.combo.mode").GetValue<StringList>().SelectedIndex)
+            if (_menu.Item("com.idz.zed.combo.user").GetValue<bool>() && _spells[SpellSlot.R].IsInRange(target) && _spells[SpellSlot.R].IsReady())
             {
-                case 0: // NORMAL MODE
-                    //TODO some normal mode logic, not line just if killable with combo i guess.
-                    break;
-                case 1: // Line mode
-                    //ALREADY DONE
-                    if (_menu.Item("com.idz.zed.combo.user").GetValue<bool>())
-                    {
-                        DoLineCombo(target);
-                    }
-                    break;
+                switch (_menu.Item("com.idz.zed.combo.mode").GetValue<StringList>().SelectedIndex)
+                {
+                    case 0: // NORMAL MODE
+                        if (!HasEnergy(new[] { SpellSlot.Q, SpellSlot.W, SpellSlot.E, SpellSlot.R }))
+                            return;
+                        _spells[SpellSlot.R].CastOnUnit(target);
+                        break;
+                    case 1: // Line mode
+                        //ALREADY DONE
+                            DoLineCombo(target);
+                        
+                        break;
 
-                case 2: // triangle mode
-                    //TODO triangle mode eventually.
-                    break;
+                    case 2: // triangle mode
+                        //TODO triangle mode eventually.
+                        break;
+                }
             }
 
             if (_menu.Item("com.idz.zed.combo.usew").GetValue<bool>())
@@ -416,7 +444,7 @@ namespace iDZed
                 comboMenu.AddItem(new MenuItem("com.idz.zed.combo.swapw", "Swap W For Follow").SetValue(false));
                 comboMenu.AddItem(new MenuItem("com.idz.zed.combo.swapr", "Swap R On kill").SetValue(true));
                 comboMenu.AddItem(
-                    new MenuItem("com.idz.zed.combo.mode", "Combo Mode").SetValue(
+                    new MenuItem("com.idz.zed.combo.mode", "Ultimate Mode").SetValue(
                         new StringList(new[] { "Normal Mode", "Line Mode", "Triangle Mode" })));
             }
             _menu.AddSubMenu(comboMenu);
