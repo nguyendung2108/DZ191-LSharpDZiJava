@@ -134,6 +134,20 @@ namespace iDZed
         public Obj_AI_Minion ShadowObject { get; set; }
         public ShadowState State { get; set; }
         public ShadowType Type { get; set; }
+        public bool IsUsable
+        {
+            get
+            {
+                return ShadowObject == null && State == ShadowState.NotActive;
+            }
+        }
+        public bool Exists
+        {
+            get
+            {
+                return ShadowObject != null && State != ShadowState.NotActive;
+            }
+        }
     }
 
     internal enum ShadowType
