@@ -41,7 +41,7 @@ namespace iDZed
         {
             { SpellSlot.Q, new Spell(SpellSlot.Q, 900f) },
             { SpellSlot.W, new Spell(SpellSlot.W, 550f) },
-            { SpellSlot.E, new Spell(SpellSlot.E, 290f) },
+            { SpellSlot.E, new Spell(SpellSlot.E, 275f) },
             { SpellSlot.R, new Spell(SpellSlot.R, 625f) }
         };
 
@@ -116,14 +116,19 @@ namespace iDZed
                         var prediction = _spells[SpellSlot.Q].GetPrediction(target);
                         if (prediction.Hitchance >= HitChance.Medium)
                         {
-                            if (_spells[SpellSlot.Q].IsInRange(target) && target.IsValidTarget(_spells[SpellSlot.Q].Range))
+                            if (_spells[SpellSlot.Q].IsInRange(target) &&
+                                target.IsValidTarget(_spells[SpellSlot.Q].Range))
+                            {
                                 _spells[SpellSlot.Q].Cast(prediction.CastPosition);
+                            }
                         }
                     }
                     else
                     {
                         if (_spells[SpellSlot.Q].IsInRange(target) && target.IsValidTarget(_spells[SpellSlot.Q].Range))
+                        {
                             _spells[SpellSlot.Q].Cast(target);
+                        }
                     }
                 }
                 else
@@ -134,14 +139,19 @@ namespace iDZed
                         var prediction = _spells[SpellSlot.Q].GetPrediction(target);
                         if (prediction.Hitchance >= HitChance.Medium)
                         {
-                            if (_spells[SpellSlot.Q].IsInRange(target) && target.IsValidTarget(_spells[SpellSlot.Q].Range))
+                            if (_spells[SpellSlot.Q].IsInRange(target) &&
+                                target.IsValidTarget(_spells[SpellSlot.Q].Range))
+                            {
                                 _spells[SpellSlot.Q].Cast(prediction.CastPosition);
+                            }
                         }
                     }
                     else
                     {
                         if (_spells[SpellSlot.Q].IsInRange(target) && target.IsValidTarget(_spells[SpellSlot.Q].Range))
+                        {
                             _spells[SpellSlot.Q].Cast(target);
+                        }
                     }
                 }
             }
