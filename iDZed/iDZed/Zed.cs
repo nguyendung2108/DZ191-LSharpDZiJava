@@ -325,9 +325,10 @@ namespace iDZed
                     x => x.IsValidTarget(_spells[SpellSlot.Q].Range) && _spells[SpellSlot.Q].IsInRange(x));
             if (_menu.Item("com.idz.zed.farm.useQ").GetValue<bool>() && _spells[SpellSlot.Q].IsReady())
             {
-                if (qMinion != null && _spells[SpellSlot.Q].GetDamage(qMinion) > qMinion.Health)
+                var bestPosition = _spells[SpellSlot.Q].GetLineFarmLocation(allMinions);
+                if (bestPosition.MinionsHit >= 2)
                 {
-                    _spells[SpellSlot.Q].Cast(qMinion);
+                    _spells[SpellSlot.Q].Cast(bestPosition.Position);
                 }
             }
             if (_menu.Item("com.idz.zed.farm.useE").GetValue<bool>() && _spells[SpellSlot.E].IsReady())
