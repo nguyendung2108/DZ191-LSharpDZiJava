@@ -62,6 +62,40 @@ namespace iDZed
             InitEvents();
         }
 
+        #region superduper combos
+
+        private static void DoLineCombo(Obj_AI_Hero target)
+        {
+            if (ShadowManager.RShadow.ShadowObject == null && ShadowManager.RShadow.State == ShadowState.NotActive)
+            {
+                if (_spells[SpellSlot.R].IsReady() && _spells[SpellSlot.R].IsInRange(target))
+                {
+                    _spells[SpellSlot.R].Cast(target);
+                }
+            }
+
+            if (ShadowManager.RShadow.ShadowObject != null)
+            {
+                Vector3 wCastLocation = Player.ServerPosition - Vector3.Normalize(target.ServerPosition - Player.ServerPosition) * 400;
+
+                if (ShadowManager.WShadow.ShadowObject == null && ShadowManager.WShadow.State == ShadowState.NotActive)
+                {
+                    _spells[SpellSlot.W].Cast(wCastLocation);
+                }
+            }
+
+            if (ShadowManager.WShadow.ShadowObject != null && ShadowManager.RShadow.ShadowObject != null &&
+                ShadowManager.WShadow.State == ShadowState.Created && ShadowManager.RShadow.State == ShadowState.Created)
+            {
+                CastQ(target);
+                CastE();
+            }
+        }
+
+        private static void DoShadowCoax(Obj_AI_Hero target) {}
+
+        #endregion
+
         #region Spell Casting
 
         private static void CastQ(Obj_AI_Hero target)
@@ -98,23 +132,22 @@ namespace iDZed
             }
         }
 
-        private static void CastE(Obj_AI_Hero target)
+        private static void CastE()
         {
-            if (_spells[SpellSlot.E].IsReady())
+            if (!_spells[SpellSlot.E].IsReady())
             {
-                if (ShadowManager.WShadow != null && ShadowManager.WShadow.State == ShadowState.Created)
-                {
-                    _spells[SpellSlot.E].UpdateSourcePosition(
-                        ShadowManager.WShadow.ShadowObject.Position, ShadowManager.WShadow.ShadowObject.Position);
-                    if (_spells[SpellSlot.E].IsInRange(target))
-                        _spells[SpellSlot.E].Cast();
-                }
-                else
-                {
-                    _spells[SpellSlot.E].UpdateSourcePosition(Player.ServerPosition, Player.ServerPosition);
-                    if (_spells[SpellSlot.E].IsInRange(target))
-                        _spells[SpellSlot.E].Cast();
-                }
+                return;
+            }
+            if (
+                HeroManager.Enemies.Count(
+                    hero =>
+                        hero.IsValidTarget() &&
+                        (hero.Distance(ObjectManager.Player.ServerPosition) <= _spells[SpellSlot.E].Range ||
+                         (ShadowManager.WShadow.ShadowObject != null &&
+                          hero.Distance(ShadowManager.WShadow.ShadowObject.ServerPosition) <= _spells[SpellSlot.E].Range))) >
+                0)
+            {
+                _spells[SpellSlot.E].Cast();
             }
         }
 
@@ -124,16 +157,113 @@ namespace iDZed
 
         private static void Combo()
         {
-            Obj_AI_Hero target = TargetSelector.GetTarget(
-                _spells[SpellSlot.W].Range + _spells[SpellSlot.Q].Range, TargetSelector.DamageType.Physical);
+            Obj_AI_Hero target = TargetSelector.GetTarget(_spells[SpellSlot.W].Range + _spells[SpellSlot.Q].Range, TargetSelector.DamageType.Physical);
 
-            CastW(target);
-            CastE(target);
-            CastQ(target);
+            if (_spells[SpellSlot.R].IsReady() && _spells[SpellSlot.W].IsReady() && _spells[SpellSlot.E].IsReady() &&
+                _spells[SpellSlot.Q].IsReady())
+            {
+                DoLineCombo(target);
+            }
+            else
+            {
+                CastW(target);
+                CastQ(target);
+                CastE();
+            }
         }
 
-        private static void Harass() {}
-        private static void Farm() {}
+        private static void Harass()
+        {
+            if (!_menu.Item("com.idz.zed.harass.useHarass").GetValue<bool>())
+            {
+                return;
+            }
+
+            Obj_AI_Hero target = TargetSelector.GetTarget(
+                _spells[SpellSlot.W].Range + _spells[SpellSlot.Q].Range, TargetSelector.DamageType.Physical);
+            switch (_menu.Item("com.idz.zed.harass.harassMode").GetValue<StringList>().SelectedIndex)
+            {
+                case 0: // "Q-E"
+                    CastQ(target);
+                    CastE();
+                    break;
+                case 1: //"W-E-Q"
+                    if (ShadowManager.WShadow.ShadowObject == null &&
+                        ShadowManager.WShadow.State == ShadowState.NotActive)
+                    {
+                        var position = Player.ServerPosition.To2D()
+                            .Extend(target.ServerPosition.To2D(), _spells[SpellSlot.E].Range);
+                        if (position.Distance(target) <= _spells[SpellSlot.Q].Range)
+                        {
+                            _spells[SpellSlot.W].Cast(target);
+                        }
+                    }
+                    if (ShadowManager.WShadow.State == ShadowState.Travelling) //TODO this is fast harass m8 :S
+                    {
+                        if (_spells[SpellSlot.E].IsReady())
+                        {
+                            _spells[SpellSlot.E].Cast();
+                        }
+                        if (_spells[SpellSlot.Q].IsReady())
+                        {
+                            _spells[SpellSlot.Q].Cast(target.ServerPosition);
+                        }
+                    }
+
+                    break;
+                case 2: //"W-Q-E" 
+                    if (ShadowManager.WShadow.ShadowObject == null &&
+                        ShadowManager.WShadow.State == ShadowState.NotActive)
+                    {
+                        var position = Player.ServerPosition.To2D()
+                            .Extend(target.ServerPosition.To2D(), _spells[SpellSlot.E].Range);
+                        if (position.Distance(target) <= _spells[SpellSlot.Q].Range)
+                        {
+                            _spells[SpellSlot.W].Cast(target);
+                        }
+                    }
+                    if (ShadowManager.WShadow.State == ShadowState.Travelling) //TODO this is fast harass m8 :S
+                    {
+                        if (_spells[SpellSlot.Q].IsReady())
+                        {
+                            _spells[SpellSlot.Q].Cast(target.ServerPosition);
+                        }
+
+                        if (_spells[SpellSlot.E].IsReady())
+                        {
+                            _spells[SpellSlot.E].Cast();
+                        }
+                    }
+                    break;
+            }
+        }
+
+        private static void Farm()
+        {
+            var allMinions = MinionManager.GetMinions(Player.ServerPosition, 1000f);
+            var qMinion =
+                allMinions.FirstOrDefault(
+                    x => x.IsValidTarget(_spells[SpellSlot.Q].Range) && _spells[SpellSlot.Q].IsInRange(x));
+            if (_menu.Item("com.idz.zed.farm.useQ").GetValue<bool>() && _spells[SpellSlot.Q].IsReady())
+            {
+                if (qMinion != null && _spells[SpellSlot.Q].GetDamage(qMinion) > qMinion.Health)
+                {
+                    _spells[SpellSlot.Q].Cast(qMinion);
+                }
+            }
+            if (_menu.Item("com.idz.zed.farm.useE").GetValue<bool>() && _spells[SpellSlot.E].IsReady())
+            {
+                foreach (var minion in
+                    MinionManager.GetMinions(Player.ServerPosition, _spells[SpellSlot.E].Range)
+                        .Where(
+                            minion =>
+                                !Orbwalking.InAutoAttackRange(minion) &&
+                                minion.Health < 0.75 * _spells[SpellSlot.E].GetDamage(minion)))
+                {
+                    _spells[SpellSlot.E].Cast(minion);
+                }
+            }
+        }
 
         #endregion
 
@@ -158,15 +288,36 @@ namespace iDZed
                 comboMenu.AddItem(new MenuItem("com.idz.zed.combo.user", "Use R").SetValue(true));
                 comboMenu.AddItem(new MenuItem("com.idz.zed.combo.swapw", "Swap W For Follow").SetValue(false));
                 comboMenu.AddItem(new MenuItem("com.idz.zed.combo.swapr", "Swap R On kill").SetValue(true));
+                comboMenu.AddItem(
+                    new MenuItem("com.idz.zed.combo.mode", "Combo Mode").SetValue(
+                        new StringList(new[] { "Normal Mode", "Burst Mode" })));
             }
-            ;
             _menu.AddSubMenu(comboMenu);
+
+            var harassMenu = new Menu("[iDZed] Harass", "com.idz.zed.harass");
+            {
+                harassMenu.AddItem(new MenuItem("com.idz.zed.harass.useHarass", "Use Harass").SetValue(true));
+                harassMenu.AddItem(
+                    new MenuItem("com.idz.zed.harass.harassMode", "Harass Mode").SetValue(
+                        new StringList(new[] { "Q-E", "W-E-Q", "W-Q-E" })).SetValue(1));
+            }
+            _menu.AddSubMenu(harassMenu);
+
+            var farmMenu = new Menu("[iDzZed] Farm", "com.idz.zed.farm");
+            {
+                farmMenu.AddItem(new MenuItem("com.idz.zed.farm.useQ", "Use Q in Farm").SetValue(true));
+                farmMenu.AddItem(new MenuItem("com.idz.zed.farm.useE", "Use E in Farm").SetValue(true));
+            }
+            _menu.AddSubMenu(farmMenu);
+
             _menu.AddToMainMenu();
         }
 
         private static void InitSpells()
         {
             _spells[SpellSlot.Q].SetSkillshot(0.25f, 50f, 1700f, false, SkillshotType.SkillshotLine);
+            _spells[SpellSlot.W].SetSkillshot(.25f, 270f, float.MaxValue, false, SkillshotType.SkillshotCircle);
+            _spells[SpellSlot.E].SetSkillshot(0f, 220f, float.MaxValue, false, SkillshotType.SkillshotCircle);
         }
 
         private static void InitEvents()
