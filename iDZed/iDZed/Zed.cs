@@ -162,13 +162,17 @@ namespace iDZed
             if (_spells[SpellSlot.R].IsReady() && _spells[SpellSlot.W].IsReady() && _spells[SpellSlot.E].IsReady() &&
                 _spells[SpellSlot.Q].IsReady())
             {
-                DoLineCombo(target);
+                if (_menu.Item("com.idz.zed.combo.user").GetValue<bool>())
+                    DoLineCombo(target);
             }
             else
             {
-                CastW(target);
-                CastQ(target);
-                CastE();
+                if (_menu.Item("com.idz.zed.combo.usew").GetValue<bool>())
+                    CastW(target);
+                if (_menu.Item("com.idz.zed.combo.useq").GetValue<bool>())
+                    CastQ(target);
+                if (_menu.Item("com.idz.zed.combo.usee").GetValue<bool>())
+                    CastE();
             }
         }
 
