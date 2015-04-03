@@ -429,6 +429,7 @@ namespace iDZed
             {
                 miscMenu.AddItem(new MenuItem("energyManagement", "Use Energy Management").SetValue(true));
             }
+            _menu.AddSubMenu(miscMenu);
 
             _menu.AddToMainMenu();
         }
