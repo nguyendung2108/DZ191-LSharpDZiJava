@@ -96,7 +96,10 @@ namespace iDZed
             }
         }
 
-        private static void DoShadowCoax(Obj_AI_Hero target) {}
+        private static void DoShadowCoax(Obj_AI_Hero target)
+        {
+            //TODO
+        }
 
         #endregion
 
