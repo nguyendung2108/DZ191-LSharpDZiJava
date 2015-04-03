@@ -97,10 +97,7 @@ namespace iDZed
             }
         }
 
-        private static void DoShadowCoax(Obj_AI_Hero target)
-        {
-            
-        }
+        private static void DoShadowCoax(Obj_AI_Hero target) {}
 
         #endregion
 
@@ -119,12 +116,14 @@ namespace iDZed
                         var prediction = _spells[SpellSlot.Q].GetPrediction(target);
                         if (prediction.Hitchance >= HitChance.Medium)
                         {
-                            _spells[SpellSlot.Q].Cast(prediction.CastPosition);
+                            if (_spells[SpellSlot.Q].IsInRange(target) && target.IsValidTarget(_spells[SpellSlot.Q].Range))
+                                _spells[SpellSlot.Q].Cast(prediction.CastPosition);
                         }
                     }
                     else
                     {
-                        _spells[SpellSlot.Q].Cast(target);
+                        if (_spells[SpellSlot.Q].IsInRange(target) && target.IsValidTarget(_spells[SpellSlot.Q].Range))
+                            _spells[SpellSlot.Q].Cast(target);
                     }
                 }
                 else
@@ -135,12 +134,14 @@ namespace iDZed
                         var prediction = _spells[SpellSlot.Q].GetPrediction(target);
                         if (prediction.Hitchance >= HitChance.Medium)
                         {
-                            _spells[SpellSlot.Q].Cast(prediction.CastPosition);
+                            if (_spells[SpellSlot.Q].IsInRange(target) && target.IsValidTarget(_spells[SpellSlot.Q].Range))
+                                _spells[SpellSlot.Q].Cast(prediction.CastPosition);
                         }
                     }
                     else
                     {
-                        _spells[SpellSlot.Q].Cast(target);
+                        if (_spells[SpellSlot.Q].IsInRange(target) && target.IsValidTarget(_spells[SpellSlot.Q].Range))
+                            _spells[SpellSlot.Q].Cast(target);
                     }
                 }
             }
@@ -230,6 +231,9 @@ namespace iDZed
 
             Obj_AI_Hero target = TargetSelector.GetTarget(
                 _spells[SpellSlot.W].Range + _spells[SpellSlot.Q].Range, TargetSelector.DamageType.Physical);
+            var wPosition = Player.ServerPosition.To2D()
+                .Extend(target.ServerPosition.To2D(), _spells[SpellSlot.E].Range);
+            var wCastTime = (int) (Player.Distance(wPosition) / 2000f);
             switch (_menu.Item("com.idz.zed.harass.harassMode").GetValue<StringList>().SelectedIndex)
             {
                 case 0: // "Q-E"
@@ -237,13 +241,11 @@ namespace iDZed
                     CastE();
                     break;
                 case 1: //"W-E-Q"
-                    if (ShadowManager.WShadow.ShadowObject == null &&
-                        ShadowManager.WShadow.State == ShadowState.NotActive &&_wShadowSpell.ToggleState == 0 &&
-                    Environment.TickCount - _spells[SpellSlot.W].LastCastAttemptT > 0)
+                    if (_spells[SpellSlot.W].IsReady() && ShadowManager.WShadow.ShadowObject == null &&
+                        ShadowManager.WShadow.State == ShadowState.NotActive && _wShadowSpell.ToggleState == 0 &&
+                        Environment.TickCount - _spells[SpellSlot.W].LastCastAttemptT > 0)
                     {
-                        var position = Player.ServerPosition.To2D()
-                            .Extend(target.ServerPosition.To2D(), _spells[SpellSlot.E].Range);
-                        if (position.Distance(target) <= _spells[SpellSlot.Q].Range)
+                        if (wPosition.Distance(target) <= _spells[SpellSlot.Q].Range)
                         {
                             _spells[SpellSlot.W].Cast(target);
                             _spells[SpellSlot.W].LastCastAttemptT = Environment.TickCount + 500;
@@ -253,14 +255,15 @@ namespace iDZed
                     {
                         if (_spells[SpellSlot.E].IsReady())
                         {
-                            _spells[SpellSlot.E].Cast();
+                            CastE();
                         }
                         if (_spells[SpellSlot.Q].IsReady())
                         {
-                            _spells[SpellSlot.Q].Cast(target.ServerPosition);
+                            Utility.DelayAction.Add(250, () => _spells[SpellSlot.Q].Cast(target.ServerPosition));
                         }
                     }
-                    else if (ShadowManager.WShadow.State == ShadowState.Created)
+                    else if (ShadowManager.WShadow.State == ShadowState.Created ||
+                             ShadowManager.WShadow.State == ShadowState.NotActive)
                     {
                         CastQ(target, true);
                         CastE();
@@ -268,13 +271,11 @@ namespace iDZed
 
                     break;
                 case 2: //"W-Q-E" 
-                    if (ShadowManager.WShadow.ShadowObject == null &&
-                      ShadowManager.WShadow.State == ShadowState.NotActive && _wShadowSpell.ToggleState == 0 &&
-                  Environment.TickCount - _spells[SpellSlot.W].LastCastAttemptT > 0)
+                    if (_spells[SpellSlot.W].IsReady() && ShadowManager.WShadow.ShadowObject == null &&
+                        ShadowManager.WShadow.State == ShadowState.NotActive && _wShadowSpell.ToggleState == 0 &&
+                        Environment.TickCount - _spells[SpellSlot.W].LastCastAttemptT > 0)
                     {
-                        var position = Player.ServerPosition.To2D()
-                            .Extend(target.ServerPosition.To2D(), _spells[SpellSlot.E].Range);
-                        if (position.Distance(target) <= _spells[SpellSlot.Q].Range)
+                        if (wPosition.Distance(target) <= _spells[SpellSlot.Q].Range)
                         {
                             _spells[SpellSlot.W].Cast(target);
                             _spells[SpellSlot.W].LastCastAttemptT = Environment.TickCount + 500;
@@ -284,15 +285,16 @@ namespace iDZed
                     {
                         if (_spells[SpellSlot.Q].IsReady())
                         {
-                            _spells[SpellSlot.Q].Cast(target.ServerPosition);
+                            Utility.DelayAction.Add(wCastTime, () => _spells[SpellSlot.Q].Cast(target.ServerPosition));
                         }
 
                         if (_spells[SpellSlot.E].IsReady())
                         {
-                            _spells[SpellSlot.E].Cast();
+                            CastE();
                         }
                     }
-                    else if (ShadowManager.WShadow.State == ShadowState.Created)
+                    else if (ShadowManager.WShadow.State == ShadowState.Created ||
+                             ShadowManager.WShadow.State == ShadowState.NotActive)
                     {
                         CastQ(target, true);
                         CastE();
