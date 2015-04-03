@@ -68,6 +68,12 @@ namespace iDZed
 
         private static void DoLineCombo(Obj_AI_Hero target)
         {
+            if (!_spells[SpellSlot.R].IsReady() || !_spells[SpellSlot.W].IsReady() || !_spells[SpellSlot.E].IsReady() ||
+                !_spells[SpellSlot.Q].IsReady() ||
+                !HasEnergy(new[] { SpellSlot.Q, SpellSlot.W, SpellSlot.E, SpellSlot.R }))
+            {
+                return;
+            }
             if (ShadowManager.RShadow.IsUsable && ShadowManager.WShadow.IsUsable)
             {
                 if (_spells[SpellSlot.R].IsReady() && _spells[SpellSlot.R].IsInRange(target))
@@ -97,6 +103,11 @@ namespace iDZed
         }
 
         private static void DoShadowCoax(Obj_AI_Hero target)
+        {
+            //TODO
+        }
+
+        private static void DoTriangleCombo(Obj_AI_Hero target)
         {
             //TODO
         }
@@ -158,6 +169,10 @@ namespace iDZed
 
         private static void CastW(Obj_AI_Hero target)
         {
+            if (!HasEnergy(new[] { SpellSlot.W, SpellSlot.Q }))
+            {
+                return;
+            }
             if (ShadowManager.WShadow.IsUsable)
             {
                 if (_spells[SpellSlot.W].IsReady() && _wShadowSpell.ToggleState == 0 &&
@@ -175,7 +190,8 @@ namespace iDZed
             if (ShadowManager.WShadow.Exists && _wShadowSpell.ToggleState == 2)
             {
                 if (_menu.Item("com.idz.zed.combo.swapw").GetValue<bool>() &&
-                    Player.Distance(target.ServerPosition) > ShadowManager.WShadow.ShadowObject.Distance(target.ServerPosition))
+                    ShadowManager.WShadow.ShadowObject.Distance(target.ServerPosition) <
+                    Player.Distance(target.ServerPosition))
                 {
                     _spells[SpellSlot.W].Cast();
                 }
@@ -203,6 +219,16 @@ namespace iDZed
             }
         }
 
+        private static bool HasEnergy(IEnumerable<SpellSlot> spells)
+        {
+            if (!_menu.Item("energyManagement").GetValue<bool>())
+            {
+                return true;
+            }
+            float totalCost = spells.Sum(slot => Player.Spellbook.GetSpell(slot).ManaCost);
+            return Player.Mana >= totalCost;
+        }
+
         #endregion
 
         #region Modes Region
@@ -212,28 +238,24 @@ namespace iDZed
             Obj_AI_Hero target = TargetSelector.GetTarget(
                 _spells[SpellSlot.W].Range + _spells[SpellSlot.Q].Range, TargetSelector.DamageType.Physical);
 
-            if (_spells[SpellSlot.R].IsReady() && _spells[SpellSlot.W].IsReady() && _spells[SpellSlot.E].IsReady() &&
-                _spells[SpellSlot.Q].IsReady())
+            //Game.PrintChat("Has Energy for QWE - "+HasEnergy(new []{SpellSlot.Q, SpellSlot.W, SpellSlot.E}));
+
+            if (_menu.Item("com.idz.zed.combo.user").GetValue<bool>())
             {
-                if (_menu.Item("com.idz.zed.combo.user").GetValue<bool>())
-                {
-                    DoLineCombo(target);
-                }
+                DoLineCombo(target);
             }
-            else
+
+            if (_menu.Item("com.idz.zed.combo.usew").GetValue<bool>())
             {
-                if (_menu.Item("com.idz.zed.combo.usew").GetValue<bool>())
-                {
-                    CastW(target);
-                }
-                if (_menu.Item("com.idz.zed.combo.useq").GetValue<bool>())
-                {
-                    CastQ(target, true);
-                }
-                if (_menu.Item("com.idz.zed.combo.usee").GetValue<bool>())
-                {
-                    CastE();
-                }
+                CastW(target);
+            }
+            if (_menu.Item("com.idz.zed.combo.useq").GetValue<bool>())
+            {
+                CastQ(target, true);
+            }
+            if (_menu.Item("com.idz.zed.combo.usee").GetValue<bool>())
+            {
+                CastE();
             }
         }
 
@@ -252,10 +274,18 @@ namespace iDZed
             switch (_menu.Item("com.idz.zed.harass.harassMode").GetValue<StringList>().SelectedIndex)
             {
                 case 0: // "Q-E"
+                    if (!HasEnergy(new[] { SpellSlot.E, SpellSlot.Q }))
+                    {
+                        return;
+                    }
                     CastQ(target, true);
                     CastE();
                     break;
                 case 1: //"W-E-Q"
+                    if (!HasEnergy(new[] { SpellSlot.W, SpellSlot.E, SpellSlot.Q }))
+                    {
+                        return;
+                    }
                     if (_spells[SpellSlot.W].IsReady() && ShadowManager.WShadow.IsUsable &&
                         _wShadowSpell.ToggleState == 0 &&
                         Environment.TickCount - _spells[SpellSlot.W].LastCastAttemptT > 0)
@@ -286,6 +316,10 @@ namespace iDZed
 
                     break;
                 case 2: //"W-Q-E" 
+                    if (!HasEnergy(new[] { SpellSlot.W, SpellSlot.E, SpellSlot.Q }))
+                    {
+                        return;
+                    }
                     if (_spells[SpellSlot.W].IsReady() && ShadowManager.WShadow.IsUsable &&
                         _wShadowSpell.ToggleState == 0 &&
                         Environment.TickCount - _spells[SpellSlot.W].LastCastAttemptT > 0)
@@ -334,7 +368,7 @@ namespace iDZed
             }
             if (_menu.Item("com.idz.zed.farm.useE").GetValue<bool>() && _spells[SpellSlot.E].IsReady())
             {
-                foreach (var minion in
+                foreach (Obj_AI_Base minion in
                     MinionManager.GetMinions(Player.ServerPosition, _spells[SpellSlot.E].Range)
                         .Where(
                             minion =>
@@ -390,6 +424,11 @@ namespace iDZed
                 farmMenu.AddItem(new MenuItem("com.idz.zed.farm.useE", "Use E in Farm").SetValue(true));
             }
             _menu.AddSubMenu(farmMenu);
+
+            Menu miscMenu = new Menu("[iDZed] Misc", "com.idz.zed.misc");
+            {
+                miscMenu.AddItem(new MenuItem("energyManagement", "Use Energy Management").SetValue(true));
+            }
 
             _menu.AddToMainMenu();
         }
