@@ -276,11 +276,11 @@ namespace iDZed
             TargetSelector.AddToMenu(tsMenu);
             _menu.AddSubMenu(tsMenu);
 
-            var orbwalkMenu = new Menu("[iDZed] Orbwalker", "com.idz.zed.orbwalker");
+            Menu orbwalkMenu = new Menu("[iDZed] Orbwalker", "com.idz.zed.orbwalker");
             _orbwalker = new Orbwalking.Orbwalker(orbwalkMenu);
             _menu.AddSubMenu(orbwalkMenu);
 
-            var comboMenu = new Menu("[iDZed] Combo", "com.idz.zed.combo");
+            Menu comboMenu = new Menu("[iDZed] Combo", "com.idz.zed.combo");
             {
                 comboMenu.AddItem(new MenuItem("com.idz.zed.combo.useq", "Use Q").SetValue(true));
                 comboMenu.AddItem(new MenuItem("com.idz.zed.combo.usew", "Use W").SetValue(true));
@@ -294,7 +294,7 @@ namespace iDZed
             }
             _menu.AddSubMenu(comboMenu);
 
-            var harassMenu = new Menu("[iDZed] Harass", "com.idz.zed.harass");
+            Menu harassMenu = new Menu("[iDZed] Harass", "com.idz.zed.harass");
             {
                 harassMenu.AddItem(new MenuItem("com.idz.zed.harass.useHarass", "Use Harass").SetValue(true));
                 harassMenu.AddItem(
@@ -303,7 +303,7 @@ namespace iDZed
             }
             _menu.AddSubMenu(harassMenu);
 
-            var farmMenu = new Menu("[iDzZed] Farm", "com.idz.zed.farm");
+            Menu farmMenu = new Menu("[iDzZed] Farm", "com.idz.zed.farm");
             {
                 farmMenu.AddItem(new MenuItem("com.idz.zed.farm.useQ", "Use Q in Farm").SetValue(true));
                 farmMenu.AddItem(new MenuItem("com.idz.zed.farm.useE", "Use E in Farm").SetValue(true));
