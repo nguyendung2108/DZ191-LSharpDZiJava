@@ -76,7 +76,8 @@ namespace iDZed
 
             if (ShadowManager.RShadow.ShadowObject != null)
             {
-                Vector3 wCastLocation = Player.ServerPosition - Vector3.Normalize(target.ServerPosition - Player.ServerPosition) * 400;
+                Vector3 wCastLocation = Player.ServerPosition -
+                                        Vector3.Normalize(target.ServerPosition - Player.ServerPosition) * 400;
 
                 if (ShadowManager.WShadow.ShadowObject == null && ShadowManager.WShadow.State == ShadowState.NotActive)
                 {
@@ -87,7 +88,7 @@ namespace iDZed
             if (ShadowManager.WShadow.ShadowObject != null && ShadowManager.RShadow.ShadowObject != null &&
                 ShadowManager.WShadow.State == ShadowState.Created && ShadowManager.RShadow.State == ShadowState.Created)
             {
-                CastQ(target);
+                CastQ(target, true);
                 CastE();
             }
         }
@@ -98,7 +99,7 @@ namespace iDZed
 
         #region Spell Casting
 
-        private static void CastQ(Obj_AI_Hero target)
+        private static void CastQ(Obj_AI_Hero target, bool usePrediction = false)
         {
             if (_spells[SpellSlot.Q].IsReady())
             {
@@ -106,12 +107,35 @@ namespace iDZed
                 {
                     _spells[SpellSlot.Q].UpdateSourcePosition(
                         ShadowManager.WShadow.ShadowObject.Position, ShadowManager.WShadow.ShadowObject.Position);
-                    _spells[SpellSlot.Q].Cast(target);
+                    if (usePrediction)
+                    {
+                        var prediction = _spells[SpellSlot.Q].GetPrediction(target);
+                        if (prediction.Hitchance >= HitChance.Medium)
+                        {
+                            _spells[SpellSlot.Q].Cast(prediction.CastPosition);
+                        }
+                    }
+                    else
+                    {
+                        _spells[SpellSlot.Q].Cast(target);
+                    }
                 }
                 else
                 {
                     _spells[SpellSlot.Q].UpdateSourcePosition(Player.ServerPosition, Player.ServerPosition);
-                    _spells[SpellSlot.Q].Cast(target);
+                    if (usePrediction)
+                    {
+                        var prediction = _spells[SpellSlot.Q].GetPrediction(target);
+                        if (prediction.Hitchance >= HitChance.Medium)
+                        {
+                            _spells[SpellSlot.Q].Cast(prediction.CastPosition);
+                        }
+                    }
+                    else
+                    {
+                        _spells[SpellSlot.Q].Cast(target);
+
+                    }
                 }
             }
         }
@@ -142,9 +166,11 @@ namespace iDZed
                 HeroManager.Enemies.Count(
                     hero =>
                         hero.IsValidTarget() &&
-                        (hero.Distance(ObjectManager.Player.ServerPosition) <= _spells[SpellSlot.E].Range ||
+                        (hero.Distance(Player.ServerPosition) <= _spells[SpellSlot.E].Range ||
                          (ShadowManager.WShadow.ShadowObject != null &&
-                          hero.Distance(ShadowManager.WShadow.ShadowObject.ServerPosition) <= _spells[SpellSlot.E].Range))) >
+                          hero.Distance(ShadowManager.WShadow.ShadowObject.ServerPosition) <= _spells[SpellSlot.E].Range) ||
+                         (ShadowManager.RShadow.ShadowObject != null &&
+                          hero.Distance(ShadowManager.RShadow.ShadowObject.ServerPosition) <= _spells[SpellSlot.E].Range))) >
                 0)
             {
                 _spells[SpellSlot.E].Cast();
@@ -157,22 +183,31 @@ namespace iDZed
 
         private static void Combo()
         {
-            Obj_AI_Hero target = TargetSelector.GetTarget(_spells[SpellSlot.W].Range + _spells[SpellSlot.Q].Range, TargetSelector.DamageType.Physical);
+            Obj_AI_Hero target = TargetSelector.GetTarget(
+                _spells[SpellSlot.W].Range + _spells[SpellSlot.Q].Range, TargetSelector.DamageType.Physical);
 
             if (_spells[SpellSlot.R].IsReady() && _spells[SpellSlot.W].IsReady() && _spells[SpellSlot.E].IsReady() &&
                 _spells[SpellSlot.Q].IsReady())
             {
                 if (_menu.Item("com.idz.zed.combo.user").GetValue<bool>())
+                {
                     DoLineCombo(target);
+                }
             }
             else
             {
                 if (_menu.Item("com.idz.zed.combo.usew").GetValue<bool>())
+                {
                     CastW(target);
+                }
                 if (_menu.Item("com.idz.zed.combo.useq").GetValue<bool>())
-                    CastQ(target);
+                {
+                    CastQ(target, true);
+                }
                 if (_menu.Item("com.idz.zed.combo.usee").GetValue<bool>())
+                {
                     CastE();
+                }
             }
         }
 
@@ -188,7 +223,7 @@ namespace iDZed
             switch (_menu.Item("com.idz.zed.harass.harassMode").GetValue<StringList>().SelectedIndex)
             {
                 case 0: // "Q-E"
-                    CastQ(target);
+                    CastQ(target, true);
                     CastE();
                     break;
                 case 1: //"W-E-Q"
@@ -303,11 +338,11 @@ namespace iDZed
                 harassMenu.AddItem(new MenuItem("com.idz.zed.harass.useHarass", "Use Harass").SetValue(true));
                 harassMenu.AddItem(
                     new MenuItem("com.idz.zed.harass.harassMode", "Harass Mode").SetValue(
-                        new StringList(new[] { "Q-E", "W-E-Q", "W-Q-E" })).SetValue(1));
+                        new StringList(new[] { "Q-E", "W-E-Q", "W-Q-E" })));
             }
             _menu.AddSubMenu(harassMenu);
 
-            Menu farmMenu = new Menu("[iDzZed] Farm", "com.idz.zed.farm");
+            Menu farmMenu = new Menu("[iDZed] Farm", "com.idz.zed.farm");
             {
                 farmMenu.AddItem(new MenuItem("com.idz.zed.farm.useQ", "Use Q in Farm").SetValue(true));
                 farmMenu.AddItem(new MenuItem("com.idz.zed.farm.useE", "Use E in Farm").SetValue(true));
@@ -345,6 +380,17 @@ namespace iDZed
                 ShadowManager._shadowsList.Where(sh => sh.State != ShadowState.NotActive && sh.ShadowObject != null))
             {
                 Render.Circle.DrawCircle(shadow.ShadowObject.Position, 60f, System.Drawing.Color.Orange);
+            }
+
+            if (_spells[SpellSlot.W].IsReady())
+            {
+                Vector3 wCastLocation = Player.ServerPosition -
+                                        Vector3.Normalize(
+                                            TargetSelector.GetTarget(
+                                                _spells[SpellSlot.W].Range + _spells[SpellSlot.Q].Range,
+                                                TargetSelector.DamageType.Physical).ServerPosition -
+                                            Player.ServerPosition) * 400;
+                Render.Circle.DrawCircle(wCastLocation, 80f, System.Drawing.Color.Crimson);
             }
         }
 
