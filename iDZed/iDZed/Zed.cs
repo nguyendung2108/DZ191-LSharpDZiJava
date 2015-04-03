@@ -27,7 +27,7 @@ namespace iDZed
         private static Menu _menu;
         private static Orbwalking.Orbwalker _orbwalker;
         private static readonly SpellDataInst _wShadowSpell = Player.Spellbook.GetSpell(SpellSlot.W);
-        private static SpellDataInst _rShadowSpell = Player.Spellbook.GetSpell(SpellSlot.R);
+        private static readonly SpellDataInst _rShadowSpell = Player.Spellbook.GetSpell(SpellSlot.R);
 
         private static Obj_AI_Hero Player
         {
@@ -123,14 +123,13 @@ namespace iDZed
                 if (ShadowManager.WShadow.Exists)
                 {
                     _spells[SpellSlot.Q].UpdateSourcePosition(
-                        ShadowManager.WShadow.ShadowObject.Position, ShadowManager.WShadow.ShadowObject.Position);
+                        ShadowManager.WShadow.ShadowObject.ServerPosition, ShadowManager.WShadow.ShadowObject.ServerPosition);
                     if (usePrediction)
                     {
                         PredictionOutput prediction = _spells[SpellSlot.Q].GetPrediction(target);
                         if (prediction.Hitchance >= HitChance.Medium)
                         {
-                            if (_spells[SpellSlot.Q].IsInRange(target) &&
-                                target.IsValidTarget(_spells[SpellSlot.Q].Range))
+                            if (ShadowManager.WShadow.ShadowObject.Distance(target) <= _spells[SpellSlot.Q].Range)
                             {
                                 _spells[SpellSlot.Q].Cast(prediction.CastPosition);
                             }
@@ -138,7 +137,7 @@ namespace iDZed
                     }
                     else
                     {
-                        if (_spells[SpellSlot.Q].IsInRange(target) && target.IsValidTarget(_spells[SpellSlot.Q].Range))
+                        if (ShadowManager.WShadow.ShadowObject.Distance(target) <= _spells[SpellSlot.Q].Range)
                         {
                             _spells[SpellSlot.Q].Cast(target);
                         }
@@ -187,7 +186,7 @@ namespace iDZed
                     }
                 }
             }
-            if (ShadowManager.WShadow.Exists && _wShadowSpell.ToggleState == 2)
+            if (ShadowManager.CanGoToShadow(ShadowManager.WShadow) && _wShadowSpell.ToggleState == 2)
             {
                 if (_menu.Item("com.idz.zed.combo.swapw").GetValue<bool>() &&
                     ShadowManager.WShadow.ShadowObject.Distance(target.ServerPosition) <
@@ -240,9 +239,22 @@ namespace iDZed
 
             //Game.PrintChat("Has Energy for QWE - "+HasEnergy(new []{SpellSlot.Q, SpellSlot.W, SpellSlot.E}));
 
-            if (_menu.Item("com.idz.zed.combo.user").GetValue<bool>())
+            switch (_menu.Item("com.idz.zed.combo.mode").GetValue<StringList>().SelectedIndex)
             {
-                DoLineCombo(target);
+                case 0: // NORMAL MODE
+                    //TODO some normal mode logic, not line just if killable with combo i guess.
+                    break;
+                case 1: // Line mode
+                    //ALREADY DONE
+                    if (_menu.Item("com.idz.zed.combo.user").GetValue<bool>())
+                    {
+                        DoLineCombo(target);
+                    }
+                    break;
+
+                case 2: // triangle mode
+                    //TODO triangle mode eventually.
+                    break;
             }
 
             if (_menu.Item("com.idz.zed.combo.usew").GetValue<bool>())
@@ -405,7 +417,7 @@ namespace iDZed
                 comboMenu.AddItem(new MenuItem("com.idz.zed.combo.swapr", "Swap R On kill").SetValue(true));
                 comboMenu.AddItem(
                     new MenuItem("com.idz.zed.combo.mode", "Combo Mode").SetValue(
-                        new StringList(new[] { "Normal Mode", "Burst Mode" })));
+                        new StringList(new[] { "Normal Mode", "Line Mode", "Triangle Mode" })));
             }
             _menu.AddSubMenu(comboMenu);
 
@@ -445,6 +457,7 @@ namespace iDZed
         {
             Game.OnUpdate += Game_OnUpdate;
             Drawing.OnDraw += Drawing_OnDraw;
+            GameObject.OnCreate += OnCreateObject;
         }
 
         #endregion
@@ -454,6 +467,23 @@ namespace iDZed
         private static void Game_OnUpdate(EventArgs args)
         {
             _orbwalkingModesDictionary[_orbwalker.ActiveMode]();
+        }
+
+        private static void OnCreateObject(GameObject sender, EventArgs args)
+        {
+            if (!(sender is Obj_GeneralParticleEmitter))
+            {
+                return;
+            }
+
+            if (sender.Name == "Zed_Base_R_buf_tell.troy")
+            {
+                if (_rShadowSpell.ToggleState == 2 && ShadowManager.CanGoToShadow(ShadowManager.RShadow) &&
+                    _menu.Item("com.idz.zed.combo.swapr").GetValue<bool>())
+                {
+                    _spells[SpellSlot.R].Cast();
+                }
+            }
         }
 
         private static void Drawing_OnDraw(EventArgs args)
