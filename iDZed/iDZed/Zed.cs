@@ -366,7 +366,7 @@ namespace iDZed
                     if (ShadowManager.WShadow.State == ShadowState.Travelling) //TODO this is fast harass m8 :S
                     {
                         CastE();
-                        
+
                         if (_spells[SpellSlot.Q].IsReady())
                         {
                             Utility.DelayAction.Add(250, () => _spells[SpellSlot.Q].Cast(target.ServerPosition));
@@ -403,7 +403,6 @@ namespace iDZed
                         }
 
                         CastE();
-                        
                     }
                     else if (ShadowManager.WShadow.State == ShadowState.Created ||
                              ShadowManager.WShadow.State == ShadowState.NotActive)
@@ -468,7 +467,7 @@ namespace iDZed
                 comboMenu.AddItem(new MenuItem("com.idz.zed.combo.swapr", "Swap R On kill").SetValue(true));
                 comboMenu.AddItem(
                     new MenuItem("com.idz.zed.combo.mode", "Combo Mode").SetValue(
-                        new StringList(new[] { "Normal Mode", "Line Mode", "Triangle Mode" })));
+                        new StringList(new[] { "Normal Mode / No Ult", "Line Mode", "Triangle Mode" })));
             }
             _menu.AddSubMenu(comboMenu);
 
