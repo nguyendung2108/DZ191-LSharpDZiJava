@@ -1,4 +1,19 @@
-﻿using System;
+﻿// This file is part of LeagueSharp.Common.
+// 
+// LeagueSharp.Common is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+// 
+// LeagueSharp.Common is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with LeagueSharp.Common.  If not, see <http://www.gnu.org/licenses/>.
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using iDzed.Activator.Spells;
@@ -8,7 +23,7 @@ using LeagueSharp.Common;
 
 namespace iDZed.Activator
 {
-    class ItemManager
+    internal class ItemManager
     {
         private static float _lastCheckTick;
         //TODO: List of Activator Features here:
@@ -20,7 +35,7 @@ namespace iDZed.Activator
         {
             new DzItem
             {
-                Id=3144,
+                Id = 3144,
                 Name = "Bilgewater Cutlass",
                 Range = 600f,
                 Class = ItemClass.Offensive,
@@ -28,7 +43,7 @@ namespace iDZed.Activator
             },
             new DzItem
             {
-                Id= 3153,
+                Id = 3153,
                 Name = "Blade of the Ruined King",
                 Range = 600f,
                 Class = ItemClass.Offensive,
@@ -36,7 +51,7 @@ namespace iDZed.Activator
             },
             new DzItem
             {
-                Id= 3142,
+                Id = 3142,
                 Name = "Youmuu",
                 Range = 600f,
                 Class = ItemClass.Offensive,
@@ -46,15 +61,15 @@ namespace iDZed.Activator
 
         private static readonly List<ISummonerSpell> SummonerSpellsList = new List<ISummonerSpell>
         {
-           new Ignite(),
-           new Heal()
+            new Ignite(),
+            new Heal()
         };
 
         public static void OnLoad(Menu menu)
         {
             //Create the menu here.
             var cName = ObjectManager.Player.ChampionName;
-            var activatorMenu = new Menu(cName + " - Activator", "com.idz.zed.activator");
+            var activatorMenu = new Menu("[iDZed] - Activator", "com.idz.zed.activator");
 
             //Offensive Menu
             var offensiveMenu = new Menu("Activator - Offensive", "com.idz.zed.activator.offensive");
@@ -63,11 +78,19 @@ namespace iDZed.Activator
             {
                 var itemMenu = new Menu(item.Name, cName + item.Id);
                 itemMenu.AddItem(new MenuItem("com.idz.zed.activator." + item.Id + ".always", "Always").SetValue(true));
-                itemMenu.AddItem(new MenuItem("com.idz.zed.activator." + item.Id + ".onmyhp", "On my HP < then %").SetValue(new Slider(30)));
-                itemMenu.AddItem(new MenuItem("com.idz.zed.activator." + item.Id + ".ontghpgreater", "On Target HP > then %").SetValue(new Slider(40)));
-                itemMenu.AddItem(new MenuItem("com.idz.zed.activator." + item.Id + ".ontghplesser", "On Target HP < then %").SetValue(new Slider(40)));
-                itemMenu.AddItem(new MenuItem("com.idz.zed.activator." + item.Id + ".ontgkill", "On Target Killable").SetValue(true));
-                itemMenu.AddItem(new MenuItem("com.idz.zed.activator." + item.Id + ".displaydmg", "Display Damage").SetValue(true));
+                itemMenu.AddItem(
+                    new MenuItem("com.idz.zed.activator." + item.Id + ".onmyhp", "On my HP < then %").SetValue(
+                        new Slider(30)));
+                itemMenu.AddItem(
+                    new MenuItem("com.idz.zed.activator." + item.Id + ".ontghpgreater", "On Target HP > then %")
+                        .SetValue(new Slider(40)));
+                itemMenu.AddItem(
+                    new MenuItem("com.idz.zed.activator." + item.Id + ".ontghplesser", "On Target HP < then %").SetValue
+                        (new Slider(40)));
+                itemMenu.AddItem(
+                    new MenuItem("com.idz.zed.activator." + item.Id + ".ontgkill", "On Target Killable").SetValue(true));
+                itemMenu.AddItem(
+                    new MenuItem("com.idz.zed.activator." + item.Id + ".displaydmg", "Display Damage").SetValue(true));
                 offensiveMenu.AddSubMenu(itemMenu);
             }
             activatorMenu.AddSubMenu(offensiveMenu);
@@ -75,9 +98,12 @@ namespace iDZed.Activator
             var summonerSpellsMenu = new Menu("Activator - Spells", "com.idz.zed.activator.summonerspells");
             foreach (var spell in SummonerSpellsList)
             {
-                var tempMenu = new Menu(spell.GetDisplayName(), "com.idz.zed.activator.summonerspells." + spell.GetName());
+                var tempMenu = new Menu(
+                    spell.GetDisplayName(), "com.idz.zed.activator.summonerspells." + spell.GetName());
                 spell.AddToMenu(tempMenu);
-                tempMenu.AddItem(new MenuItem("com.idz.zed.activator.summonerspells." + spell.GetName() + ".enabled", "Enabled").SetValue(true));
+                tempMenu.AddItem(
+                    new MenuItem("com.idz.zed.activator.summonerspells." + spell.GetName() + ".enabled", "Enabled")
+                        .SetValue(true));
                 summonerSpellsMenu.AddSubMenu(tempMenu);
             }
             activatorMenu.AddSubMenu(summonerSpellsMenu);
@@ -85,22 +111,30 @@ namespace iDZed.Activator
             //Defensive Menu
             AddHitChanceSelector(activatorMenu);
 
-            activatorMenu.AddItem(new MenuItem("com.idz.zed.activator.activatordelay", "Global Activator Delay").SetValue(new Slider(80, 0, 300)));
-            activatorMenu.AddItem(new MenuItem("com.idz.zed.activator.enabledalways", "Enabled Always?").SetValue(false));
-            activatorMenu.AddItem(new MenuItem("com.idz.zed.activator.enabledcombo", "Enabled On Press?").SetValue(new KeyBind(32, KeyBindType.Press)));
+            activatorMenu.AddItem(
+                new MenuItem("com.idz.zed.activator.activatordelay", "Global Activator Delay").SetValue(
+                    new Slider(80, 0, 300)));
+            activatorMenu.AddItem(
+                new MenuItem("com.idz.zed.activator.enabledalways", "Enabled Always?").SetValue(false));
+            activatorMenu.AddItem(
+                new MenuItem("com.idz.zed.activator.enabledcombo", "Enabled On Press?").SetValue(
+                    new KeyBind(32, KeyBindType.Press)));
+            activatorMenu.AddItem(
+                new MenuItem("com.idz.zed.activator.afterDeathmark", "Use after deathmark").SetValue(true));
             menu.AddSubMenu(activatorMenu);
 
             Game.OnUpdate += Game_OnGameUpdate;
         }
 
-        static void Game_OnGameUpdate(EventArgs args)
+        private static void Game_OnGameUpdate(EventArgs args)
         {
             if (!MenuHelper.isMenuEnabled("com.idz.zed.activator.enabledalways") &&
                 !MenuHelper.getKeybindValue("com.idz.zed.activator.enabledcombo"))
             {
                 return;
             }
-            if (Environment.TickCount - _lastCheckTick < MenuHelper.getSliderValue("com.idz.zed.activator.activatordelay"))
+            if (Environment.TickCount - _lastCheckTick <
+                MenuHelper.getSliderValue("com.idz.zed.activator.activatordelay"))
             {
                 return;
             }
@@ -109,40 +143,52 @@ namespace iDZed.Activator
             UseSummonerSpells();
         }
 
-        static void UseOffensive()
+        private static void UseOffensive()
         {
             var offensiveItems = ItemList.FindAll(item => item.Class == ItemClass.Offensive);
-            foreach (var item in offensiveItems)
+            foreach (DzItem item in offensiveItems)
             {
-                var selectedTarget = Hud.SelectedUnit as Obj_AI_Base ?? TargetSelector.GetTarget(item.Range, TargetSelector.DamageType.True);
+                Obj_AI_Base selectedTarget = Hud.SelectedUnit as Obj_AI_Base ??
+                                             TargetSelector.GetTarget(item.Range, TargetSelector.DamageType.True);
                 if (!selectedTarget.IsValidTarget(item.Range))
                 {
+                    return;
+                }
+                if (selectedTarget.HasBuff("zedulttargetmark") &&
+                    MenuHelper.isMenuEnabled("com.idz.zed.activator.afterDeathmark"))
+                {
+                    UseItem(selectedTarget, item);
                     return;
                 }
                 if (MenuHelper.isMenuEnabled("com.idz.zed.activator." + item.Id + ".always"))
                 {
                     UseItem(selectedTarget, item);
                 }
-                if (ObjectManager.Player.HealthPercentage() < MenuHelper.getSliderValue("com.idz.zed.activator." + item.Id + ".onmyhp"))
+                if (ObjectManager.Player.HealthPercent <
+                    MenuHelper.getSliderValue("com.idz.zed.activator." + item.Id + ".onmyhp"))
                 {
                     UseItem(selectedTarget, item);
                 }
-                if (selectedTarget.HealthPercentage() < MenuHelper.getSliderValue("com.idz.zed.activator." + item.Id + ".ontghplesser") && !MenuHelper.isMenuEnabled("com.idz.zed.activator." + item.Id + ".ontgkill"))
+                if (selectedTarget.HealthPercent <
+                    MenuHelper.getSliderValue("com.idz.zed.activator." + item.Id + ".ontghplesser") &&
+                    !MenuHelper.isMenuEnabled("com.idz.zed.activator." + item.Id + ".ontgkill"))
                 {
                     UseItem(selectedTarget, item);
                 }
-                if (selectedTarget.HealthPercentage() > MenuHelper.getSliderValue("com.idz.zed.activator." + item.Id + ".ontghpgreater"))
+                if (selectedTarget.HealthPercent >
+                    MenuHelper.getSliderValue("com.idz.zed.activator." + item.Id + ".ontghpgreater"))
                 {
                     UseItem(selectedTarget, item);
                 }
-                if (selectedTarget.Health < ObjectManager.Player.GetSpellDamage(selectedTarget, GetItemSpellSlot(item)) && MenuHelper.isMenuEnabled("com.idz.zed.activator." + item.Id + ".ontgkill"))
+                if (selectedTarget.Health < ObjectManager.Player.GetSpellDamage(selectedTarget, GetItemSpellSlot(item)) &&
+                    MenuHelper.isMenuEnabled("com.idz.zed.activator." + item.Id + ".ontgkill"))
                 {
                     UseItem(selectedTarget, item);
                 }
             }
         }
 
-        static void UseSummonerSpells()
+        private static void UseSummonerSpells()
         {
             foreach (var spell in SummonerSpellsList.Where(spell => spell.RunCondition()))
             {
@@ -150,7 +196,7 @@ namespace iDZed.Activator
             }
         }
 
-        static void UseItem(Obj_AI_Base target, DzItem item)
+        private static void UseItem(Obj_AI_Base target, DzItem item)
         {
             if (!Items.HasItem(item.Id) || !Items.CanUseItem(item.Id))
             {
@@ -178,9 +224,9 @@ namespace iDZed.Activator
             }
         }
 
-        static SpellSlot GetItemSpellSlot(DzItem item)
+        private static SpellSlot GetItemSpellSlot(DzItem item)
         {
-            foreach (var it in ObjectManager.Player.InventoryItems.Where(it => (int)it.Id == item.Id))
+            foreach (var it in ObjectManager.Player.InventoryItems.Where(it => (int) it.Id == item.Id))
             {
                 return it.SpellSlot != SpellSlot.Unknown ? it.SpellSlot : SpellSlot.Unknown;
             }
@@ -206,13 +252,19 @@ namespace iDZed.Activator
 
         public static void AddHitChanceSelector(Menu menu)
         {
-            menu.AddItem(new MenuItem("com.idz.zed.activator.customhitchance", "Hitchance").SetValue(new StringList(new[] { "Low", "Medium", "High", "Very High" }, 2)));
+            menu.AddItem(
+                new MenuItem("com.idz.zed.activator.customhitchance", "Hitchance").SetValue(
+                    new StringList(new[] { "Low", "Medium", "High", "Very High" }, 2)));
         }
 
         internal static float GetItemsDamage(Obj_AI_Hero target)
         {
-            var items = ItemList.Where(item => Items.HasItem(item.Id) && Items.CanUseItem(item.Id) && MenuHelper.isMenuEnabled("com.idz.zed.activator." + item.Id + ".displaydmg"));
-            return items.Sum(item => (float)ObjectManager.Player.GetSpellDamage(target, GetItemSpellSlot(item)));
+            var items =
+                ItemList.Where(
+                    item =>
+                        Items.HasItem(item.Id) && Items.CanUseItem(item.Id) &&
+                        MenuHelper.isMenuEnabled("com.idz.zed.activator." + item.Id + ".displaydmg"));
+            return items.Sum(item => (float) ObjectManager.Player.GetSpellDamage(target, GetItemSpellSlot(item)));
         }
     }
 
@@ -226,13 +278,16 @@ namespace iDZed.Activator
         public PredictionInput CustomInput { get; set; }
     }
 
-    enum ItemMode
+    internal enum ItemMode
     {
-        Targeted, Skillshot, NoTarget
+        Targeted,
+        Skillshot,
+        NoTarget
     }
 
-    enum ItemClass
+    internal enum ItemClass
     {
-        Offensive, Defensive
+        Offensive,
+        Defensive
     }
 }
