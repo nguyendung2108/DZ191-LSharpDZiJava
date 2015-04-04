@@ -47,6 +47,20 @@ namespace iDZed
 
         private static Dictionary<Orbwalking.OrbwalkingMode, OnOrbwalkingMode> _orbwalkingModesDictionary;
 
+        private static bool IsPassWall(Vector3 start, Vector3 end)
+        {
+            double count = Vector3.Distance(start, end);
+            for (uint i = 0; i <= count; i += 25)
+            {
+                Vector2 pos = start.To2D().Extend(Player.ServerPosition.To2D(), -i);
+                if (pos.IsWall())
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         public static void OnLoad()
         {
             Game.PrintChat("iDZed loaded!");
@@ -200,6 +214,11 @@ namespace iDZed
                         .Extend(target.ServerPosition.To2D(), _spells[SpellSlot.W].Range);
                     if (position.Distance(target) <= _spells[SpellSlot.Q].Range)
                     {
+                        if (IsPassWall(Player.ServerPosition, target.ServerPosition))
+                        {
+                            return;
+                        }
+
                         _spells[SpellSlot.W].Cast(position);
                         _spells[SpellSlot.W].LastCastAttemptT = Environment.TickCount + 500;
                     }
@@ -258,12 +277,28 @@ namespace iDZed
 
             switch (_menu.Item("com.idz.zed.combo.mode").GetValue<StringList>().SelectedIndex)
             {
-                case 0: // NORMAL MODE
-                    //TODO if target is killable with R damage + 3 q's and 2 e's + item damage then go ham? :S
+                case 0:
+                    // NORMAL MODE  //TODO if target is killable with R damage + 3 q's and 2 e's + item damage then go ham? :S
+
+                    if (_menu.Item("com.idz.zed.combo.usew").GetValue<bool>())
+                    {
+                        CastW(target);
+                    }
+                    if (_menu.Item("com.idz.zed.combo.useq").GetValue<bool>())
+                    {
+                        CastQ(target, true);
+                    }
+                    if (_menu.Item("com.idz.zed.combo.usee").GetValue<bool>())
+                    {
+                        CastE();
+                    }
                     break;
                 case 1: // Line mode
-                    if (_spells[SpellSlot.R].IsReady() && _spells[SpellSlot.R].IsInRange(target) && HasEnergy(new[] { SpellSlot.Q, SpellSlot.W, SpellSlot.E, SpellSlot.R }))
+                    if (_spells[SpellSlot.R].IsReady() &&
+                        HasEnergy(new[] { SpellSlot.Q, SpellSlot.W, SpellSlot.E, SpellSlot.R }))
+                    {
                         DoLineCombo(target);
+                    }
                     else
                     {
                         if (_menu.Item("com.idz.zed.combo.usew").GetValue<bool>())
@@ -285,7 +320,6 @@ namespace iDZed
                     //TODO triangle mode eventually.
                     break;
             }
-            
         }
 
         private static void Harass()
@@ -433,7 +467,7 @@ namespace iDZed
                 comboMenu.AddItem(new MenuItem("com.idz.zed.combo.swapw", "Swap W For Follow").SetValue(false));
                 comboMenu.AddItem(new MenuItem("com.idz.zed.combo.swapr", "Swap R On kill").SetValue(true));
                 comboMenu.AddItem(
-                    new MenuItem("com.idz.zed.combo.mode", "Ultimate Mode").SetValue(
+                    new MenuItem("com.idz.zed.combo.mode", "Combo Mode").SetValue(
                         new StringList(new[] { "Normal Mode", "Line Mode", "Triangle Mode" })));
             }
             _menu.AddSubMenu(comboMenu);
