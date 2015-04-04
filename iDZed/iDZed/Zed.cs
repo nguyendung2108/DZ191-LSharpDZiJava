@@ -279,7 +279,6 @@ namespace iDZed
             {
                 case 0:
                     // NORMAL MODE  //TODO if target is killable with R damage + 3 q's and 2 e's + item damage then go ham? :S
-
                     if (_menu.Item("com.idz.zed.combo.usew").GetValue<bool>())
                     {
                         CastW(target);
@@ -294,7 +293,7 @@ namespace iDZed
                     }
                     break;
                 case 1: // Line mode
-                    if (_spells[SpellSlot.R].IsReady() &&
+                    if (_menu.Item("com.idz.zed.combo.user").GetValue<bool>() && _spells[SpellSlot.R].IsReady() &&
                         HasEnergy(new[] { SpellSlot.Q, SpellSlot.W, SpellSlot.E, SpellSlot.R }))
                     {
                         DoLineCombo(target);
@@ -355,16 +354,19 @@ namespace iDZed
                     {
                         if (wPosition.Distance(target) <= _spells[SpellSlot.Q].Range)
                         {
+                            if (IsPassWall(Player.ServerPosition, target.ServerPosition))
+                            {
+                                return;
+                            }
+
                             _spells[SpellSlot.W].Cast(target.ServerPosition);
                             _spells[SpellSlot.W].LastCastAttemptT = Environment.TickCount + 500;
                         }
                     }
                     if (ShadowManager.WShadow.State == ShadowState.Travelling) //TODO this is fast harass m8 :S
                     {
-                        if (_spells[SpellSlot.E].IsReady())
-                        {
-                            CastE();
-                        }
+                        CastE();
+                        
                         if (_spells[SpellSlot.Q].IsReady())
                         {
                             Utility.DelayAction.Add(250, () => _spells[SpellSlot.Q].Cast(target.ServerPosition));
@@ -400,10 +402,8 @@ namespace iDZed
                             Utility.DelayAction.Add(wCastTime, () => _spells[SpellSlot.Q].Cast(target.ServerPosition));
                         }
 
-                        if (_spells[SpellSlot.E].IsReady())
-                        {
-                            CastE();
-                        }
+                        CastE();
+                        
                     }
                     else if (ShadowManager.WShadow.State == ShadowState.Created ||
                              ShadowManager.WShadow.State == ShadowState.NotActive)
