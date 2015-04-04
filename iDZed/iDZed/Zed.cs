@@ -68,13 +68,7 @@ namespace iDZed
 
         private static void DoLineCombo(Obj_AI_Hero target)
         {
-            if (!_spells[SpellSlot.R].IsReady() || !_spells[SpellSlot.W].IsReady() || !_spells[SpellSlot.E].IsReady() ||
-                !_spells[SpellSlot.Q].IsReady() ||
-                !HasEnergy(new[] { SpellSlot.Q, SpellSlot.W, SpellSlot.E, SpellSlot.R }))
-            {
-                return;
-            }
-            if (ShadowManager.RShadow.IsUsable && ShadowManager.WShadow.IsUsable)
+            if (ShadowManager.RShadow.IsUsable)
             {
                 if (_spells[SpellSlot.R].IsReady() && _spells[SpellSlot.R].IsInRange(target))
                 {
@@ -128,7 +122,7 @@ namespace iDZed
                     if (usePrediction)
                     {
                         PredictionOutput prediction = _spells[SpellSlot.Q].GetPrediction(target);
-                        if (prediction.Hitchance >= HitChance.Medium)
+                        if (prediction.Hitchance >= HitChance.High)
                         {
                             if (ShadowManager.WShadow.ShadowObject.Distance(target) <= _spells[SpellSlot.Q].Range)
                             {
@@ -152,7 +146,7 @@ namespace iDZed
                     if (usePrediction)
                     {
                         PredictionOutput prediction = _spells[SpellSlot.Q].GetPrediction(target);
-                        if (prediction.Hitchance >= HitChance.Medium)
+                        if (prediction.Hitchance >= HitChance.High)
                         {
                             if (ShadowManager.RShadow.ShadowObject.Distance(target) <= _spells[SpellSlot.Q].Range)
                             {
@@ -174,7 +168,7 @@ namespace iDZed
                     if (usePrediction)
                     {
                         PredictionOutput prediction = _spells[SpellSlot.Q].GetPrediction(target);
-                        if (prediction.Hitchance >= HitChance.Medium)
+                        if (prediction.Hitchance >= HitChance.High)
                         {
                             if (_spells[SpellSlot.Q].IsInRange(target) &&
                                 target.IsValidTarget(_spells[SpellSlot.Q].Range))
@@ -262,41 +256,36 @@ namespace iDZed
             Obj_AI_Hero target = TargetSelector.GetTarget(
                 _spells[SpellSlot.W].Range + _spells[SpellSlot.Q].Range, TargetSelector.DamageType.Physical);
 
-            //Game.PrintChat("Has Energy for QWE - "+HasEnergy(new []{SpellSlot.Q, SpellSlot.W, SpellSlot.E}));
+            switch (_menu.Item("com.idz.zed.combo.mode").GetValue<StringList>().SelectedIndex)
+            {
+                case 0: // NORMAL MODE
+                    //TODO if target is killable with R damage + 3 q's and 2 e's + item damage then go ham? :S
+                    break;
+                case 1: // Line mode
+                    if (_spells[SpellSlot.R].IsReady() && _spells[SpellSlot.R].IsInRange(target) && HasEnergy(new[] { SpellSlot.Q, SpellSlot.W, SpellSlot.E, SpellSlot.R }))
+                        DoLineCombo(target);
+                    else
+                    {
+                        if (_menu.Item("com.idz.zed.combo.usew").GetValue<bool>())
+                        {
+                            CastW(target);
+                        }
+                        if (_menu.Item("com.idz.zed.combo.useq").GetValue<bool>())
+                        {
+                            CastQ(target, true);
+                        }
+                        if (_menu.Item("com.idz.zed.combo.usee").GetValue<bool>())
+                        {
+                            CastE();
+                        }
+                    }
+                    break;
 
-            if (_menu.Item("com.idz.zed.combo.user").GetValue<bool>() && _spells[SpellSlot.R].IsInRange(target) && _spells[SpellSlot.R].IsReady())
-            {
-                switch (_menu.Item("com.idz.zed.combo.mode").GetValue<StringList>().SelectedIndex)
-                {
-                    case 0: // NORMAL MODE
-                        if (!HasEnergy(new[] { SpellSlot.Q, SpellSlot.W, SpellSlot.E, SpellSlot.R }))
-                            return;
-                        _spells[SpellSlot.R].CastOnUnit(target);
-                        break;
-                    case 1: // Line mode
-                        //ALREADY DONE
-                            DoLineCombo(target);
-                        
-                        break;
-
-                    case 2: // triangle mode
-                        //TODO triangle mode eventually.
-                        break;
-                }
+                case 2: // triangle mode
+                    //TODO triangle mode eventually.
+                    break;
             }
-
-            if (_menu.Item("com.idz.zed.combo.usew").GetValue<bool>())
-            {
-                CastW(target);
-            }
-            if (_menu.Item("com.idz.zed.combo.useq").GetValue<bool>())
-            {
-                CastQ(target, true);
-            }
-            if (_menu.Item("com.idz.zed.combo.usee").GetValue<bool>())
-            {
-                CastE();
-            }
+            
         }
 
         private static void Harass()
