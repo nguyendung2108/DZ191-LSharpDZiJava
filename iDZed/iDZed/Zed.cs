@@ -16,6 +16,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using iDZed.Activator;
 using LeagueSharp;
 using LeagueSharp.Common;
 using SharpDX;
@@ -499,6 +500,7 @@ namespace iDZed
                 miscMenu.AddItem(new MenuItem("energyManagement", "Use Energy Management").SetValue(true));
             }
             Menu.AddSubMenu(miscMenu);
+            ItemManager.OnLoad(Menu);
 
             Menu.AddToMainMenu();
         }

@@ -68,7 +68,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Activator\MenuHelper.cs" />
+    <Compile Include="Activator\Spells\Heal.cs" />
+    <Compile Include="Activator\Spells\Ignite.cs" />
+    <Compile Include="Activator\Spells\ISummonerSpell.cs" />
+    <Compile Include="Activator\Spells\SummonerSpells.cs" />
     <Compile Include="AssassinManager.cs" />
+    <Compile Include="Activator\ItemManager.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ShadowManager.cs" />
