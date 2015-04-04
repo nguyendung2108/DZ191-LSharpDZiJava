@@ -123,8 +123,22 @@ namespace iDZed
             }
         }
 
-        public static bool CanGoToShadow(Shadow shadow)
+        public static bool CanGoToShadow(Shadow shadow, bool safetyCheck = false) //TODO safety Checks lel
         {
+            if (safetyCheck)
+            {
+                if (shadow.State == ShadowState.Created)
+                {
+                    if (ObjectManager.Player.HealthPercent < 35 || shadow.ShadowObject.Position.UnderTurret(true) ||
+                        (shadow.ShadowObject.CountEnemiesInRange(1200f) > 1 &&
+                         shadow.ShadowObject.CountEnemiesInRange(1200f) < 2))
+                        // add a slider for the health percent.
+                    {
+                        return false;
+                    }
+                }
+            }
+
             return shadow.State == ShadowState.Created;
         }
     }
@@ -134,19 +148,15 @@ namespace iDZed
         public Obj_AI_Minion ShadowObject { get; set; }
         public ShadowState State { get; set; }
         public ShadowType Type { get; set; }
+
         public bool IsUsable
         {
-            get
-            {
-                return ShadowObject == null && State == ShadowState.NotActive;
-            }
+            get { return ShadowObject == null && State == ShadowState.NotActive; }
         }
+
         public bool Exists
         {
-            get
-            {
-                return ShadowObject != null && State != ShadowState.NotActive;
-            }
+            get { return ShadowObject != null && State != ShadowState.NotActive; }
         }
     }
 

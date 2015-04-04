@@ -24,10 +24,11 @@ namespace iDZed
 {
     internal static class Zed
     {
-        private static Menu _menu;
+        public static Menu Menu;
         private static Orbwalking.Orbwalker _orbwalker;
         private static readonly SpellDataInst _wShadowSpell = Player.Spellbook.GetSpell(SpellSlot.W);
         private static readonly SpellDataInst _rShadowSpell = Player.Spellbook.GetSpell(SpellSlot.R);
+        private static bool _deathmarkKilled = false;
 
         private static Obj_AI_Hero Player
         {
@@ -107,6 +108,16 @@ namespace iDZed
             {
                 CastQ(target, true);
                 CastE();
+            }
+
+            if (ShadowManager.CanGoToShadow(ShadowManager.WShadow, true) && _wShadowSpell.ToggleState == 2 && !_deathmarkKilled)
+            {
+                if (Menu.Item("com.idz.zed.combo.swapw").GetValue<bool>() &&
+                    ShadowManager.WShadow.ShadowObject.Distance(target.ServerPosition) <
+                    Player.Distance(target.ServerPosition))
+                {
+                    _spells[SpellSlot.W].Cast();
+                }
             }
         }
 
@@ -224,9 +235,9 @@ namespace iDZed
                     }
                 }
             }
-            if (ShadowManager.CanGoToShadow(ShadowManager.WShadow) && _wShadowSpell.ToggleState == 2)
+            if (ShadowManager.CanGoToShadow(ShadowManager.WShadow, true) && _wShadowSpell.ToggleState == 2)
             {
-                if (_menu.Item("com.idz.zed.combo.swapw").GetValue<bool>() &&
+                if (Menu.Item("com.idz.zed.combo.swapw").GetValue<bool>() &&
                     ShadowManager.WShadow.ShadowObject.Distance(target.ServerPosition) <
                     Player.Distance(target.ServerPosition))
                 {
@@ -258,7 +269,7 @@ namespace iDZed
 
         private static bool HasEnergy(IEnumerable<SpellSlot> spells)
         {
-            if (!_menu.Item("energyManagement").GetValue<bool>())
+            if (!Menu.Item("energyManagement").GetValue<bool>())
             {
                 return true;
             }
@@ -272,43 +283,42 @@ namespace iDZed
 
         private static void Combo()
         {
-            Obj_AI_Hero target = TargetSelector.GetTarget(
-                _spells[SpellSlot.W].Range + _spells[SpellSlot.Q].Range, TargetSelector.DamageType.Physical);
+            Obj_AI_Hero target = GetAssasinationTarget();
 
-            switch (_menu.Item("com.idz.zed.combo.mode").GetValue<StringList>().SelectedIndex)
+            switch (Menu.Item("com.idz.zed.combo.mode").GetValue<StringList>().SelectedIndex)
             {
                 case 0:
                     // NORMAL MODE  //TODO if target is killable with R damage + 3 q's and 2 e's + item damage then go ham? :S
-                    if (_menu.Item("com.idz.zed.combo.usew").GetValue<bool>())
+                    if (Menu.Item("com.idz.zed.combo.usew").GetValue<bool>())
                     {
                         CastW(target);
                     }
-                    if (_menu.Item("com.idz.zed.combo.useq").GetValue<bool>())
+                    if (Menu.Item("com.idz.zed.combo.useq").GetValue<bool>())
                     {
                         CastQ(target, true);
                     }
-                    if (_menu.Item("com.idz.zed.combo.usee").GetValue<bool>())
+                    if (Menu.Item("com.idz.zed.combo.usee").GetValue<bool>())
                     {
                         CastE();
                     }
                     break;
                 case 1: // Line mode
-                    if (_menu.Item("com.idz.zed.combo.user").GetValue<bool>() && _spells[SpellSlot.R].IsReady() &&
+                    if (Menu.Item("com.idz.zed.combo.user").GetValue<bool>() && _spells[SpellSlot.R].IsReady() &&
                         HasEnergy(new[] { SpellSlot.Q, SpellSlot.W, SpellSlot.E, SpellSlot.R }))
                     {
                         DoLineCombo(target);
                     }
                     else
                     {
-                        if (_menu.Item("com.idz.zed.combo.usew").GetValue<bool>())
+                        if (Menu.Item("com.idz.zed.combo.usew").GetValue<bool>())
                         {
                             CastW(target);
                         }
-                        if (_menu.Item("com.idz.zed.combo.useq").GetValue<bool>())
+                        if (Menu.Item("com.idz.zed.combo.useq").GetValue<bool>())
                         {
                             CastQ(target, true);
                         }
-                        if (_menu.Item("com.idz.zed.combo.usee").GetValue<bool>())
+                        if (Menu.Item("com.idz.zed.combo.usee").GetValue<bool>())
                         {
                             CastE();
                         }
@@ -323,7 +333,7 @@ namespace iDZed
 
         private static void Harass()
         {
-            if (!_menu.Item("com.idz.zed.harass.useHarass").GetValue<bool>())
+            if (!Menu.Item("com.idz.zed.harass.useHarass").GetValue<bool>())
             {
                 return;
             }
@@ -333,7 +343,7 @@ namespace iDZed
             Vector2 wPosition = Player.ServerPosition.To2D()
                 .Extend(target.ServerPosition.To2D(), _spells[SpellSlot.E].Range);
             var wCastTime = (int) (Player.Distance(wPosition) / 2000f);
-            switch (_menu.Item("com.idz.zed.harass.harassMode").GetValue<StringList>().SelectedIndex)
+            switch (Menu.Item("com.idz.zed.harass.harassMode").GetValue<StringList>().SelectedIndex)
             {
                 case 0: // "Q-E"
                     if (!HasEnergy(new[] { SpellSlot.E, SpellSlot.Q }))
@@ -365,12 +375,10 @@ namespace iDZed
                     }
                     if (ShadowManager.WShadow.State == ShadowState.Travelling) //TODO this is fast harass m8 :S
                     {
-                        CastE();
+                        if (_spells[SpellSlot.E].IsReady())
+                            CastE();
 
-                        if (_spells[SpellSlot.Q].IsReady())
-                        {
-                            Utility.DelayAction.Add(250, () => _spells[SpellSlot.Q].Cast(target.ServerPosition));
-                        }
+                        Utility.DelayAction.Add(wCastTime, () => CastQ(target, true));
                     }
                     else if (ShadowManager.WShadow.State == ShadowState.Created ||
                              ShadowManager.WShadow.State == ShadowState.NotActive)
@@ -397,12 +405,10 @@ namespace iDZed
                     }
                     if (ShadowManager.WShadow.State == ShadowState.Travelling) //TODO this is fast harass m8 :S
                     {
-                        if (_spells[SpellSlot.Q].IsReady())
-                        {
-                            Utility.DelayAction.Add(wCastTime, () => _spells[SpellSlot.Q].Cast(target.ServerPosition));
-                        }
+                        Utility.DelayAction.Add(wCastTime, () => CastQ(target, true));
 
-                        CastE();
+                        if (_spells[SpellSlot.E].IsReady())
+                            CastE();
                     }
                     else if (ShadowManager.WShadow.State == ShadowState.Created ||
                              ShadowManager.WShadow.State == ShadowState.NotActive)
@@ -420,7 +426,7 @@ namespace iDZed
             Obj_AI_Base qMinion =
                 allMinions.FirstOrDefault(
                     x => x.IsValidTarget(_spells[SpellSlot.Q].Range) && _spells[SpellSlot.Q].IsInRange(x));
-            if (_menu.Item("com.idz.zed.farm.useQ").GetValue<bool>() && _spells[SpellSlot.Q].IsReady())
+            if (Menu.Item("com.idz.zed.farm.useQ").GetValue<bool>() && _spells[SpellSlot.Q].IsReady())
             {
                 var bestPosition = _spells[SpellSlot.Q].GetLineFarmLocation(allMinions);
                 if (bestPosition.MinionsHit >= 2)
@@ -428,7 +434,7 @@ namespace iDZed
                     _spells[SpellSlot.Q].Cast(bestPosition.Position);
                 }
             }
-            if (_menu.Item("com.idz.zed.farm.useE").GetValue<bool>() && _spells[SpellSlot.E].IsReady())
+            if (Menu.Item("com.idz.zed.farm.useE").GetValue<bool>() && _spells[SpellSlot.E].IsReady())
             {
                 foreach (Obj_AI_Base minion in
                     MinionManager.GetMinions(Player.ServerPosition, _spells[SpellSlot.E].Range)
@@ -448,14 +454,15 @@ namespace iDZed
 
         private static void InitMenu()
         {
-            _menu = new Menu("iDZed - Reloaded", "com.idz.zed", true);
+            Menu = new Menu("iDZed - Reloaded", "com.idz.zed", true);
             Menu tsMenu = new Menu("[iDZed] TargetSelector", "com.idz.zed.targetselector");
             TargetSelector.AddToMenu(tsMenu);
-            _menu.AddSubMenu(tsMenu);
+            Menu.AddSubMenu(tsMenu);
+            new AssassinManager();
 
             Menu orbwalkMenu = new Menu("[iDZed] Orbwalker", "com.idz.zed.orbwalker");
             _orbwalker = new Orbwalking.Orbwalker(orbwalkMenu);
-            _menu.AddSubMenu(orbwalkMenu);
+            Menu.AddSubMenu(orbwalkMenu);
 
             Menu comboMenu = new Menu("[iDZed] Combo", "com.idz.zed.combo");
             {
@@ -469,7 +476,7 @@ namespace iDZed
                     new MenuItem("com.idz.zed.combo.mode", "Combo Mode").SetValue(
                         new StringList(new[] { "Normal Mode / No Ult", "Line Mode", "Triangle Mode" })));
             }
-            _menu.AddSubMenu(comboMenu);
+            Menu.AddSubMenu(comboMenu);
 
             Menu harassMenu = new Menu("[iDZed] Harass", "com.idz.zed.harass");
             {
@@ -478,22 +485,22 @@ namespace iDZed
                     new MenuItem("com.idz.zed.harass.harassMode", "Harass Mode").SetValue(
                         new StringList(new[] { "Q-E", "W-E-Q", "W-Q-E" })));
             }
-            _menu.AddSubMenu(harassMenu);
+            Menu.AddSubMenu(harassMenu);
 
             Menu farmMenu = new Menu("[iDZed] Farm", "com.idz.zed.farm");
             {
                 farmMenu.AddItem(new MenuItem("com.idz.zed.farm.useQ", "Use Q in Farm").SetValue(true));
                 farmMenu.AddItem(new MenuItem("com.idz.zed.farm.useE", "Use E in Farm").SetValue(true));
             }
-            _menu.AddSubMenu(farmMenu);
+            Menu.AddSubMenu(farmMenu);
 
             Menu miscMenu = new Menu("[iDZed] Misc", "com.idz.zed.misc");
             {
                 miscMenu.AddItem(new MenuItem("energyManagement", "Use Energy Management").SetValue(true));
             }
-            _menu.AddSubMenu(miscMenu);
+            Menu.AddSubMenu(miscMenu);
 
-            _menu.AddToMainMenu();
+            Menu.AddToMainMenu();
         }
 
         private static void InitSpells()
@@ -516,6 +523,10 @@ namespace iDZed
 
         private static void Game_OnUpdate(EventArgs args)
         {
+            // ZedUltTargetMark :S
+            /* foreach (BuffInstance buff in HeroManager.Enemies.Where(x => x.IsValidTarget(1000)).SelectMany(hero => hero.Buffs)) {
+                 Game.PrintChat(string.Format("Buff Name: {0}", buff.Name));
+             }*/
             _orbwalkingModesDictionary[_orbwalker.ActiveMode]();
         }
 
@@ -526,13 +537,21 @@ namespace iDZed
                 return;
             }
 
+
+            //Game.PrintChat("Name: "+sender.Name);
+
             if (sender.Name == "Zed_Base_R_buf_tell.troy")
             {
-                if (_rShadowSpell.ToggleState == 2 && ShadowManager.CanGoToShadow(ShadowManager.RShadow) &&
-                    _menu.Item("com.idz.zed.combo.swapr").GetValue<bool>())
+                _deathmarkKilled = true;
+                if (_rShadowSpell.ToggleState == 2 && ShadowManager.CanGoToShadow(ShadowManager.RShadow, true) &&
+                    Menu.Item("com.idz.zed.combo.swapr").GetValue<bool>())
                 {
                     _spells[SpellSlot.R].Cast();
                 }
+            }
+            else
+            {
+                _deathmarkKilled = false;
             }
         }
 
@@ -543,6 +562,41 @@ namespace iDZed
             {
                 Render.Circle.DrawCircle(shadow.ShadowObject.Position, 60f, System.Drawing.Color.Orange);
             }
+        }
+
+        private static Obj_AI_Hero GetAssasinationTarget(float range = 0,
+            TargetSelector.DamageType damageType = TargetSelector.DamageType.Physical)
+        {
+            if (Math.Abs(range) < 0.00001)
+            {
+                range = _spells[SpellSlot.R].IsReady() ? _spells[SpellSlot.R].Range : _spells[SpellSlot.W].Range + _spells[SpellSlot.Q].Range;
+            }
+
+            if (!Menu.Item("AssassinActive").GetValue<bool>())
+            {
+                return TargetSelector.GetTarget(range, damageType);
+            }
+
+            var assassinRange = Menu.Item("AssassinSearchRange").GetValue<Slider>().Value;
+
+            var vEnemy =
+                HeroManager.Enemies.Where(
+                    enemy =>
+                        enemy.Team != Player.Team && !enemy.IsDead && enemy.IsVisible &&
+                        Menu.Item("Assassin" + enemy.ChampionName) != null &&
+                        Menu.Item("Assassin" + enemy.ChampionName).GetValue<bool>() &&
+                        Player.Distance(enemy) < assassinRange);
+
+            if (Menu.Item("AssassinSelectOption").GetValue<StringList>().SelectedIndex == 1)
+            {
+                vEnemy = (from vEn in vEnemy select vEn).OrderByDescending(vEn => vEn.MaxHealth);
+            }
+
+            Obj_AI_Hero[] objAiHeroes = vEnemy as Obj_AI_Hero[] ?? vEnemy.ToArray();
+
+            Obj_AI_Hero target = !objAiHeroes.Any() ? TargetSelector.GetTarget(range, damageType) : objAiHeroes[0];
+
+            return target;
         }
 
         #endregion
