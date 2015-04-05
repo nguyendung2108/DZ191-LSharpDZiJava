@@ -434,7 +434,7 @@ namespace iDZed
                             _spells[SpellSlot.W].LastCastAttemptT = Environment.TickCount + 500;
                         }
                     }
-                    if (ShadowManager.WShadow.Exists)
+                    if (ShadowManager.WShadow.Exists || ShadowManager.WShadow.State == ShadowState.Travelling)
                     {
                         CastE();
                         CastQ(target, true);
