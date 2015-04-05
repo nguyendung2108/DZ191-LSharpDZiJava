@@ -111,7 +111,8 @@ namespace iDZed
                 CastE();
             }
 
-            if (ShadowManager.CanGoToShadow(ShadowManager.WShadow, true) && _wShadowSpell.ToggleState == 2 && !_deathmarkKilled)
+            if (ShadowManager.CanGoToShadow(ShadowManager.WShadow, true) && _wShadowSpell.ToggleState == 2 &&
+                !_deathmarkKilled)
             {
                 if (Menu.Item("com.idz.zed.combo.swapw").GetValue<bool>() &&
                     ShadowManager.WShadow.ShadowObject.Distance(target.ServerPosition) <
@@ -565,7 +566,9 @@ namespace iDZed
         {
             if (Math.Abs(range) < 0.00001)
             {
-                range = _spells[SpellSlot.R].IsReady() ? _spells[SpellSlot.R].Range : _spells[SpellSlot.W].Range + _spells[SpellSlot.Q].Range;
+                range = _spells[SpellSlot.R].IsReady()
+                    ? _spells[SpellSlot.R].Range
+                    : _spells[SpellSlot.W].Range + _spells[SpellSlot.Q].Range;
             }
 
             if (!Menu.Item("AssassinActive").GetValue<bool>())
