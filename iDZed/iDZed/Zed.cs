@@ -430,7 +430,7 @@ namespace iDZed
                                 return;
                             }
 
-                            _spells[SpellSlot.W].Cast(target.ServerPosition);
+                            _spells[SpellSlot.W].Cast(wPosition);
                             _spells[SpellSlot.W].LastCastAttemptT = Environment.TickCount + 500;
                         }
                     }
@@ -634,9 +634,18 @@ namespace iDZed
                 {
                     foreach (string spellName in DangerousSpells.DangerousList) // TODO possibly use evade databse for all dangeroous spells, and or spells that will kill.
                     {
-                        if (args.SData.Name == spellName && _spells[SpellSlot.R].IsInRange(sender)) // 
+                        if (args.SData.Name == spellName) // 
                         {
-                            _spells[SpellSlot.R].Cast(sender);
+                            if (_spells[SpellSlot.R].IsInRange(sender))
+                                _spells[SpellSlot.R].Cast(sender);
+                            else if (Player.Distance(args.End) < 250 && !_spells[SpellSlot.R].IsInRange(sender))
+                            {
+                                //Find another ultable target target kappa
+                                Obj_AI_Hero selectedTarget = HeroManager.Enemies.FirstOrDefault(x => x.IsValidTarget(_spells[SpellSlot.R].Range) && x != sender);
+
+                                //Cast Ult to that target :S
+                                _spells[SpellSlot.R].Cast(selectedTarget);
+                            }
                         }
                     }
                 }
