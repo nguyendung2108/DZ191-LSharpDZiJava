@@ -128,7 +128,7 @@ namespace iDZed
             //TODO
         }
 
-        private static void DoTriangleCombo(Obj_AI_Hero target)
+        private static void DoTriangleCombo(Obj_AI_Hero target) //I'm dumb, this triangular combo is only good for targets the Zhonyas, we can still use it for that i guess :^)
         {
             if (!_spells[SpellSlot.R].IsReady() || !_spells[SpellSlot.W].IsReady() ||
                 !HasEnergy(new[] { SpellSlot.R, SpellSlot.W }))
@@ -153,11 +153,6 @@ namespace iDZed
                     _spells[SpellSlot.W].LastCastAttemptT = Environment.TickCount + 500;
                 }
             }
-
-            /*if (ShadowManager.CanGoToShadow(ShadowManager.WShadow) && _wShadowSpell.ToggleState == 2)
-            {
-                _spells[SpellSlot.W].Cast();
-            }*/
 
             if (ShadowManager.WShadow.Exists && ShadowManager.RShadow.Exists)
             {
