@@ -21,7 +21,7 @@ using LeagueSharp.Common;
 using SharpDX.Direct3D9;
 using Font = SharpDX.Direct3D9.Font;
 
-namespace iDZed
+namespace iDZed.Utils
 {
     internal class AssassinManager
     {

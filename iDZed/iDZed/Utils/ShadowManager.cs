@@ -19,7 +19,7 @@ using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
 
-namespace iDZed
+namespace iDZed.Utils
 {
     internal static class ShadowManager
     {

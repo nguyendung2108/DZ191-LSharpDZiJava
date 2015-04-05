@@ -17,6 +17,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using iDZed.Activator;
+using iDZed.Utils;
 using LeagueSharp;
 using LeagueSharp.Common;
 using SharpDX;
@@ -39,7 +40,7 @@ namespace iDZed
         private delegate void OnOrbwalkingMode();
 
         // ReSharper disable once InconsistentNaming
-        private static readonly Dictionary<SpellSlot, Spell> _spells = new Dictionary<SpellSlot, Spell>
+        public static readonly Dictionary<SpellSlot, Spell> _spells = new Dictionary<SpellSlot, Spell>
         {
             { SpellSlot.Q, new Spell(SpellSlot.Q, 900f) },
             { SpellSlot.W, new Spell(SpellSlot.W, 550f) },
@@ -150,7 +151,7 @@ namespace iDZed
 
             if (ShadowManager.RShadow.Exists && ShadowManager.WShadow.IsUsable)
             {
-                Vector3 bestWPosition = GetBestPosition(GetVertices(target)[0], GetVertices(target)[1]);
+                Vector3 bestWPosition = VectorHelper.GetBestPosition(VectorHelper.GetVertices(target)[0], VectorHelper.GetVertices(target)[1]);
                     // Maybe add a delay giving the target a chance to flash / zhonyas then it will place w at best perpendicular location m8
                 if (_wShadowSpell.ToggleState == 0 && Environment.TickCount - _spells[SpellSlot.W].LastCastAttemptT > 0)
                 {
@@ -167,58 +168,6 @@ namespace iDZed
                 CastQ(target);
                 CastE();
             }
-        }
-
-        private static Vector3[] GetVertices(Obj_AI_Hero target, bool forZhonyas = false) // Zhonyas triangular ult
-        {
-            Shadow ultShadow = ShadowManager.RShadow;
-            if (ultShadow.Exists)
-            {
-                if (forZhonyas)
-                {
-                    Vector2 vertex1 = Player.ServerPosition.To2D() +
-                                      Vector2.Normalize(
-                                          target.ServerPosition.To2D() - ultShadow.ShadowObject.ServerPosition.To2D()) *
-                                      _spells[SpellSlot.W].Range;
-                    Vector2 vertex2 = Player.ServerPosition.To2D() +
-                                      Vector2.Normalize(
-                                          target.ServerPosition.To2D() - ultShadow.ShadowObject.ServerPosition.To2D())
-                                          .Perpendicular() * _spells[SpellSlot.W].Range;
-                    Vector2 vertex3 = Player.ServerPosition.To2D() +
-                                      Vector2.Normalize(vertex1 - vertex2).Perpendicular() * _spells[SpellSlot.W].Range;
-                    Vector2 vertex4 = Player.ServerPosition.To2D() +
-                                      Vector2.Normalize(vertex2 - vertex1).Perpendicular() * _spells[SpellSlot.W].Range;
-
-                    return new[] { vertex3.To3D(), vertex4.To3D() };
-                }
-
-                Vector2 vertex5 = Player.ServerPosition.To2D() +
-                                  Vector2.Normalize(
-                                      target.ServerPosition.To2D() - ultShadow.ShadowObject.ServerPosition.To2D())
-                                      .Perpendicular() * _spells[SpellSlot.W].Range;
-                Vector2 vertex6 = Player.ServerPosition.To2D() +
-                                  Vector2.Normalize(
-                                      ultShadow.ShadowObject.ServerPosition.To2D() - target.ServerPosition.To2D())
-                                      .Perpendicular() * _spells[SpellSlot.W].Range;
-                return new[] { vertex5.To3D(), vertex6.To3D() };
-            }
-            return new[] { Vector3.Zero, Vector3.Zero };
-        }
-
-        private static Vector3 GetBestPosition(Vector3 firstPosition, Vector3 secondPosition)
-        {
-            if (firstPosition.IsWall() && !secondPosition.IsWall())
-                // if firstposition is a wall and second position isn't
-            {
-                return secondPosition; //return second position
-            }
-            if (secondPosition.IsWall() && !firstPosition.IsWall())
-                // if secondPosition is a wall and first position isn't
-            {
-                return firstPosition; // return first position
-            }
-
-            return firstPosition;
         }
 
         #endregion
@@ -669,7 +618,7 @@ namespace iDZed
                 //Game.PrintChat("Name: " +args.SData.Name);
                 if (args.SData.Name == "ZhonyasHourglass" && sender.HasBuff("zedulttargetmark"))
                 {
-                    Vector3 bestPosition = GetBestPosition(GetVertices(sender, true)[0], GetVertices(sender, true)[1]);
+                    Vector3 bestPosition = VectorHelper.GetBestPosition(VectorHelper.GetVertices(sender, true)[0], VectorHelper.GetVertices(sender, true)[1]);
                     // TODO when i eventually finish this do more and more checks so we don't fuck up on anything  :S
                     if (_spells[SpellSlot.W].IsReady() && _wShadowSpell.ToggleState == 0 &&
                         Environment.TickCount - _spells[SpellSlot.W].LastCastAttemptT > 0)
