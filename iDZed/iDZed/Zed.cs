@@ -641,20 +641,20 @@ namespace iDZed
             Obj_AI_Hero sender = sender1 as Obj_AI_Hero;
             if (sender != null && sender.IsEnemy && sender.Team != Player.Team) // TODO this works asuna, just not all the time, pls make better or smth :S
             {
-                Game.PrintChat("Name: " +args.SData.Name);
+                //Game.PrintChat("Name: " +args.SData.Name);
                 if (args.SData.Name == "ZhonyasHourglass" && sender.HasBuff("zedulttargetmark"))
                 {
                     foreach (BuffInstance buff in sender.Buffs)
                     {
-                        Game.PrintChat("Buff: " + buff.Name);
+                        //Game.PrintChat("Buff: " + buff.Name);
                     }
-                    Game.PrintChat("1ST PART CALLED...");
+                    //Game.PrintChat("1ST PART CALLED...");
                     Vector3 bestPosition = GetBestPosition(GetVertices(sender, true)[0], GetVertices(sender, true)[1]);
                         // TODO when i eventually finish this do more and more checks so we don't fuck up on anything  :S
                     if (_spells[SpellSlot.W].IsReady() && _wShadowSpell.ToggleState == 0 &&
                     Environment.TickCount - _spells[SpellSlot.W].LastCastAttemptT > 0)
                     {
-                        Game.PrintChat("Zhonyas called casted w to perpendicular position");
+                        //Game.PrintChat("Zhonyas called casted w to perpendicular position");
                         _spells[SpellSlot.W].Cast(bestPosition);
                         _spells[SpellSlot.W].LastCastAttemptT = Environment.TickCount + 500;
                     }
