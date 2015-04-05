@@ -128,7 +128,8 @@ namespace iDZed
             //TODO
         }
 
-        private static void DoTriangleCombo(Obj_AI_Hero target) //I'm dumb, this triangular combo is only good for targets the Zhonyas, we can still use it for that i guess :^)
+        private static void DoTriangleCombo(Obj_AI_Hero target)
+            //I'm dumb, this triangular combo is only good for targets the Zhonyas, we can still use it for that i guess :^)
         {
             if (!_spells[SpellSlot.R].IsReady() || !_spells[SpellSlot.W].IsReady() ||
                 !HasEnergy(new[] { SpellSlot.R, SpellSlot.W }))
@@ -146,7 +147,7 @@ namespace iDZed
 
             if (ShadowManager.RShadow.Exists && ShadowManager.WShadow.IsUsable)
             {
-                var bestWPosition = GetBestTriangularPosition(target);
+                var bestWPosition = GetBestPosition(GetPerpendicularVectors(target)[0], GetPerpendicularVectors(target)[1]);
                 if (_wShadowSpell.ToggleState == 0 && Environment.TickCount - _spells[SpellSlot.W].LastCastAttemptT > 0)
                 {
                     _spells[SpellSlot.W].Cast(bestWPosition);
@@ -156,7 +157,7 @@ namespace iDZed
 
             if (ShadowManager.WShadow.Exists && ShadowManager.RShadow.Exists)
             {
-                CastQ(target, true);
+                CastQ(target);
                 CastE();
             }
         }
@@ -184,11 +185,26 @@ namespace iDZed
             return new[] { Vector3.Zero, Vector3.Zero };
         }
 
-        private static Vector3 GetBestTriangularPosition(Obj_AI_Hero target)
+        private static Vector3[] GetPerpendicularVectors(Obj_AI_Hero target)
         {
-            Vector3 firstPosition = GetVertices(target)[0];
-            Vector3 secondPosition = GetVertices(target)[1];
+            Shadow ultShadow = ShadowManager.RShadow;
+            if (ultShadow.Exists)
+            {
+                Vector2 vertex = Player.ServerPosition.To2D() +
+                                 Vector2.Normalize(
+                                     target.ServerPosition.To2D() - ultShadow.ShadowObject.ServerPosition.To2D())
+                                     .Perpendicular() * _spells[SpellSlot.W].Range;
+                Vector2 vertex1 = Player.ServerPosition.To2D() +
+                                  Vector2.Normalize(
+                                      ultShadow.ShadowObject.ServerPosition.To2D() - target.ServerPosition.To2D())
+                                      .Perpendicular() * _spells[SpellSlot.W].Range;
+                return new[] { vertex.To3D(), vertex1.To3D() };
+            }
+            return new[] { Vector3.Zero, Vector3.Zero };
+        }
 
+        private static Vector3 GetBestPosition(Vector3 firstPosition, Vector3 secondPosition)
+        {
             if (firstPosition.IsWall() && !secondPosition.IsWall())
                 // if firstposition is a wall and second position isn't
             {
@@ -231,7 +247,7 @@ namespace iDZed
                     {
                         if (ShadowManager.WShadow.ShadowObject.Distance(target) <= _spells[SpellSlot.Q].Range)
                         {
-                            _spells[SpellSlot.Q].Cast(target);
+                            _spells[SpellSlot.Q].Cast(target.ServerPosition);
                         }
                     }
                 }
@@ -255,7 +271,7 @@ namespace iDZed
                     {
                         if (ShadowManager.RShadow.ShadowObject.Distance(target) <= _spells[SpellSlot.Q].Range)
                         {
-                            _spells[SpellSlot.Q].Cast(target);
+                            _spells[SpellSlot.Q].Cast(target.ServerPosition);
                         }
                     }
                 }
@@ -276,7 +292,7 @@ namespace iDZed
                     }
                     else
                     {
-                        _spells[SpellSlot.Q].Cast(target);
+                        _spells[SpellSlot.Q].Cast(target.ServerPosition);
                     }
                 }
             }
@@ -357,7 +373,7 @@ namespace iDZed
         {
             Obj_AI_Hero target = GetAssasinationTarget();
 
-           // Game.PrintChat("First: " + GetVertices(target)[0]);
+            // Game.PrintChat("First: " + GetVertices(target)[0]);
             //Game.PrintChat("Second: " + GetVertices(target)[1]);
 
             switch (Menu.Item("com.idz.zed.combo.mode").GetValue<StringList>().SelectedIndex)
@@ -585,6 +601,7 @@ namespace iDZed
             Game.OnUpdate += Game_OnUpdate;
             Drawing.OnDraw += Drawing_OnDraw;
             GameObject.OnCreate += OnCreateObject;
+            Obj_AI_Base.OnProcessSpellCast += OnSpellCast;
         }
 
         #endregion
@@ -607,9 +624,6 @@ namespace iDZed
                 return;
             }
 
-
-            //Game.PrintChat("Name: "+sender.Name);
-
             if (sender.Name == "Zed_Base_R_buf_tell.troy")
             {
                 _deathmarkKilled = true;
@@ -622,6 +636,33 @@ namespace iDZed
             else
             {
                 _deathmarkKilled = false;
+            }
+        }
+
+        private static void OnSpellCast(Obj_AI_Base sender1, GameObjectProcessSpellCastEventArgs args)
+        {
+            Obj_AI_Hero sender = sender1 as Obj_AI_Hero;
+            if (sender != null && sender.IsEnemy && sender.Team != Player.Team) // TODO this works asuna, just not all the time, pls make better or smth :S
+            {
+                Game.PrintChat("Name: " +args.SData.Name);
+                if (_orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo && args.SData.Name == "ZhonyasHourglass" &&
+                    sender.HasBuff("zedulttargetmark"))
+                {
+                    foreach (BuffInstance buff in sender.Buffs)
+                    {
+                        Game.PrintChat("Buff: " + buff.Name);
+                    }
+                    Game.PrintChat("1ST PART CALLED...");
+                    Vector3 bestPosition = GetBestPosition(GetVertices(sender)[0], GetVertices(sender)[1]);
+                        // TODO when i eventually finish this do more and more checks so we don't fuck up on anything  :S
+                    if (_spells[SpellSlot.W].IsReady() && _wShadowSpell.ToggleState == 0 &&
+                    Environment.TickCount - _spells[SpellSlot.W].LastCastAttemptT > 0)
+                    {
+                        Game.PrintChat("Zhonyas called casted w to perpendicular position");
+                        _spells[SpellSlot.W].Cast(bestPosition);
+                        _spells[SpellSlot.W].LastCastAttemptT = Environment.TickCount + 500;
+                    }
+                }
             }
         }
 
