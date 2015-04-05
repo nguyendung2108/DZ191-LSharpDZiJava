@@ -100,7 +100,7 @@ namespace iDZed
                 if (ShadowManager.WShadow.IsUsable && _wShadowSpell.ToggleState == 0 &&
                     Environment.TickCount - _spells[SpellSlot.W].LastCastAttemptT > 0)
                 {
-                    _spells[SpellSlot.W].Cast(wCastLocation);
+                    _spells[SpellSlot.W].Cast(wCastLocation); // Maybe add a delay giving the target a chance to flash / zhonyas then it will place w at best location for more damage
                     _spells[SpellSlot.W].LastCastAttemptT = Environment.TickCount + 500;
                 }
             }
@@ -147,7 +147,7 @@ namespace iDZed
 
             if (ShadowManager.RShadow.Exists && ShadowManager.WShadow.IsUsable)
             {
-                var bestWPosition = GetBestPosition(GetPerpendicularVectors(target)[0], GetPerpendicularVectors(target)[1]);
+                var bestWPosition = GetBestPosition(GetPerpendicularVectors(target)[0], GetPerpendicularVectors(target)[1]); // Maybe add a delay giving the target a chance to flash / zhonyas then it will place w at best perpendicular location m8
                 if (_wShadowSpell.ToggleState == 0 && Environment.TickCount - _spells[SpellSlot.W].LastCastAttemptT > 0)
                 {
                     _spells[SpellSlot.W].Cast(bestWPosition);
