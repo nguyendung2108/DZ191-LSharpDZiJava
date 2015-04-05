@@ -100,7 +100,8 @@ namespace iDZed
                 if (ShadowManager.WShadow.IsUsable && _wShadowSpell.ToggleState == 0 &&
                     Environment.TickCount - _spells[SpellSlot.W].LastCastAttemptT > 0)
                 {
-                    _spells[SpellSlot.W].Cast(wCastLocation); // Maybe add a delay giving the target a chance to flash / zhonyas then it will place w at best location for more damage
+                    _spells[SpellSlot.W].Cast(wCastLocation);
+                        // Maybe add a delay giving the target a chance to flash / zhonyas then it will place w at best location for more damage
                     _spells[SpellSlot.W].LastCastAttemptT = Environment.TickCount + 500;
                 }
             }
@@ -149,10 +150,12 @@ namespace iDZed
 
             if (ShadowManager.RShadow.Exists && ShadowManager.WShadow.IsUsable)
             {
-                Vector3 bestWPosition = GetBestPosition(GetVertices(target)[0], GetVertices(target)[1]); // Maybe add a delay giving the target a chance to flash / zhonyas then it will place w at best perpendicular location m8
+                Vector3 bestWPosition = GetBestPosition(GetVertices(target)[0], GetVertices(target)[1]);
+                    // Maybe add a delay giving the target a chance to flash / zhonyas then it will place w at best perpendicular location m8
                 if (_wShadowSpell.ToggleState == 0 && Environment.TickCount - _spells[SpellSlot.W].LastCastAttemptT > 0)
                 {
-                    Utility.DelayAction.Add(500, () => _spells[SpellSlot.W].Cast(bestWPosition)); //Allow half a second for the target to flash / zhonyas? :S
+                    Utility.DelayAction.Add(500, () => _spells[SpellSlot.W].Cast(bestWPosition));
+                        //Allow half a second for the target to flash / zhonyas? :S
                     _spells[SpellSlot.W].LastCastAttemptT = Environment.TickCount + 500;
                 }
             }
@@ -416,7 +419,26 @@ namespace iDZed
                     break;
 
                 case 2: // triangle mode
-                    DoTriangleCombo(target);
+                    if (Menu.Item("com.idz.zed.combo.user").GetValue<bool>() && _spells[SpellSlot.R].IsReady() &&
+                        _spells[SpellSlot.W].IsReady() && HasEnergy(new[] { SpellSlot.R, SpellSlot.W }))
+                    {
+                        DoTriangleCombo(target);
+                    }
+                    else
+                    {
+                        if (Menu.Item("com.idz.zed.combo.usew").GetValue<bool>())
+                        {
+                            CastW(target);
+                        }
+                        if (Menu.Item("com.idz.zed.combo.useq").GetValue<bool>())
+                        {
+                            CastQ(target, true);
+                        }
+                        if (Menu.Item("com.idz.zed.combo.usee").GetValue<bool>())
+                        {
+                            CastE();
+                        }
+                    }
                     break;
             }
         }
@@ -641,15 +663,16 @@ namespace iDZed
         private static void OnSpellCast(Obj_AI_Base sender1, GameObjectProcessSpellCastEventArgs args)
         {
             Obj_AI_Hero sender = sender1 as Obj_AI_Hero;
-            if (sender != null && sender.IsEnemy && sender.Team != Player.Team) // TODO this works asuna, just not all the time, pls make better or smth :S
+            if (sender != null && sender.IsEnemy && sender.Team != Player.Team)
+                // TODO this works asuna, just not all the time, pls make better or smth :S
             {
                 //Game.PrintChat("Name: " +args.SData.Name);
                 if (args.SData.Name == "ZhonyasHourglass" && sender.HasBuff("zedulttargetmark"))
                 {
                     Vector3 bestPosition = GetBestPosition(GetVertices(sender, true)[0], GetVertices(sender, true)[1]);
-                        // TODO when i eventually finish this do more and more checks so we don't fuck up on anything  :S
+                    // TODO when i eventually finish this do more and more checks so we don't fuck up on anything  :S
                     if (_spells[SpellSlot.W].IsReady() && _wShadowSpell.ToggleState == 0 &&
-                    Environment.TickCount - _spells[SpellSlot.W].LastCastAttemptT > 0)
+                        Environment.TickCount - _spells[SpellSlot.W].LastCastAttemptT > 0)
                     {
                         _spells[SpellSlot.W].Cast(bestPosition);
                         _spells[SpellSlot.W].LastCastAttemptT = Environment.TickCount + 500;
