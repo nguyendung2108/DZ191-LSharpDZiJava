@@ -190,7 +190,7 @@ namespace iDZed.Activator
 
         private static void UseSummonerSpells()
         {
-            foreach (var spell in SummonerSpellsList.Where(spell => spell.RunCondition()))
+            foreach (ISummonerSpell spell in SummonerSpellsList.Where(spell => spell.RunCondition()))
             {
                 spell.Execute();
             }

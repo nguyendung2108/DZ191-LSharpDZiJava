@@ -305,7 +305,7 @@ namespace iDZed
                     break;
                 case 1: // Line mode
                     if (Menu.Item("com.idz.zed.combo.user").GetValue<bool>() && _spells[SpellSlot.R].IsReady() &&
-                        HasEnergy(new[] { SpellSlot.Q, SpellSlot.W, SpellSlot.E, SpellSlot.R }))
+                        HasEnergy(new[] { SpellSlot.W, SpellSlot.R }))
                     {
                         DoLineCombo(target);
                     }
@@ -374,15 +374,12 @@ namespace iDZed
                             _spells[SpellSlot.W].LastCastAttemptT = Environment.TickCount + 500;
                         }
                     }
-                    if (ShadowManager.WShadow.State == ShadowState.Travelling) //TODO this is fast harass m8 :S
+                    if (ShadowManager.WShadow.Exists)
                     {
-                        if (_spells[SpellSlot.E].IsReady())
-                            CastE();
-
-                        Utility.DelayAction.Add(wCastTime, () => CastQ(target, true));
+                        CastE();
+                        CastQ(target, true);
                     }
-                    else if (ShadowManager.WShadow.State == ShadowState.Created ||
-                             ShadowManager.WShadow.State == ShadowState.NotActive)
+                    else
                     {
                         CastQ(target, true);
                         CastE();
@@ -404,15 +401,12 @@ namespace iDZed
                             _spells[SpellSlot.W].LastCastAttemptT = Environment.TickCount + 500;
                         }
                     }
-                    if (ShadowManager.WShadow.State == ShadowState.Travelling) //TODO this is fast harass m8 :S
+                    if (ShadowManager.WShadow.Exists)
                     {
-                        Utility.DelayAction.Add(wCastTime, () => CastQ(target, true));
-
-                        if (_spells[SpellSlot.E].IsReady())
-                            CastE();
+                        CastQ(target, true);
+                        CastE();
                     }
-                    else if (ShadowManager.WShadow.State == ShadowState.Created ||
-                             ShadowManager.WShadow.State == ShadowState.NotActive)
+                    else
                     {
                         CastQ(target, true);
                         CastE();
