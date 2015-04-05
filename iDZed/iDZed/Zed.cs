@@ -147,10 +147,10 @@ namespace iDZed
 
             if (ShadowManager.RShadow.Exists && ShadowManager.WShadow.IsUsable)
             {
-                var bestWPosition = GetBestPosition(GetPerpendicularVectors(target)[0], GetPerpendicularVectors(target)[1]); // Maybe add a delay giving the target a chance to flash / zhonyas then it will place w at best perpendicular location m8
+                Vector3 bestWPosition = GetBestPosition(GetVertices(target)[0], GetVertices(target)[1]); // Maybe add a delay giving the target a chance to flash / zhonyas then it will place w at best perpendicular location m8
                 if (_wShadowSpell.ToggleState == 0 && Environment.TickCount - _spells[SpellSlot.W].LastCastAttemptT > 0)
                 {
-                    _spells[SpellSlot.W].Cast(bestWPosition);
+                    Utility.DelayAction.Add(500, () => _spells[SpellSlot.W].Cast(bestWPosition)); //Allow half a second for the target to flash / zhonyas? :S
                     _spells[SpellSlot.W].LastCastAttemptT = Environment.TickCount + 500;
                 }
             }
@@ -162,43 +162,38 @@ namespace iDZed
             }
         }
 
-        private static Vector3[] GetVertices(Obj_AI_Hero target)
+        private static Vector3[] GetVertices(Obj_AI_Hero target, bool forZhonyas = false) // Zhonyas triangular ult
         {
             Shadow ultShadow = ShadowManager.RShadow;
             if (ultShadow.Exists)
             {
-                Vector2 vertex1 = Player.ServerPosition.To2D() +
-                                  Vector2.Normalize(
-                                      target.ServerPosition.To2D() - ultShadow.ShadowObject.ServerPosition.To2D()) *
-                                  _spells[SpellSlot.W].Range;
-                Vector2 vertex2 = Player.ServerPosition.To2D() +
+                if (forZhonyas)
+                {
+                    Vector2 vertex1 = Player.ServerPosition.To2D() +
+                                      Vector2.Normalize(
+                                          target.ServerPosition.To2D() - ultShadow.ShadowObject.ServerPosition.To2D()) *
+                                      _spells[SpellSlot.W].Range;
+                    Vector2 vertex2 = Player.ServerPosition.To2D() +
+                                      Vector2.Normalize(
+                                          target.ServerPosition.To2D() - ultShadow.ShadowObject.ServerPosition.To2D())
+                                          .Perpendicular() * _spells[SpellSlot.W].Range;
+                    Vector2 vertex3 = Player.ServerPosition.To2D() +
+                                      Vector2.Normalize(vertex1 - vertex2).Perpendicular() * _spells[SpellSlot.W].Range;
+                    Vector2 vertex4 = Player.ServerPosition.To2D() +
+                                      Vector2.Normalize(vertex2 - vertex1).Perpendicular() * _spells[SpellSlot.W].Range;
+
+                    return new[] { vertex3.To3D(), vertex4.To3D() };
+                }
+
+                Vector2 vertex5 = Player.ServerPosition.To2D() +
                                   Vector2.Normalize(
                                       target.ServerPosition.To2D() - ultShadow.ShadowObject.ServerPosition.To2D())
                                       .Perpendicular() * _spells[SpellSlot.W].Range;
-                Vector2 vertex3 = Player.ServerPosition.To2D() +
-                                  Vector2.Normalize(vertex1 - vertex2).Perpendicular() * _spells[SpellSlot.W].Range;
-                Vector2 vertex4 = Player.ServerPosition.To2D() +
-                                  Vector2.Normalize(vertex2 - vertex1).Perpendicular() * _spells[SpellSlot.W].Range;
-
-                return new[] { vertex3.To3D(), vertex4.To3D() };
-            }
-            return new[] { Vector3.Zero, Vector3.Zero };
-        }
-
-        private static Vector3[] GetPerpendicularVectors(Obj_AI_Hero target)
-        {
-            Shadow ultShadow = ShadowManager.RShadow;
-            if (ultShadow.Exists)
-            {
-                Vector2 vertex = Player.ServerPosition.To2D() +
-                                 Vector2.Normalize(
-                                     target.ServerPosition.To2D() - ultShadow.ShadowObject.ServerPosition.To2D())
-                                     .Perpendicular() * _spells[SpellSlot.W].Range;
-                Vector2 vertex1 = Player.ServerPosition.To2D() +
+                Vector2 vertex6 = Player.ServerPosition.To2D() +
                                   Vector2.Normalize(
                                       ultShadow.ShadowObject.ServerPosition.To2D() - target.ServerPosition.To2D())
                                       .Perpendicular() * _spells[SpellSlot.W].Range;
-                return new[] { vertex.To3D(), vertex1.To3D() };
+                return new[] { vertex5.To3D(), vertex6.To3D() };
             }
             return new[] { Vector3.Zero, Vector3.Zero };
         }
@@ -645,15 +640,14 @@ namespace iDZed
             if (sender != null && sender.IsEnemy && sender.Team != Player.Team) // TODO this works asuna, just not all the time, pls make better or smth :S
             {
                 Game.PrintChat("Name: " +args.SData.Name);
-                if (_orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo && args.SData.Name == "ZhonyasHourglass" &&
-                    sender.HasBuff("zedulttargetmark"))
+                if (args.SData.Name == "ZhonyasHourglass" && sender.HasBuff("zedulttargetmark"))
                 {
                     foreach (BuffInstance buff in sender.Buffs)
                     {
                         Game.PrintChat("Buff: " + buff.Name);
                     }
                     Game.PrintChat("1ST PART CALLED...");
-                    Vector3 bestPosition = GetBestPosition(GetVertices(sender)[0], GetVertices(sender)[1]);
+                    Vector3 bestPosition = GetBestPosition(GetVertices(sender, true)[0], GetVertices(sender, true)[1]);
                         // TODO when i eventually finish this do more and more checks so we don't fuck up on anything  :S
                     if (_spells[SpellSlot.W].IsReady() && _wShadowSpell.ToggleState == 0 &&
                     Environment.TickCount - _spells[SpellSlot.W].LastCastAttemptT > 0)
