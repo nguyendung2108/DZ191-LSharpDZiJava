@@ -155,7 +155,7 @@ namespace iDZed
                     // Maybe add a delay giving the target a chance to flash / zhonyas then it will place w at best perpendicular location m8
                 if (_wShadowSpell.ToggleState == 0 && Environment.TickCount - _spells[SpellSlot.W].LastCastAttemptT > 0)
                 {
-                    Utility.DelayAction.Add(500, () => _spells[SpellSlot.W].Cast(bestWPosition));
+                    _spells[SpellSlot.W].Cast(bestWPosition);
                         //Allow half a second for the target to flash / zhonyas? :S
                     _spells[SpellSlot.W].LastCastAttemptT = Environment.TickCount + 500;
                 }
@@ -552,6 +552,7 @@ namespace iDZed
             Menu miscMenu = new Menu("[iDZed] Misc", "com.idz.zed.misc");
             {
                 miscMenu.AddItem(new MenuItem("energyManagement", "Use Energy Management").SetValue(true));
+                miscMenu.AddItem(new MenuItem("dodgeWithR", "Dodge Dangerous Spells with Ult").SetValue(true));
             }
             Menu.AddSubMenu(miscMenu);
             ItemManager.OnLoad(Menu);
@@ -627,6 +628,19 @@ namespace iDZed
                         _spells[SpellSlot.W].LastCastAttemptT = Environment.TickCount + 500;
                     }
                 }
+
+                if (Menu.Item("dodgeWithR").GetValue<bool>() && _spells[SpellSlot.R].IsReady() &&
+                    ShadowManager.RShadow.IsUsable)
+                {
+                    foreach (string spellName in DangerousSpells.DangerousList) // TODO possibly use evade databse for all dangeroous spells, and or spells that will kill.
+                    {
+                        if (args.SData.Name == spellName && _spells[SpellSlot.R].IsInRange(sender)) // 
+                        {
+                            _spells[SpellSlot.R].Cast(sender);
+                        }
+                    }
+                }
+
             }
         }
 
