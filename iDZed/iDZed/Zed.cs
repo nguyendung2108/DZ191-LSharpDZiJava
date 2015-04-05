@@ -94,7 +94,6 @@ namespace iDZed
 
             if (ShadowManager.RShadow.Exists && ShadowManager.WShadow.IsUsable)
             {
-                ItemManager.UseDeathmarkItems();
                 Vector3 wCastLocation = Player.ServerPosition -
                                         Vector3.Normalize(target.ServerPosition - Player.ServerPosition) * 400;
 
@@ -105,6 +104,8 @@ namespace iDZed
                     _spells[SpellSlot.W].LastCastAttemptT = Environment.TickCount + 500;
                 }
             }
+
+            ItemManager.UseDeathmarkItems();
 
             if (ShadowManager.WShadow.Exists && ShadowManager.RShadow.Exists)
             {
@@ -148,7 +149,6 @@ namespace iDZed
 
             if (ShadowManager.RShadow.Exists && ShadowManager.WShadow.IsUsable)
             {
-                ItemManager.UseDeathmarkItems();
                 Vector3 bestWPosition = GetBestPosition(GetVertices(target)[0], GetVertices(target)[1]); // Maybe add a delay giving the target a chance to flash / zhonyas then it will place w at best perpendicular location m8
                 if (_wShadowSpell.ToggleState == 0 && Environment.TickCount - _spells[SpellSlot.W].LastCastAttemptT > 0)
                 {
@@ -156,6 +156,8 @@ namespace iDZed
                     _spells[SpellSlot.W].LastCastAttemptT = Environment.TickCount + 500;
                 }
             }
+
+            ItemManager.UseDeathmarkItems();
 
             if (ShadowManager.WShadow.Exists && ShadowManager.RShadow.Exists)
             {
@@ -644,17 +646,11 @@ namespace iDZed
                 //Game.PrintChat("Name: " +args.SData.Name);
                 if (args.SData.Name == "ZhonyasHourglass" && sender.HasBuff("zedulttargetmark"))
                 {
-                    foreach (BuffInstance buff in sender.Buffs)
-                    {
-                        //Game.PrintChat("Buff: " + buff.Name);
-                    }
-                    //Game.PrintChat("1ST PART CALLED...");
                     Vector3 bestPosition = GetBestPosition(GetVertices(sender, true)[0], GetVertices(sender, true)[1]);
                         // TODO when i eventually finish this do more and more checks so we don't fuck up on anything  :S
                     if (_spells[SpellSlot.W].IsReady() && _wShadowSpell.ToggleState == 0 &&
                     Environment.TickCount - _spells[SpellSlot.W].LastCastAttemptT > 0)
                     {
-                        //Game.PrintChat("Zhonyas called casted w to perpendicular position");
                         _spells[SpellSlot.W].Cast(bestPosition);
                         _spells[SpellSlot.W].LastCastAttemptT = Environment.TickCount + 500;
                     }
