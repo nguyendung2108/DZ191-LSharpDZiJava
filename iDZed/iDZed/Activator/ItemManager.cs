@@ -143,6 +143,23 @@ namespace iDZed.Activator
             UseSummonerSpells();
         }
 
+        public static void UseDeathmarkItems()
+        {
+            var items = ItemList.FindAll(item => item.Class == ItemClass.Offensive);
+            foreach (DzItem item in items)
+            {
+                var target = TargetSelector.GetTarget(item.Range, TargetSelector.DamageType.True);
+                if (!target.IsValidTarget())
+                    return;
+
+                if (MenuHelper.isMenuEnabled("com.idz.zed.activator.afterDeathmark") &&
+                    target.HasBuff("zedulttargetmark"))
+                {
+                    UseItem(target, item);
+                }
+            }
+        }
+
         private static void UseOffensive()
         {
             var offensiveItems = ItemList.FindAll(item => item.Class == ItemClass.Offensive);
@@ -152,12 +169,6 @@ namespace iDZed.Activator
                                              TargetSelector.GetTarget(item.Range, TargetSelector.DamageType.True);
                 if (!selectedTarget.IsValidTarget(item.Range))
                 {
-                    return;
-                }
-                if (selectedTarget.HasBuff("zedulttargetmark") &&
-                    MenuHelper.isMenuEnabled("com.idz.zed.activator.afterDeathmark"))
-                {
-                    UseItem(selectedTarget, item);
                     return;
                 }
                 if (MenuHelper.isMenuEnabled("com.idz.zed.activator." + item.Id + ".always"))
@@ -215,7 +226,7 @@ namespace iDZed.Activator
                     {
                         return;
                     }
-                    var customPred = Prediction.GetPrediction(item.CustomInput);
+                    PredictionOutput customPred = Prediction.GetPrediction(item.CustomInput);
                     if (customPred.Hitchance >= GetHitchance())
                     {
                         Items.UseItem(item.Id, customPred.CastPosition);

@@ -94,6 +94,7 @@ namespace iDZed
 
             if (ShadowManager.RShadow.Exists && ShadowManager.WShadow.IsUsable)
             {
+                ItemManager.UseDeathmarkItems();
                 Vector3 wCastLocation = Player.ServerPosition -
                                         Vector3.Normalize(target.ServerPosition - Player.ServerPosition) * 400;
 
@@ -147,6 +148,7 @@ namespace iDZed
 
             if (ShadowManager.RShadow.Exists && ShadowManager.WShadow.IsUsable)
             {
+                ItemManager.UseDeathmarkItems();
                 Vector3 bestWPosition = GetBestPosition(GetVertices(target)[0], GetVertices(target)[1]); // Maybe add a delay giving the target a chance to flash / zhonyas then it will place w at best perpendicular location m8
                 if (_wShadowSpell.ToggleState == 0 && Environment.TickCount - _spells[SpellSlot.W].LastCastAttemptT > 0)
                 {
