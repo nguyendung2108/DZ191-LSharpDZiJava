@@ -148,7 +148,7 @@ namespace iDZed.Activator
             var items = ItemList.FindAll(item => item.Class == ItemClass.Offensive);
             foreach (DzItem item in items)
             {
-                var target = TargetSelector.GetTarget(item.Range, TargetSelector.DamageType.True);
+                Obj_AI_Hero target = TargetSelector.GetTarget(item.Range, TargetSelector.DamageType.True);
                 if (!target.IsValidTarget())
                     return;
 
