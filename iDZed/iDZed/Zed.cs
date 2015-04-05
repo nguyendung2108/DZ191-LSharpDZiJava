@@ -29,7 +29,7 @@ namespace iDZed
         private static Orbwalking.Orbwalker _orbwalker;
         private static readonly SpellDataInst _wShadowSpell = Player.Spellbook.GetSpell(SpellSlot.W);
         private static readonly SpellDataInst _rShadowSpell = Player.Spellbook.GetSpell(SpellSlot.R);
-        private static bool _deathmarkKilled = false;
+        private static bool _deathmarkKilled;
 
         private static Obj_AI_Hero Player
         {
@@ -130,7 +130,82 @@ namespace iDZed
 
         private static void DoTriangleCombo(Obj_AI_Hero target)
         {
-            //TODO
+            if (!_spells[SpellSlot.R].IsReady() || !_spells[SpellSlot.W].IsReady() ||
+                !HasEnergy(new[] { SpellSlot.R, SpellSlot.W }))
+            {
+                return;
+            }
+
+            if (ShadowManager.RShadow.IsUsable) // Cast Ultimate m8 :S
+            {
+                if (_spells[SpellSlot.R].IsReady() && _spells[SpellSlot.R].IsInRange(target))
+                {
+                    _spells[SpellSlot.R].Cast(target);
+                }
+            }
+
+            if (ShadowManager.RShadow.Exists && ShadowManager.WShadow.IsUsable)
+            {
+                var bestWPosition = GetBestTriangularPosition(target);
+                if (_wShadowSpell.ToggleState == 0 && Environment.TickCount - _spells[SpellSlot.W].LastCastAttemptT > 0)
+                {
+                    _spells[SpellSlot.W].Cast(bestWPosition);
+                    _spells[SpellSlot.W].LastCastAttemptT = Environment.TickCount + 500;
+                }
+            }
+
+            /*if (ShadowManager.CanGoToShadow(ShadowManager.WShadow) && _wShadowSpell.ToggleState == 2)
+            {
+                _spells[SpellSlot.W].Cast();
+            }*/
+
+            if (ShadowManager.WShadow.Exists && ShadowManager.RShadow.Exists)
+            {
+                CastQ(target, true);
+                CastE();
+            }
+        }
+
+        private static Vector3[] GetVertices(Obj_AI_Hero target)
+        {
+            Shadow ultShadow = ShadowManager.RShadow;
+            if (ultShadow.Exists)
+            {
+                Vector2 vertex1 = Player.ServerPosition.To2D() +
+                                  Vector2.Normalize(
+                                      target.ServerPosition.To2D() - ultShadow.ShadowObject.ServerPosition.To2D()) *
+                                  _spells[SpellSlot.W].Range;
+                Vector2 vertex2 = Player.ServerPosition.To2D() +
+                                  Vector2.Normalize(
+                                      target.ServerPosition.To2D() - ultShadow.ShadowObject.ServerPosition.To2D())
+                                      .Perpendicular() * _spells[SpellSlot.W].Range;
+                Vector2 vertex3 = Player.ServerPosition.To2D() +
+                                  Vector2.Normalize(vertex1 - vertex2).Perpendicular() * _spells[SpellSlot.W].Range;
+                Vector2 vertex4 = Player.ServerPosition.To2D() +
+                                  Vector2.Normalize(vertex2 - vertex1).Perpendicular() * _spells[SpellSlot.W].Range;
+
+                return new[] { vertex3.To3D(), vertex4.To3D() };
+            }
+            return new[] { Vector3.Zero, Vector3.Zero };
+        }
+
+        private static Vector3 GetBestTriangularPosition(Obj_AI_Hero target)
+        {
+            Vector3 firstPosition = GetVertices(target)[0];
+            Vector3 secondPosition = GetVertices(target)[1];
+
+            if (firstPosition.IsWall() && !secondPosition.IsWall())
+                // if firstposition is a wall and second position isn't
+            {
+                return secondPosition; //return second position
+            }
+            if (secondPosition.IsWall() && !firstPosition.IsWall())
+                // if secondPosition is a wall and first position isn't
+            {
+                return firstPosition; // return first position
+            }
+
+            return firstPosition;
         }
 
         #endregion
@@ -287,6 +362,9 @@ namespace iDZed
         {
             Obj_AI_Hero target = GetAssasinationTarget();
 
+           // Game.PrintChat("First: " + GetVertices(target)[0]);
+            //Game.PrintChat("Second: " + GetVertices(target)[1]);
+
             switch (Menu.Item("com.idz.zed.combo.mode").GetValue<StringList>().SelectedIndex)
             {
                 case 0:
@@ -328,7 +406,7 @@ namespace iDZed
                     break;
 
                 case 2: // triangle mode
-                    //TODO triangle mode eventually.
+                    DoTriangleCombo(target);
                     break;
             }
         }
@@ -559,6 +637,12 @@ namespace iDZed
             {
                 Render.Circle.DrawCircle(shadow.ShadowObject.Position, 60f, System.Drawing.Color.Orange);
             }
+
+            //var target = TargetSelector.GetTarget(1000, TargetSelector.DamageType.Physical);
+
+            //Render.Circle.DrawCircle(GetVertices(target)[0], 100, System.Drawing.Color.BlueViolet);
+            //Render.Circle.DrawCircle(GetVertices(target)[1], 100, System.Drawing.Color.Blue);
+            //Render.Circle.DrawCircle(Player.ServerPosition, 100, System.Drawing.Color.Brown);
         }
 
         private static Obj_AI_Hero GetAssasinationTarget(float range = 0,
