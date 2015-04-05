@@ -437,7 +437,7 @@ namespace iDZed
                     if (ShadowManager.WShadow.Exists || ShadowManager.WShadow.State == ShadowState.Travelling)
                     {
                         CastE();
-                        CastQ(target, true);
+                        Utility.DelayAction.Add(wCastTime, () => CastQ(target, true));
                     }
                     else
                     {
