@@ -16,8 +16,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Remoting.Messaging;
 using LeagueSharp;
 using LeagueSharp.Common;
+using SharpDX;
 
 namespace iDZed.Utils
 {
@@ -69,12 +71,14 @@ namespace iDZed.Utils
                         {
                             myShadow.State = ShadowState.Created;
                             myShadow.ShadowObject = minion;
+                            myShadow.Position = minion.Position;
                             //Hacky workaround, TODO: Find a better way
                             Utility.DelayAction.Add(
                                 4200, () =>
                                 {
                                     myShadow.State = ShadowState.NotActive;
                                     myShadow.ShadowObject = null;
+                                    myShadow.Position = Vector3.Zero;
                                 });
                         }
                     }
@@ -92,6 +96,7 @@ namespace iDZed.Utils
                                 if (rShadow != null)
                                 {
                                     rShadow.State = ShadowState.Travelling;
+                                    rShadow.Position = spell.EndPosition;
                                 }
                                 break;
                             case ZedWMissileName:
@@ -99,6 +104,7 @@ namespace iDZed.Utils
                                 if (wShadow != null)
                                 {
                                     wShadow.State = ShadowState.Travelling;
+                                    wShadow.Position = spell.EndPosition;
                                 }
                                 break;
                         }
@@ -129,7 +135,7 @@ namespace iDZed.Utils
             {
                 if (shadow.State == ShadowState.Created)
                 {
-                    if (ObjectManager.Player.HealthPercent < 35 || shadow.ShadowObject.Position.UnderTurret(true) ||
+                    if (ObjectManager.Player.HealthPercent < 35 || shadow.Position.UnderTurret(true) ||
                         (shadow.ShadowObject.CountEnemiesInRange(1200f) > 1 &&
                          shadow.ShadowObject.CountEnemiesInRange(1200f) < 2))
                         // add a slider for the health percent.
@@ -148,6 +154,8 @@ namespace iDZed.Utils
         public Obj_AI_Minion ShadowObject { get; set; }
         public ShadowState State { get; set; }
         public ShadowType Type { get; set; }
+
+        public Vector3 Position { get; set; }
 
         public bool IsUsable
         {

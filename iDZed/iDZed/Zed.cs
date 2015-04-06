@@ -118,7 +118,7 @@ namespace iDZed
             if (ShadowManager.CanGoToShadow(ShadowManager.WShadow, true) && _wShadowSpell.ToggleState == 2 &&
                 !_deathmarkKilled)
             {
-                if (Menu.Item("com.idz.zed.combo.swapw").GetValue<bool>() &&
+                if (MenuHelper.isMenuEnabled("com.idz.zed.combo.swapw") &&
                     ShadowManager.WShadow.ShadowObject.Distance(target.ServerPosition) <
                     Player.Distance(target.ServerPosition))
                 {
@@ -178,11 +178,11 @@ namespace iDZed
         {
             if (_spells[SpellSlot.Q].IsReady())
             {
-                if (ShadowManager.WShadow.Exists)
+                if (ShadowManager.WShadow.Exists || (ShadowManager.WShadow.State == ShadowState.Travelling))
                 {
                     _spells[SpellSlot.Q].UpdateSourcePosition(
-                        ShadowManager.WShadow.ShadowObject.ServerPosition,
-                        ShadowManager.WShadow.ShadowObject.ServerPosition);
+                        ShadowManager.WShadow.Position,
+                        ShadowManager.WShadow.Position);
                     if (usePrediction)
                     {
                         PredictionOutput prediction = _spells[SpellSlot.Q].GetPrediction(target);
@@ -205,8 +205,8 @@ namespace iDZed
                 else if (ShadowManager.RShadow.Exists)
                 {
                     _spells[SpellSlot.Q].UpdateSourcePosition(
-                        ShadowManager.RShadow.ShadowObject.ServerPosition,
-                        ShadowManager.RShadow.ShadowObject.ServerPosition);
+                        ShadowManager.RShadow.Position,
+                        ShadowManager.RShadow.Position);
                     if (usePrediction)
                     {
                         PredictionOutput prediction = _spells[SpellSlot.Q].GetPrediction(target);
@@ -297,9 +297,9 @@ namespace iDZed
                         hero.IsValidTarget() &&
                         (hero.Distance(Player.ServerPosition) <= _spells[SpellSlot.E].Range ||
                          (ShadowManager.WShadow.ShadowObject != null &&
-                          hero.Distance(ShadowManager.WShadow.ShadowObject.ServerPosition) <= _spells[SpellSlot.E].Range) ||
+                          hero.Distance(ShadowManager.WShadow.Position) <= _spells[SpellSlot.E].Range) ||
                          (ShadowManager.RShadow.ShadowObject != null &&
-                          hero.Distance(ShadowManager.RShadow.ShadowObject.ServerPosition) <= _spells[SpellSlot.E].Range))) >
+                          hero.Distance(ShadowManager.RShadow.Position) <= _spells[SpellSlot.E].Range))) >
                 0)
             {
                 _spells[SpellSlot.E].Cast();
@@ -331,18 +331,19 @@ namespace iDZed
             {
                 case 0:
                     // NORMAL MODE  //TODO if target is killable with R damage + 3 q's and 2 e's + item damage then go ham? :S
-                    if (Menu.Item("com.idz.zed.combo.usew").GetValue<bool>())
+                    if (MenuHelper.isMenuEnabled("com.idz.zed.combo.usew") && (_spells[SpellSlot.Q].IsReady() || _spells[SpellSlot.E].IsReady()))
                     {
                         CastW(target);
+                        if (Menu.Item("com.idz.zed.combo.useq").GetValue<bool>())
+                        {
+                            Utility.DelayAction.Add(105,() => CastQ(target, true));
+                        }
+                        if (Menu.Item("com.idz.zed.combo.usee").GetValue<bool>())
+                        {
+                            Utility.DelayAction.Add(105, CastE); 
+                        }
                     }
-                    if (Menu.Item("com.idz.zed.combo.useq").GetValue<bool>())
-                    {
-                        CastQ(target, true);
-                    }
-                    if (Menu.Item("com.idz.zed.combo.usee").GetValue<bool>())
-                    {
-                        CastE();
-                    }
+                    
                     break;
                 case 1: // Line mode
                     if (Menu.Item("com.idz.zed.combo.user").GetValue<bool>() && _spells[SpellSlot.R].IsReady() &&
@@ -636,7 +637,7 @@ namespace iDZed
             foreach (Shadow shadow in
                 ShadowManager._shadowsList.Where(sh => sh.State != ShadowState.NotActive && sh.ShadowObject != null))
             {
-                Render.Circle.DrawCircle(shadow.ShadowObject.Position, 60f, System.Drawing.Color.Orange);
+                Render.Circle.DrawCircle(shadow.Position, 60f, System.Drawing.Color.Orange);
             }
 
             //var target = TargetSelector.GetTarget(1000, TargetSelector.DamageType.Physical);
