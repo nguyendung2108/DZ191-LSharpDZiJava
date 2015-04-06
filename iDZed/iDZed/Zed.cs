@@ -462,16 +462,8 @@ namespace iDZed
                             _spells[SpellSlot.W].LastCastAttemptT = Environment.TickCount + 500;
                         }
                     }
-                    if (ShadowManager.WShadow.Exists)
-                    {
                         CastQ(target, true);
                         CastE();
-                    }
-                    else
-                    {
-                        CastQ(target, true);
-                        CastE();
-                    }
                     break;
             }
         }
