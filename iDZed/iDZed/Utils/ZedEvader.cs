@@ -32,18 +32,14 @@ namespace iDZed.Utils
         private static readonly List<string> DangerousList = new List<string>
             // Credits to Jack is back :), thanks jack! saved me some time.
         {
-            "AatroxQ",
-            "AhriSeduce",
             "CurseoftheSadMummy",
             "InfernalGuardian",
             "EnchantedCrystalArrow",
             "AzirR",
             "BrandWildfire",
-            "CassiopeiaPetrifyingGaze",
             "DariusExecute",
             "DravenRCast",
             "EvelynnR",
-            "EzrealTrueshotBarrage",
             "Terrify",
             "GalioIdolOfDurand",
             "GarenR",
@@ -62,7 +58,8 @@ namespace iDZed.Utils
             "GnarR",
             "FizzMarinerDoom",
             "SyndraR",
-            "CaitlynAceintheHole"
+            "CaitlynAceintheHole",
+            "rivenizunablade"
         };
 
         public static void OnLoad(Menu menu)
@@ -73,16 +70,12 @@ namespace iDZed.Utils
             Menu dangerSpellMenu =
                 dodgeMenu.AddSubMenu(new Menu("Dangerous Spells", "com.idz.zed.spelldodging.dangerous"));
             {
-                foreach (Obj_AI_Hero hero in HeroManager.Enemies)
-                {
-                    if (DangerousList.Contains(hero.Spellbook.GetSpell(SpellSlot.R).SData.Name))
-                    {
-                        dangerSpellMenu.AddItem(
-                            new MenuItem(
-                                "com.idz.zed.spelldodging.dangerous.dodge" +
-                                hero.Spellbook.GetSpell(SpellSlot.R).SData.Name,
-                                "Dodge: " + hero.Spellbook.GetSpell(SpellSlot.R).Name).SetValue(true));
-                    }
+                foreach (Obj_AI_Hero hero in HeroManager.Enemies.Where(hero => DangerousList.Contains(hero.Spellbook.GetSpell(SpellSlot.R).SData.Name))) {
+                    dangerSpellMenu.AddItem(
+                        new MenuItem(
+                            "com.idz.zed.spelldodging.dangerous.dodge" +
+                            hero.Spellbook.GetSpell(SpellSlot.R).SData.Name,
+                            "Dodge: " + hero.Spellbook.GetSpell(SpellSlot.R).Name).SetValue(true));
                 }
             }
 
@@ -115,9 +108,9 @@ namespace iDZed.Utils
                     if (ShadowManager.CanGoToShadow(ShadowManager.WShadow, true) && Zed._wShadowSpell.ToggleState == 2 &&
                         skillshot.IsAboutToHit(200, ObjectManager.Player))
                     {
-                        var damage = skillshot.Caster.GetDamageSpell(ObjectManager.Player, skillshot.SpellData.SpellName).CalculatedDamage;
+                        var incomingDamage = skillshot.Caster.GetDamageSpell(ObjectManager.Player, skillshot.SpellData.SpellName).CalculatedDamage;
                         if (skillshot.SpellData.IsDangerous &&
-                            skillshot.SpellData.DangerValue >= MenuHelper.getSliderValue("customDangerValue") || damage + 15 > ObjectManager.Player.Health)
+                            skillshot.SpellData.DangerValue >= MenuHelper.getSliderValue("customDangerValue") || incomingDamage + 15 > ObjectManager.Player.Health)
                         {
                             if (skillshot.IsSafe(ShadowManager.WShadow.ShadowObject.ServerPosition.To2D()) &&
                                 Zed._spells[SpellSlot.W].IsReady())
@@ -145,25 +138,25 @@ namespace iDZed.Utils
         private static void OnSpellCast(Obj_AI_Base sender1, GameObjectProcessSpellCastEventArgs args)
         {
             Obj_AI_Hero sender = sender1 as Obj_AI_Hero;
-            if (sender != null && sender.IsEnemy && sender.Team != ObjectManager.Player.Team)
+            if (sender == null || !sender.IsEnemy || sender.Team == ObjectManager.Player.Team)
             {
-                if (MenuHelper.isMenuEnabled("com.idz.zed.spelldodging.useUltDodge") &&
-                    MenuHelper.isMenuEnabled("com.idz.zed.spelldodging.dangerous.dodge" + args.SData.Name))
+                return;
+            }
+            if (MenuHelper.isMenuEnabled("com.idz.zed.spelldodging.useUltDodge") &&
+                MenuHelper.isMenuEnabled("com.idz.zed.spelldodging.dangerous.dodge" + args.SData.Name))
+            {
+                if (Zed._spells[SpellSlot.R].IsReady() &&
+                    DangerousList.Any(spell => spell.Contains(args.SData.Name)) && ShadowManager.RShadow.IsUsable)
                 {
-                    if (Zed._spells[SpellSlot.R].IsReady() &&
-                        DangerousList.Any(spell => spell.Contains(args.SData.Name)) && ShadowManager.RShadow.IsUsable)
+                    if (Zed._spells[SpellSlot.R].IsInRange(sender) || ObjectManager.Player.Distance(args.End) < 250)
                     {
-                        if (Zed._spells[SpellSlot.R].IsInRange(sender) || ObjectManager.Player.Distance(args.End) < 250)
+                        if (args.SData.Name == "SyndraR" || args.SData.Name == "TristanaR" && args.Target.IsMe)
                         {
-                            if (args.SData.Name == "SyndraR" || args.SData.Name == "TristanaR" ||
-                                args.SData.Name == "BrandR" && args.Target.IsMe)
-                            {
-                                Utility.DelayAction.Add((int) 0.25, () => Zed._spells[SpellSlot.R].Cast());
-                            }
-                            else
-                            {
-                                Zed._spells[SpellSlot.R].Cast(sender);
-                            }
+                            Utility.DelayAction.Add((int) 0.25, () => Zed._spells[SpellSlot.R].Cast());
+                        }
+                        else
+                        {
+                            Zed._spells[SpellSlot.R].Cast(sender);
                         }
                     }
                 }
@@ -387,7 +380,7 @@ namespace iDZed.Utils
                 {
                     for (var i = -1; i <= 1; i = i + 2)
                     {
-                        var skillshotToAdd = new Skillshot(
+                        Skillshot skillshotToAdd = new Skillshot(
                             DetectionType.ProcessSpell, spellData, Environment.TickCount, missile.Position.To2D(),
                             missile.Position.To2D() + i * direction * spellData.Range, skillshot.Caster);
                         EvadeDetectedSkillshots.Add(skillshotToAdd);
