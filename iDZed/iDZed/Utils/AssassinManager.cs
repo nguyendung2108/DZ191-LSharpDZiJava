@@ -54,7 +54,7 @@ namespace iDZed.Utils
                     OutputPrecision = FontPrecision.Default,
                     Quality = FontQuality.ClearType
                 });
-            Zed.Menu.AddSubMenu(new Menu("[iDZed]- Deathmark Priority Targets", "MenuAssassin"));
+            Zed.Menu.AddSubMenu(new Menu("[iDZed] Deathmark Priority Targets", "MenuAssassin"));
             Zed.Menu.SubMenu("MenuAssassin").AddItem(new MenuItem("AssassinActive", "Active").SetValue(true));
             Zed.Menu.SubMenu("MenuAssassin")
                 .AddItem(new MenuItem("AssassinSearchRange", " Search Range"))
