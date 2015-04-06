@@ -479,9 +479,6 @@ namespace iDZed
         private static void Farm()
         {
             var allMinions = MinionManager.GetMinions(Player.ServerPosition, 1000f);
-            Obj_AI_Base qMinion =
-                allMinions.FirstOrDefault(
-                    x => x.IsValidTarget(_spells[SpellSlot.Q].Range) && _spells[SpellSlot.Q].IsInRange(x));
             if (Menu.Item("com.idz.zed.farm.useQ").GetValue<bool>() && _spells[SpellSlot.Q].IsReady())
             {
                 var bestPosition = _spells[SpellSlot.Q].GetLineFarmLocation(allMinions);
@@ -492,14 +489,15 @@ namespace iDZed
             }
             if (Menu.Item("com.idz.zed.farm.useE").GetValue<bool>() && _spells[SpellSlot.E].IsReady())
             {
-                foreach (Obj_AI_Base minion in
+                var Minions =
                     MinionManager.GetMinions(Player.ServerPosition, _spells[SpellSlot.E].Range)
-                        .Where(
+                        .FindAll(
                             minion =>
                                 !Orbwalking.InAutoAttackRange(minion) &&
-                                minion.Health < 0.75 * _spells[SpellSlot.E].GetDamage(minion)))
+                                minion.Health < 0.75 * _spells[SpellSlot.E].GetDamage(minion));
+                if (Minions.Count > 1)
                 {
-                    _spells[SpellSlot.E].Cast(minion);
+                    _spells[SpellSlot.E].Cast();
                 }
             }
         }
@@ -639,12 +637,6 @@ namespace iDZed
             {
                 Render.Circle.DrawCircle(shadow.Position, 60f, System.Drawing.Color.Orange);
             }
-
-            //var target = TargetSelector.GetTarget(1000, TargetSelector.DamageType.Physical);
-
-            //Render.Circle.DrawCircle(GetVertices(target)[0], 100, System.Drawing.Color.BlueViolet);
-            //Render.Circle.DrawCircle(GetVertices(target)[1], 100, System.Drawing.Color.Blue);
-            //Render.Circle.DrawCircle(Player.ServerPosition, 100, System.Drawing.Color.Brown);
         }
 
         private static Obj_AI_Hero GetAssasinationTarget(float range = 0,
@@ -654,7 +646,7 @@ namespace iDZed
             {
                 range = _spells[SpellSlot.R].IsReady()
                     ? _spells[SpellSlot.R].Range
-                    : _spells[SpellSlot.W].Range + _spells[SpellSlot.Q].Range;
+                    : _spells[SpellSlot.W].Range + _spells[SpellSlot.Q].Range / 2f;
             }
 
             if (!Menu.Item("AssassinActive").GetValue<bool>())
