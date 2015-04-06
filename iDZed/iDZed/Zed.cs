@@ -102,7 +102,7 @@ namespace iDZed
                     Environment.TickCount - _spells[SpellSlot.W].LastCastAttemptT > 0)
                 {
                     _spells[SpellSlot.W].Cast(wCastLocation);
-                        // Maybe add a delay giving the target a chance to flash / zhonyas then it will place w at best location for more damage
+                    // Maybe add a delay giving the target a chance to flash / zhonyas then it will place w at best location for more damage
                     _spells[SpellSlot.W].LastCastAttemptT = Environment.TickCount + 500;
                 }
             }
@@ -151,12 +151,13 @@ namespace iDZed
 
             if (ShadowManager.RShadow.Exists && ShadowManager.WShadow.IsUsable)
             {
-                Vector3 bestWPosition = VectorHelper.GetBestPosition(VectorHelper.GetVertices(target)[0], VectorHelper.GetVertices(target)[1]);
-                    // Maybe add a delay giving the target a chance to flash / zhonyas then it will place w at best perpendicular location m8
+                Vector3 bestWPosition = VectorHelper.GetBestPosition(
+                    VectorHelper.GetVertices(target)[0], VectorHelper.GetVertices(target)[1]);
+                // Maybe add a delay giving the target a chance to flash / zhonyas then it will place w at best perpendicular location m8
                 if (_wShadowSpell.ToggleState == 0 && Environment.TickCount - _spells[SpellSlot.W].LastCastAttemptT > 0)
                 {
                     _spells[SpellSlot.W].Cast(bestWPosition);
-                        //Allow half a second for the target to flash / zhonyas? :S
+                    //Allow half a second for the target to flash / zhonyas? :S
                     _spells[SpellSlot.W].LastCastAttemptT = Environment.TickCount + 500;
                 }
             }
@@ -181,8 +182,7 @@ namespace iDZed
                 if (ShadowManager.WShadow.Exists || (ShadowManager.WShadow.State == ShadowState.Travelling))
                 {
                     _spells[SpellSlot.Q].UpdateSourcePosition(
-                        ShadowManager.WShadow.Position,
-                        ShadowManager.WShadow.Position);
+                        ShadowManager.WShadow.Position, ShadowManager.WShadow.Position);
                     if (usePrediction)
                     {
                         PredictionOutput prediction = _spells[SpellSlot.Q].GetPrediction(target);
@@ -205,8 +205,7 @@ namespace iDZed
                 else if (ShadowManager.RShadow.Exists)
                 {
                     _spells[SpellSlot.Q].UpdateSourcePosition(
-                        ShadowManager.RShadow.Position,
-                        ShadowManager.RShadow.Position);
+                        ShadowManager.RShadow.Position, ShadowManager.RShadow.Position);
                     if (usePrediction)
                     {
                         PredictionOutput prediction = _spells[SpellSlot.Q].GetPrediction(target);
@@ -299,8 +298,7 @@ namespace iDZed
                          (ShadowManager.WShadow.ShadowObject != null &&
                           hero.Distance(ShadowManager.WShadow.Position) <= _spells[SpellSlot.E].Range) ||
                          (ShadowManager.RShadow.ShadowObject != null &&
-                          hero.Distance(ShadowManager.RShadow.Position) <= _spells[SpellSlot.E].Range))) >
-                0)
+                          hero.Distance(ShadowManager.RShadow.Position) <= _spells[SpellSlot.E].Range))) > 0)
             {
                 _spells[SpellSlot.E].Cast();
             }
@@ -360,7 +358,8 @@ namespace iDZed
 
         private static void DoNormalCombo(Obj_AI_Hero target)
         {
-            if (MenuHelper.isMenuEnabled("com.idz.zed.combo.usew") && (_spells[SpellSlot.Q].IsReady() || _spells[SpellSlot.E].IsReady()))
+            if (MenuHelper.isMenuEnabled("com.idz.zed.combo.usew") &&
+                (_spells[SpellSlot.Q].IsReady() || _spells[SpellSlot.E].IsReady()))
             {
                 CastW(target);
                 if (Menu.Item("com.idz.zed.combo.useq").GetValue<bool>())
@@ -373,6 +372,7 @@ namespace iDZed
                 }
             }
         }
+
         private static void Harass()
         {
             if (!Menu.Item("com.idz.zed.harass.useHarass").GetValue<bool>())
@@ -404,7 +404,7 @@ namespace iDZed
                         _wShadowSpell.ToggleState == 0 &&
                         Environment.TickCount - _spells[SpellSlot.W].LastCastAttemptT > 0)
                     {
-                        if (wPosition.Distance(target) <= _spells[SpellSlot.Q].Range*0.75f)
+                        if (wPosition.Distance(target) <= _spells[SpellSlot.Q].Range * 0.75f)
                         {
                             if (IsPassWall(Player.ServerPosition, target.ServerPosition))
                             {
@@ -420,7 +420,7 @@ namespace iDZed
                         CastE();
                         Utility.DelayAction.Add(250, () => CastQ(target, true));
                     }
-                    else if(ShadowManager.WShadow.Exists)
+                    else if (ShadowManager.WShadow.Exists)
                     {
                         CastQ(target, true);
                         CastE();
@@ -436,14 +436,14 @@ namespace iDZed
                         _wShadowSpell.ToggleState == 0 &&
                         Environment.TickCount - _spells[SpellSlot.W].LastCastAttemptT > 0)
                     {
-                        if (wPosition.Distance(target) <= _spells[SpellSlot.Q].Range*0.75)
+                        if (wPosition.Distance(target) <= _spells[SpellSlot.Q].Range * 0.75)
                         {
                             _spells[SpellSlot.W].Cast(target);
                             _spells[SpellSlot.W].LastCastAttemptT = Environment.TickCount + 500;
                         }
                     }
-                        CastQ(target, true);
-                        CastE();
+                    CastQ(target, true);
+                    CastE();
                     break;
             }
         }
@@ -590,7 +590,8 @@ namespace iDZed
                 //Game.PrintChat("Name: " +args.SData.Name);
                 if (args.SData.Name == "ZhonyasHourglass" && sender.HasBuff("zedulttargetmark"))
                 {
-                    Vector3 bestPosition = VectorHelper.GetBestPosition(VectorHelper.GetVertices(sender, true)[0], VectorHelper.GetVertices(sender, true)[1]);
+                    Vector3 bestPosition = VectorHelper.GetBestPosition(
+                        VectorHelper.GetVertices(sender, true)[0], VectorHelper.GetVertices(sender, true)[1]);
                     // TODO when i eventually finish this do more and more checks so we don't fuck up on anything  :S
                     if (_spells[SpellSlot.W].IsReady() && _wShadowSpell.ToggleState == 0 &&
                         Environment.TickCount - _spells[SpellSlot.W].LastCastAttemptT > 0)
