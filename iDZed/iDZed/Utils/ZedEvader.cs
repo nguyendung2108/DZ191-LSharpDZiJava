@@ -119,7 +119,7 @@ namespace iDZed.Utils
                             }
                         }
 
-                        if (!Zed._spells[SpellSlot.R].IsReady() && !ShadowManager.RShadow.Exists)
+                        if (!Zed._spells[SpellSlot.R].IsReady() && !ShadowManager.RShadow.Exists && MenuHelper.isMenuEnabled("com.idz.zed.spelldodging.dangerous.dodge" + skillshot.SpellData.SpellName))
                         {
                             if (DangerousList.Any(spell => spell.Contains(skillshot.SpellData.SpellName)))
                             {

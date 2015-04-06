@@ -16,10 +16,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.Remoting.Messaging;
 using LeagueSharp;
 using LeagueSharp.Common;
 using SharpDX;
+
+// ReSharper disable MergeConditionalExpression
+// ReSharper disable FunctionRecursiveOnAllPaths
 
 namespace iDZed.Utils
 {
@@ -71,7 +73,8 @@ namespace iDZed.Utils
                         {
                             myShadow.State = ShadowState.Created;
                             myShadow.ShadowObject = minion;
-                            myShadow.Position = minion.Position;
+                            myShadow.Position = minion.ServerPosition;
+                                // TODO, since you added this m8 the position is offset a little bit, and when you switch with shadows the new shadow position isn't correct. :S
                             //Hacky workaround, TODO: Find a better way
                             Utility.DelayAction.Add(
                                 4200, () =>
@@ -115,7 +118,6 @@ namespace iDZed.Utils
 
         private static void GameObject_OnDelete(GameObject sender, EventArgs args)
         {
-            //This is bugged and does not happen immediately as the zed shadow disappear, but instead 3-4 seconds later.
             if (sender != null && sender.IsAlly)
             {
                 var myShadow =
@@ -151,11 +153,16 @@ namespace iDZed.Utils
 
     internal class Shadow
     {
+        private Vector3 shPos = Vector3.Zero;
         public Obj_AI_Minion ShadowObject { get; set; }
         public ShadowState State { get; set; }
         public ShadowType Type { get; set; }
 
-        public Vector3 Position { get; set; }
+        public Vector3 Position
+        {
+            get { return ShadowObject != null ? ShadowObject.Position : shPos; }
+            set { shPos = value; }
+        }
 
         public bool IsUsable
         {
