@@ -117,7 +117,7 @@ namespace iDZed.Utils
                     {
                         var damage = skillshot.Caster.GetDamageSpell(ObjectManager.Player, skillshot.SpellData.SpellName).CalculatedDamage;
                         if (skillshot.SpellData.IsDangerous &&
-                            skillshot.SpellData.DangerValue >= MenuHelper.getSliderValue("customDangerValue") || damage > ObjectManager.Player.Health)
+                            skillshot.SpellData.DangerValue >= MenuHelper.getSliderValue("customDangerValue") || damage + 15 > ObjectManager.Player.Health)
                         {
                             if (skillshot.IsSafe(ShadowManager.WShadow.ShadowObject.ServerPosition.To2D()) &&
                                 Zed._spells[SpellSlot.W].IsReady())
