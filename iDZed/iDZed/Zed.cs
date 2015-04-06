@@ -424,7 +424,7 @@ namespace iDZed
                         _wShadowSpell.ToggleState == 0 &&
                         Environment.TickCount - _spells[SpellSlot.W].LastCastAttemptT > 0)
                     {
-                        if (wPosition.Distance(target) <= _spells[SpellSlot.Q].Range)
+                        if (wPosition.Distance(target) <= _spells[SpellSlot.Q].Range*0.75f)
                         {
                             if (IsPassWall(Player.ServerPosition, target.ServerPosition))
                             {
@@ -435,12 +435,12 @@ namespace iDZed
                             _spells[SpellSlot.W].LastCastAttemptT = Environment.TickCount + 500;
                         }
                     }
-                    if (ShadowManager.WShadow.Exists || ShadowManager.WShadow.State == ShadowState.Travelling)
+                    if (ShadowManager.WShadow.State == ShadowState.Travelling)
                     {
                         CastE();
-                        Utility.DelayAction.Add(wCastTime, () => CastQ(target, true));
+                        Utility.DelayAction.Add(250, () => CastQ(target, true));
                     }
-                    else
+                    else if(ShadowManager.WShadow.Exists)
                     {
                         CastQ(target, true);
                         CastE();
@@ -456,7 +456,7 @@ namespace iDZed
                         _wShadowSpell.ToggleState == 0 &&
                         Environment.TickCount - _spells[SpellSlot.W].LastCastAttemptT > 0)
                     {
-                        if (wPosition.Distance(target) <= _spells[SpellSlot.Q].Range)
+                        if (wPosition.Distance(target) <= _spells[SpellSlot.Q].Range*0.75)
                         {
                             _spells[SpellSlot.W].Cast(target);
                             _spells[SpellSlot.W].LastCastAttemptT = Environment.TickCount + 500;
