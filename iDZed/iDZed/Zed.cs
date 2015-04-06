@@ -461,13 +461,13 @@ namespace iDZed
             }
             if (Menu.Item("com.idz.zed.farm.useE").GetValue<bool>() && _spells[SpellSlot.E].IsReady())
             {
-                var Minions =
+                var minions =
                     MinionManager.GetMinions(Player.ServerPosition, _spells[SpellSlot.E].Range)
                         .FindAll(
                             minion =>
                                 !Orbwalking.InAutoAttackRange(minion) &&
                                 minion.Health < 0.75 * _spells[SpellSlot.E].GetDamage(minion));
-                if (Minions.Count > 1)
+                if (minions.Count > 1)
                 {
                     _spells[SpellSlot.E].Cast();
                 }
