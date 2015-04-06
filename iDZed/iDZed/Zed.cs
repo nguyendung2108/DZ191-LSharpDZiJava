@@ -331,19 +331,7 @@ namespace iDZed
             {
                 case 0:
                     // NORMAL MODE  //TODO if target is killable with R damage + 3 q's and 2 e's + item damage then go ham? :S
-                    if (MenuHelper.isMenuEnabled("com.idz.zed.combo.usew") && (_spells[SpellSlot.Q].IsReady() || _spells[SpellSlot.E].IsReady()))
-                    {
-                        CastW(target);
-                        if (Menu.Item("com.idz.zed.combo.useq").GetValue<bool>())
-                        {
-                            Utility.DelayAction.Add(105,() => CastQ(target, true));
-                        }
-                        if (Menu.Item("com.idz.zed.combo.usee").GetValue<bool>())
-                        {
-                            Utility.DelayAction.Add(105, CastE); 
-                        }
-                    }
-                    
+                    DoNormalCombo(target);
                     break;
                 case 1: // Line mode
                     if (Menu.Item("com.idz.zed.combo.user").GetValue<bool>() && _spells[SpellSlot.R].IsReady() &&
@@ -353,21 +341,9 @@ namespace iDZed
                     }
                     else
                     {
-                        if (Menu.Item("com.idz.zed.combo.usew").GetValue<bool>())
-                        {
-                            CastW(target);
-                        }
-                        if (Menu.Item("com.idz.zed.combo.useq").GetValue<bool>())
-                        {
-                            CastQ(target, true);
-                        }
-                        if (Menu.Item("com.idz.zed.combo.usee").GetValue<bool>())
-                        {
-                            CastE();
-                        }
+                        DoNormalCombo(target);
                     }
                     break;
-
                 case 2: // triangle mode
                     if (Menu.Item("com.idz.zed.combo.user").GetValue<bool>() && _spells[SpellSlot.R].IsReady() &&
                         _spells[SpellSlot.W].IsReady() && HasEnergy(new[] { SpellSlot.R, SpellSlot.W }))
@@ -376,23 +352,27 @@ namespace iDZed
                     }
                     else
                     {
-                        if (Menu.Item("com.idz.zed.combo.usew").GetValue<bool>())
-                        {
-                            CastW(target);
-                        }
-                        if (Menu.Item("com.idz.zed.combo.useq").GetValue<bool>())
-                        {
-                            CastQ(target, true);
-                        }
-                        if (Menu.Item("com.idz.zed.combo.usee").GetValue<bool>())
-                        {
-                            CastE();
-                        }
+                        DoNormalCombo(target);
                     }
                     break;
             }
         }
 
+        private static void DoNormalCombo(Obj_AI_Hero target)
+        {
+            if (MenuHelper.isMenuEnabled("com.idz.zed.combo.usew") && (_spells[SpellSlot.Q].IsReady() || _spells[SpellSlot.E].IsReady()))
+            {
+                CastW(target);
+                if (Menu.Item("com.idz.zed.combo.useq").GetValue<bool>())
+                {
+                    Utility.DelayAction.Add(105, () => CastQ(target, true));
+                }
+                if (Menu.Item("com.idz.zed.combo.usee").GetValue<bool>())
+                {
+                    Utility.DelayAction.Add(105, CastE);
+                }
+            }
+        }
         private static void Harass()
         {
             if (!Menu.Item("com.idz.zed.harass.useHarass").GetValue<bool>())
