@@ -28,7 +28,7 @@ namespace iDZed
     {
         public static Menu Menu;
         private static Orbwalking.Orbwalker _orbwalker;
-        private static readonly SpellDataInst _wShadowSpell = Player.Spellbook.GetSpell(SpellSlot.W);
+        public static readonly SpellDataInst _wShadowSpell = Player.Spellbook.GetSpell(SpellSlot.W);
         private static readonly SpellDataInst _rShadowSpell = Player.Spellbook.GetSpell(SpellSlot.R);
         private static bool _deathmarkKilled;
 
@@ -552,10 +552,10 @@ namespace iDZed
             Menu miscMenu = new Menu("[iDZed] Misc", "com.idz.zed.misc");
             {
                 miscMenu.AddItem(new MenuItem("energyManagement", "Use Energy Management").SetValue(true));
-                miscMenu.AddItem(new MenuItem("dodgeWithR", "Dodge Dangerous Spells with Ult").SetValue(true));
             }
             Menu.AddSubMenu(miscMenu);
             ItemManager.OnLoad(Menu);
+            ZedEvader.OnLoad(Menu);
 
             Menu.AddToMainMenu();
         }
@@ -628,28 +628,6 @@ namespace iDZed
                         _spells[SpellSlot.W].LastCastAttemptT = Environment.TickCount + 500;
                     }
                 }
-
-                if (Menu.Item("dodgeWithR").GetValue<bool>() && _spells[SpellSlot.R].IsReady() &&
-                    ShadowManager.RShadow.IsUsable)
-                {
-                    foreach (string spellName in DangerousSpells.DangerousList) // TODO possibly use evade databse for all dangeroous spells, and or spells that will kill.
-                    {
-                        if (args.SData.Name == spellName) // 
-                        {
-                            if (_spells[SpellSlot.R].IsInRange(sender))
-                                _spells[SpellSlot.R].Cast(sender);
-                            else if (Player.Distance(args.End) < 250 && !_spells[SpellSlot.R].IsInRange(sender))
-                            {
-                                //Find another ultable target target kappa
-                                Obj_AI_Hero selectedTarget = HeroManager.Enemies.FirstOrDefault(x => x.IsValidTarget(_spells[SpellSlot.R].Range) && x != sender);
-
-                                //Cast Ult to that target :S
-                                _spells[SpellSlot.R].Cast(selectedTarget);
-                            }
-                        }
-                    }
-                }
-
             }
         }
 

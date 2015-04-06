@@ -69,7 +69,7 @@ namespace iDZed.Activator
         {
             //Create the menu here.
             var cName = ObjectManager.Player.ChampionName;
-            var activatorMenu = new Menu("[iDZed] - Activator", "com.idz.zed.activator");
+            var activatorMenu = new Menu("[iDZed] Activator", "com.idz.zed.activator");
 
             //Offensive Menu
             var offensiveMenu = new Menu("Activator - Offensive", "com.idz.zed.activator.offensive");
