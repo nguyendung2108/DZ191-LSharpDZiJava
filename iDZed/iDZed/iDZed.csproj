@@ -85,6 +85,7 @@
     <Compile Include="Activator\ItemManager.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Utils\ZedDamage.cs" />
     <Compile Include="Utils\ZedEvader.cs" />
     <Compile Include="Utils\ShadowManager.cs" />
     <Compile Include="Utils\VectorHelper.cs" />

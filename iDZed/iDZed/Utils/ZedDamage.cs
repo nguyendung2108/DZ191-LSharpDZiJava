@@ -74,7 +74,7 @@ namespace iDZed.Utils
 
             if (Zed._spells[SpellSlot.Q].IsReady()) // TODO calculate 2 or 3 q's depending on shadows kappa
             {
-                totalDamage += Zed._spells[SpellSlot.Q].GetDamage(target) * 2; // Actually check if shadows exist kappa
+                totalDamage += Zed._spells[SpellSlot.Q].GetDamage(target) * 2; // shadow logic pls
             }
 
             if (Zed._spells[SpellSlot.E].IsReady())
