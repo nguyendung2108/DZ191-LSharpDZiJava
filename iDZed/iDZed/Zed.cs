@@ -609,7 +609,6 @@ namespace iDZed
             if (sender != null && sender.IsEnemy && sender.Team != Player.Team)
                 // TODO this works asuna, just not all the time, pls make better or smth :S
             {
-                //Game.PrintChat("Name: " +args.SData.Name);
                 if (args.SData.Name == "ZhonyasHourglass" && sender.HasBuff("zedulttargetmark"))
                 {
                     Vector3 bestPosition = VectorHelper.GetBestPosition(

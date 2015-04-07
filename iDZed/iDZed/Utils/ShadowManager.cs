@@ -40,22 +40,36 @@ namespace iDZed.Utils
         private const string ZedW2SsName = "ZedW2";
         private const string ZedR2SsName = "ZedR2"; //TODO Check this
 
+        /// <summary>
+        ///     Find the WShadow from the shadows list
+        /// </summary>
         public static Shadow WShadow
         {
             get { return _shadowsList.Find(x => x.Type == ShadowType.Normal); }
         }
 
+        /// <summary>
+        ///     Find the RShadow from the shadows list
+        /// </summary>
         public static Shadow RShadow
         {
             get { return _shadowsList.Find(x => x.Type == ShadowType.Ult); }
         }
 
+        /// <summary>
+        ///     Subscribe to the events needed.
+        /// </summary>
         public static void OnLoad()
         {
             GameObject.OnCreate += GameObject_OnCreate;
             GameObject.OnDelete += GameObject_OnDelete;
         }
 
+        /// <summary>
+        ///     OnCreate Event :)
+        /// </summary>
+        /// <param name="sender"> the sender of the gameobject </param>
+        /// <param name="args">the event arguments kappa</param>
         private static void GameObject_OnCreate(GameObject sender, EventArgs args)
         {
             if (!(sender is Obj_AI_Minion) && !(sender is Obj_SpellMissile))
@@ -74,7 +88,7 @@ namespace iDZed.Utils
                             myShadow.State = ShadowState.Created;
                             myShadow.ShadowObject = minion;
                             myShadow.Position = minion.ServerPosition;
-                                // TODO, since you added this m8 the position is offset a little bit, and when you switch with shadows the new shadow position isn't correct. :S
+                            // TODO, since you added this m8 the position is offset a little bit, and when you switch with shadows the new shadow position isn't correct. :S
                             //Hacky workaround, TODO: Find a better way
                             Utility.DelayAction.Add(
                                 4200, () =>
@@ -116,6 +130,11 @@ namespace iDZed.Utils
             }
         }
 
+        /// <summary>
+        ///     OnDelete Event
+        /// </summary>
+        /// <param name="sender">the sender of the game object</param>
+        /// <param name="args">the event arguments</param>
         private static void GameObject_OnDelete(GameObject sender, EventArgs args)
         {
             if (sender != null && sender.IsAlly)
@@ -131,6 +150,12 @@ namespace iDZed.Utils
             }
         }
 
+        /// <summary>
+        ///     Checks if the player can go to the selected Shadow.
+        /// </summary>
+        /// <param name="shadow">The shadow</param>
+        /// <param name="safetyCheck">Use safety checks</param>
+        /// <returns></returns>
         public static bool CanGoToShadow(Shadow shadow, bool safetyCheck = false) //TODO safety Checks lel
         {
             if (safetyCheck)
