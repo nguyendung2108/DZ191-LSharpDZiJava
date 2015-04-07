@@ -28,8 +28,8 @@ namespace iDZed
     {
         public static Menu Menu;
         private static Orbwalking.Orbwalker _orbwalker;
-        public static readonly SpellDataInst _wShadowSpell = Player.Spellbook.GetSpell(SpellSlot.W);
-        private static readonly SpellDataInst _rShadowSpell = Player.Spellbook.GetSpell(SpellSlot.R);
+        public static readonly SpellDataInst WShadowSpell = Player.Spellbook.GetSpell(SpellSlot.W);
+        private static readonly SpellDataInst RShadowSpell = Player.Spellbook.GetSpell(SpellSlot.R);
         private static bool _deathmarkKilled;
 
         private static Obj_AI_Hero Player
@@ -98,7 +98,7 @@ namespace iDZed
                 Vector3 wCastLocation = Player.ServerPosition -
                                         Vector3.Normalize(target.ServerPosition - Player.ServerPosition) * 400;
 
-                if (ShadowManager.WShadow.IsUsable && _wShadowSpell.ToggleState == 0 &&
+                if (ShadowManager.WShadow.IsUsable && WShadowSpell.ToggleState == 0 &&
                     Environment.TickCount - _spells[SpellSlot.W].LastCastAttemptT > 0)
                 {
                     _spells[SpellSlot.W].Cast(wCastLocation);
@@ -115,7 +115,7 @@ namespace iDZed
                 CastE();
             }
 
-            if (ShadowManager.CanGoToShadow(ShadowManager.WShadow, true) && _wShadowSpell.ToggleState == 2 &&
+            if (ShadowManager.CanGoToShadow(ShadowManager.WShadow, true) && WShadowSpell.ToggleState == 2 &&
                 !_deathmarkKilled)
             {
                 if (MenuHelper.isMenuEnabled("com.idz.zed.combo.swapw") &&
@@ -129,7 +129,7 @@ namespace iDZed
 
         private static void DoShadowCoax(Obj_AI_Hero target)
         {
-            //TODO
+            
         }
 
         private static void DoTriangleCombo(Obj_AI_Hero target)
@@ -154,7 +154,7 @@ namespace iDZed
                 Vector3 bestWPosition = VectorHelper.GetBestPosition(
                     VectorHelper.GetVertices(target)[0], VectorHelper.GetVertices(target)[1]);
                 // Maybe add a delay giving the target a chance to flash / zhonyas then it will place w at best perpendicular location m8
-                if (_wShadowSpell.ToggleState == 0 && Environment.TickCount - _spells[SpellSlot.W].LastCastAttemptT > 0)
+                if (WShadowSpell.ToggleState == 0 && Environment.TickCount - _spells[SpellSlot.W].LastCastAttemptT > 0)
                 {
                     _spells[SpellSlot.W].Cast(bestWPosition);
                     //Allow half a second for the target to flash / zhonyas? :S
@@ -256,7 +256,7 @@ namespace iDZed
             }
             if (ShadowManager.WShadow.IsUsable)
             {
-                if (_spells[SpellSlot.W].IsReady() && _wShadowSpell.ToggleState == 0 &&
+                if (_spells[SpellSlot.W].IsReady() && WShadowSpell.ToggleState == 0 &&
                     Environment.TickCount - _spells[SpellSlot.W].LastCastAttemptT > 0)
                 {
                     Vector2 position = Player.ServerPosition.To2D()
@@ -273,7 +273,7 @@ namespace iDZed
                     }
                 }
             }
-            if (ShadowManager.CanGoToShadow(ShadowManager.WShadow, true) && _wShadowSpell.ToggleState == 2)
+            if (ShadowManager.CanGoToShadow(ShadowManager.WShadow, true) && WShadowSpell.ToggleState == 2)
             {
                 if (Menu.Item("com.idz.zed.combo.swapw").GetValue<bool>() &&
                     ShadowManager.WShadow.ShadowObject.Distance(target.ServerPosition) <
@@ -322,14 +322,17 @@ namespace iDZed
         {
             Obj_AI_Hero target = GetAssasinationTarget();
 
-            // Game.PrintChat("First: " + GetVertices(target)[0]);
-            //Game.PrintChat("Second: " + GetVertices(target)[1]);
-
             switch (Menu.Item("com.idz.zed.combo.mode").GetValue<StringList>().SelectedIndex)
             {
                 case 0:
-                    // NORMAL MODE  //TODO if target is killable with R damage + 3 q's and 2 e's + item damage then go ham? :S
-                    DoNormalCombo(target);
+                    if (ZedDamage.GetTotalDamage(target) > target.Health)
+                    {
+                        DoLineCombo(target);
+                    }
+                    else
+                    {
+                        DoNormalCombo(target);
+                    }
                     break;
                 case 1: // Line mode
                     if (Menu.Item("com.idz.zed.combo.user").GetValue<bool>() && _spells[SpellSlot.R].IsReady() &&
@@ -401,7 +404,7 @@ namespace iDZed
                         return;
                     }
                     if (_spells[SpellSlot.W].IsReady() && ShadowManager.WShadow.IsUsable &&
-                        _wShadowSpell.ToggleState == 0 &&
+                        WShadowSpell.ToggleState == 0 &&
                         Environment.TickCount - _spells[SpellSlot.W].LastCastAttemptT > 0)
                     {
                         if (wPosition.Distance(target) <= _spells[SpellSlot.Q].Range * 0.75f)
@@ -433,7 +436,7 @@ namespace iDZed
                         return;
                     }
                     if (_spells[SpellSlot.W].IsReady() && ShadowManager.WShadow.IsUsable &&
-                        _wShadowSpell.ToggleState == 0 &&
+                        WShadowSpell.ToggleState == 0 &&
                         Environment.TickCount - _spells[SpellSlot.W].LastCastAttemptT > 0)
                     {
                         if (wPosition.Distance(target) <= _spells[SpellSlot.Q].Range * 0.75)
@@ -569,7 +572,7 @@ namespace iDZed
             if (sender.Name == "Zed_Base_R_buf_tell.troy")
             {
                 _deathmarkKilled = true;
-                if (_rShadowSpell.ToggleState == 2 && ShadowManager.CanGoToShadow(ShadowManager.RShadow, true) &&
+                if (RShadowSpell.ToggleState == 2 && ShadowManager.CanGoToShadow(ShadowManager.RShadow, true) &&
                     Menu.Item("com.idz.zed.combo.swapr").GetValue<bool>())
                 {
                     _spells[SpellSlot.R].Cast();
@@ -593,7 +596,7 @@ namespace iDZed
                     Vector3 bestPosition = VectorHelper.GetBestPosition(
                         VectorHelper.GetVertices(sender, true)[0], VectorHelper.GetVertices(sender, true)[1]);
                     // TODO when i eventually finish this do more and more checks so we don't fuck up on anything  :S
-                    if (_spells[SpellSlot.W].IsReady() && _wShadowSpell.ToggleState == 0 &&
+                    if (_spells[SpellSlot.W].IsReady() && WShadowSpell.ToggleState == 0 &&
                         Environment.TickCount - _spells[SpellSlot.W].LastCastAttemptT > 0)
                     {
                         _spells[SpellSlot.W].Cast(bestPosition);

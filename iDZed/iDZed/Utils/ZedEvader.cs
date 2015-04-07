@@ -59,7 +59,8 @@ namespace iDZed.Utils
             "FizzMarinerDoom",
             "SyndraR",
             "CaitlynAceintheHole",
-            "rivenizunablade"
+            "rivenizunablade",
+            "TristanaR"
         };
 
         public static void OnLoad(Menu menu)
@@ -105,7 +106,7 @@ namespace iDZed.Utils
                 foreach (Skillshot skillshot in EvadeDetectedSkillshots)
                 {
                     //Game.PrintChat(""+skillshot.SpellData.SpellName);
-                    if (ShadowManager.CanGoToShadow(ShadowManager.WShadow, true) && Zed._wShadowSpell.ToggleState == 2 &&
+                    if (ShadowManager.CanGoToShadow(ShadowManager.WShadow, true) && Zed.WShadowSpell.ToggleState == 2 &&
                         skillshot.IsAboutToHit(200, ObjectManager.Player))
                     {
                         var incomingDamage = skillshot.Caster.GetDamageSpell(ObjectManager.Player, skillshot.SpellData.SpellName).CalculatedDamage;
@@ -172,7 +173,7 @@ namespace iDZed.Utils
 
             Obj_SpellMissile args = (Obj_SpellMissile) sender;
 
-            var selectedTarget =
+            Obj_AI_Hero selectedTarget =
                 HeroManager.Enemies.FirstOrDefault(
                     x => Zed._spells[SpellSlot.R].IsInRange(x) && x.IsValidTarget(Zed._spells[SpellSlot.R].Range));
 
