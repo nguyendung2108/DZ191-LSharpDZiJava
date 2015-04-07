@@ -155,7 +155,6 @@ namespace iDZed.Utils
         ///     Checks if the player can go to the selected Shadow.
         /// </summary>
         /// <param name="shadow">The shadow</param>
-        /// <param name="safetyCheck">Use safety checks</param>
         /// <returns></returns>
         public static bool CanGoToShadow(Shadow shadow) //TODO safety Checks lel
         {

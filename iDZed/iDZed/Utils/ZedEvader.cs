@@ -178,7 +178,7 @@ namespace iDZed.Utils
                     x => Zed._spells[SpellSlot.R].IsInRange(x) && x.IsValidTarget(Zed._spells[SpellSlot.R].Range));
 
             if (args.SData.Name == "CaitlynAceintheHoleMissile" && args.Type == GameObjectType.obj_SpellLineMissile &&
-                args.Target.IsMe && MenuHelper.IsMenuEnabled("com.idz.zed.spelldodging.useUltDodg"))
+                args.Target.IsMe && MenuHelper.IsMenuEnabled("com.idz.zed.spelldodging.useUltDodge"))
             {
                 if (selectedTarget != null && ShadowManager.RShadow.IsUsable)
                 {
