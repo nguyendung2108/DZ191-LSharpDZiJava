@@ -66,6 +66,11 @@ namespace iDZed
 
         public static void OnLoad()
         {
+            if (Player.ChampionName != "Zed")
+            {
+                return;
+            }
+
             Game.PrintChat("iDZed loaded!");
             ShadowManager.OnLoad();
             _orbwalkingModesDictionary = new Dictionary<Orbwalking.OrbwalkingMode, OnOrbwalkingMode>
@@ -127,10 +132,7 @@ namespace iDZed
             }
         }
 
-        private static void DoShadowCoax(Obj_AI_Hero target)
-        {
-            
-        }
+        private static void DoShadowCoax(Obj_AI_Hero target) {}
 
         private static void DoTriangleCombo(Obj_AI_Hero target)
             //I'm dumb, this triangular combo is only good for targets the Zhonyas, we can still use it for that i guess :^)
@@ -328,7 +330,9 @@ namespace iDZed
                     if (ZedDamage.GetTotalDamage(target) > target.Health)
                     {
                         if (_spells[SpellSlot.R].IsReady())
+                        {
                             DoLineCombo(target);
+                        }
                     }
                     else
                     {
