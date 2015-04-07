@@ -128,13 +128,13 @@ namespace iDZed.Activator
 
         private static void Game_OnGameUpdate(EventArgs args)
         {
-            if (!MenuHelper.isMenuEnabled("com.idz.zed.activator.enabledalways") &&
-                !MenuHelper.getKeybindValue("com.idz.zed.activator.enabledcombo"))
+            if (!MenuHelper.IsMenuEnabled("com.idz.zed.activator.enabledalways") &&
+                !MenuHelper.GetKeybindValue("com.idz.zed.activator.enabledcombo"))
             {
                 return;
             }
             if (Environment.TickCount - _lastCheckTick <
-                MenuHelper.getSliderValue("com.idz.zed.activator.activatordelay"))
+                MenuHelper.GetSliderValue("com.idz.zed.activator.activatordelay"))
             {
                 return;
             }
@@ -152,7 +152,7 @@ namespace iDZed.Activator
                 if (!target.IsValidTarget())
                     return;
 
-                if (MenuHelper.isMenuEnabled("com.idz.zed.activator.afterDeathmark") &&
+                if (MenuHelper.IsMenuEnabled("com.idz.zed.activator.afterDeathmark") &&
                     target.HasBuff("zedulttargetmark"))
                 {
                     UseItem(target, item);
@@ -171,28 +171,28 @@ namespace iDZed.Activator
                 {
                     return;
                 }
-                if (MenuHelper.isMenuEnabled("com.idz.zed.activator." + item.Id + ".always"))
+                if (MenuHelper.IsMenuEnabled("com.idz.zed.activator." + item.Id + ".always"))
                 {
                     UseItem(selectedTarget, item);
                 }
                 if (ObjectManager.Player.HealthPercent <
-                    MenuHelper.getSliderValue("com.idz.zed.activator." + item.Id + ".onmyhp"))
+                    MenuHelper.GetSliderValue("com.idz.zed.activator." + item.Id + ".onmyhp"))
                 {
                     UseItem(selectedTarget, item);
                 }
                 if (selectedTarget.HealthPercent <
-                    MenuHelper.getSliderValue("com.idz.zed.activator." + item.Id + ".ontghplesser") &&
-                    !MenuHelper.isMenuEnabled("com.idz.zed.activator." + item.Id + ".ontgkill"))
+                    MenuHelper.GetSliderValue("com.idz.zed.activator." + item.Id + ".ontghplesser") &&
+                    !MenuHelper.IsMenuEnabled("com.idz.zed.activator." + item.Id + ".ontgkill"))
                 {
                     UseItem(selectedTarget, item);
                 }
                 if (selectedTarget.HealthPercent >
-                    MenuHelper.getSliderValue("com.idz.zed.activator." + item.Id + ".ontghpgreater"))
+                    MenuHelper.GetSliderValue("com.idz.zed.activator." + item.Id + ".ontghpgreater"))
                 {
                     UseItem(selectedTarget, item);
                 }
                 if (selectedTarget.Health < ObjectManager.Player.GetSpellDamage(selectedTarget, GetItemSpellSlot(item)) &&
-                    MenuHelper.isMenuEnabled("com.idz.zed.activator." + item.Id + ".ontgkill"))
+                    MenuHelper.IsMenuEnabled("com.idz.zed.activator." + item.Id + ".ontgkill"))
                 {
                     UseItem(selectedTarget, item);
                 }
@@ -274,7 +274,7 @@ namespace iDZed.Activator
                 ItemList.Where(
                     item =>
                         Items.HasItem(item.Id) && Items.CanUseItem(item.Id) &&
-                        MenuHelper.isMenuEnabled("com.idz.zed.activator." + item.Id + ".displaydmg"));
+                        MenuHelper.IsMenuEnabled("com.idz.zed.activator." + item.Id + ".displaydmg"));
             return items.Sum(item => (float) ObjectManager.Player.GetSpellDamage(target, GetItemSpellSlot(item)));
         }
     }

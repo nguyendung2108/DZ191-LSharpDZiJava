@@ -120,10 +120,10 @@ namespace iDZed
                 CastE();
             }
 
-            if (ShadowManager.CanGoToShadow(ShadowManager.WShadow, true) && WShadowSpell.ToggleState == 2 &&
+            if (ShadowManager.CanGoToShadow(ShadowManager.WShadow) && WShadowSpell.ToggleState == 2 &&
                 !_deathmarkKilled)
             {
-                if (MenuHelper.isMenuEnabled("com.idz.zed.combo.swapw") &&
+                if (MenuHelper.IsMenuEnabled("com.idz.zed.combo.swapw") &&
                     ShadowManager.WShadow.ShadowObject.Distance(target.ServerPosition) <
                     Player.Distance(target.ServerPosition))
                 {
@@ -275,7 +275,7 @@ namespace iDZed
                     }
                 }
             }
-            if (ShadowManager.CanGoToShadow(ShadowManager.WShadow, true) && WShadowSpell.ToggleState == 2)
+            if (ShadowManager.CanGoToShadow(ShadowManager.WShadow) && WShadowSpell.ToggleState == 2)
             {
                 if (Menu.Item("com.idz.zed.combo.swapw").GetValue<bool>() &&
                     ShadowManager.WShadow.ShadowObject.Distance(target.ServerPosition) <
@@ -366,7 +366,7 @@ namespace iDZed
 
         private static void DoNormalCombo(Obj_AI_Hero target)
         {
-            if (MenuHelper.isMenuEnabled("com.idz.zed.combo.usew") &&
+            if (MenuHelper.IsMenuEnabled("com.idz.zed.combo.usew") &&
                 (_spells[SpellSlot.Q].IsReady() || _spells[SpellSlot.E].IsReady()))
             {
                 CastW(target);
@@ -545,6 +545,7 @@ namespace iDZed
             Menu miscMenu = new Menu("[iDZed] Misc", "com.idz.zed.misc");
             {
                 miscMenu.AddItem(new MenuItem("energyManagement", "Use Energy Management").SetValue(true));
+                miscMenu.AddItem(new MenuItem("safetyChecks", "Check Safety for shadow swapping").SetValue(true));
             }
             Menu.AddSubMenu(miscMenu);
             ItemManager.OnLoad(Menu);
@@ -591,7 +592,7 @@ namespace iDZed
             if (sender.Name == "Zed_Base_R_buf_tell.troy")
             {
                 _deathmarkKilled = true;
-                if (RShadowSpell.ToggleState == 2 && ShadowManager.CanGoToShadow(ShadowManager.RShadow, true) &&
+                if (RShadowSpell.ToggleState == 2 && ShadowManager.CanGoToShadow(ShadowManager.RShadow) &&
                     Menu.Item("com.idz.zed.combo.swapr").GetValue<bool>())
                 {
                     _spells[SpellSlot.R].Cast();
@@ -626,7 +627,7 @@ namespace iDZed
 
         private static void Drawing_OnDraw(EventArgs args)
         {
-            if (MenuHelper.isMenuEnabled("drawShadows"))
+            if (MenuHelper.IsMenuEnabled("drawShadows"))
             {
                 foreach (Shadow shadow in
                     ShadowManager._shadowsList.Where(sh => sh.State != ShadowState.NotActive && sh.ShadowObject != null)

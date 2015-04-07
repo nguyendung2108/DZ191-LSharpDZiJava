@@ -20,7 +20,7 @@ namespace iDZed.Activator.Spells
         public bool RunCondition()
         {
             return GetSummonerSpell().IsReady() &&
-                   MenuHelper.isMenuEnabled("com.idz.zed.activator.summonerspells." + GetName() + ".enabled") &&
+                   MenuHelper.IsMenuEnabled("com.idz.zed.activator.summonerspells." + GetName() + ".enabled") &&
                    ObjectManager.Player.GetEnemiesInRange(GetSummonerSpell().Range)
                        .Any(
                            h =>

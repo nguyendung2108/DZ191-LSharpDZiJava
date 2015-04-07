@@ -23,9 +23,9 @@ namespace iDZed.Activator.Spells
         public bool RunCondition()
         {
             return GetSummonerSpell().IsReady() &&
-                   MenuHelper.isMenuEnabled("com.idz.zed.activator.summonerspells." + GetName() + ".enabled") &&
+                   MenuHelper.IsMenuEnabled("com.idz.zed.activator.summonerspells." + GetName() + ".enabled") &&
                    ObjectManager.Player.HealthPercent <=
-                   MenuHelper.getSliderValue("com.idz.zed.activator.summonerspells." + GetName() + ".hpercent") &&
+                   MenuHelper.GetSliderValue("com.idz.zed.activator.summonerspells." + GetName() + ".hpercent") &&
                    ObjectManager.Player.CountEnemiesInRange(ObjectManager.Player.AttackRange) >= 1;
         }
 

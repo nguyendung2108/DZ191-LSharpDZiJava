@@ -101,17 +101,17 @@ namespace iDZed.Utils
         private static void OnGameUpdate(EventArgs args)
         {
             EvadeDetectedSkillshots.RemoveAll(skillshot => !skillshot.IsActive());
-            if (MenuHelper.isMenuEnabled("com.idz.zed.spelldodging.dodgeSwap"))
+            if (MenuHelper.IsMenuEnabled("com.idz.zed.spelldodging.dodgeSwap"))
             {
                 foreach (Skillshot skillshot in EvadeDetectedSkillshots)
                 {
                     //Game.PrintChat(""+skillshot.SpellData.SpellName);
-                    if (ShadowManager.CanGoToShadow(ShadowManager.WShadow, true) && Zed.WShadowSpell.ToggleState == 2 &&
+                    if (ShadowManager.CanGoToShadow(ShadowManager.WShadow) && Zed.WShadowSpell.ToggleState == 2 &&
                         skillshot.IsAboutToHit(200, ObjectManager.Player))
                     {
                         var incomingDamage = skillshot.Caster.GetDamageSpell(ObjectManager.Player, skillshot.SpellData.SpellName).CalculatedDamage;
                         if (skillshot.SpellData.IsDangerous &&
-                            skillshot.SpellData.DangerValue >= MenuHelper.getSliderValue("customDangerValue") || incomingDamage + 15 > ObjectManager.Player.Health)
+                            skillshot.SpellData.DangerValue >= MenuHelper.GetSliderValue("customDangerValue") || incomingDamage + 15 > ObjectManager.Player.Health)
                         {
                             if (skillshot.IsSafe(ShadowManager.WShadow.ShadowObject.ServerPosition.To2D()) &&
                                 Zed._spells[SpellSlot.W].IsReady())
@@ -120,7 +120,7 @@ namespace iDZed.Utils
                             }
                         }
 
-                        if (!Zed._spells[SpellSlot.R].IsReady() && !ShadowManager.RShadow.Exists && MenuHelper.isMenuEnabled("com.idz.zed.spelldodging.dangerous.dodge" + skillshot.SpellData.SpellName))
+                        if (!Zed._spells[SpellSlot.R].IsReady() && !ShadowManager.RShadow.Exists && MenuHelper.IsMenuEnabled("com.idz.zed.spelldodging.dangerous.dodge" + skillshot.SpellData.SpellName))
                         {
                             if (DangerousList.Any(spell => spell.Contains(skillshot.SpellData.SpellName)))
                             {
@@ -143,8 +143,8 @@ namespace iDZed.Utils
             {
                 return;
             }
-            if (MenuHelper.isMenuEnabled("com.idz.zed.spelldodging.useUltDodge") &&
-                MenuHelper.isMenuEnabled("com.idz.zed.spelldodging.dangerous.dodge" + args.SData.Name))
+            if (MenuHelper.IsMenuEnabled("com.idz.zed.spelldodging.useUltDodge") &&
+                MenuHelper.IsMenuEnabled("com.idz.zed.spelldodging.dangerous.dodge" + args.SData.Name))
             {
                 if (Zed._spells[SpellSlot.R].IsReady() &&
                     DangerousList.Any(spell => spell.Contains(args.SData.Name)) && ShadowManager.RShadow.IsUsable)
@@ -178,7 +178,7 @@ namespace iDZed.Utils
                     x => Zed._spells[SpellSlot.R].IsInRange(x) && x.IsValidTarget(Zed._spells[SpellSlot.R].Range));
 
             if (args.SData.Name == "CaitlynAceintheHoleMissile" && args.Type == GameObjectType.obj_SpellLineMissile &&
-                args.Target.IsMe && MenuHelper.isMenuEnabled("com.idz.zed.spelldodging.useUltDodg"))
+                args.Target.IsMe && MenuHelper.IsMenuEnabled("com.idz.zed.spelldodging.useUltDodg"))
             {
                 if (selectedTarget != null && ShadowManager.RShadow.IsUsable)
                 {

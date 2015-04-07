@@ -16,6 +16,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using iDZed.Activator;
 using LeagueSharp;
 using LeagueSharp.Common;
 using SharpDX;
@@ -156,9 +157,9 @@ namespace iDZed.Utils
         /// <param name="shadow">The shadow</param>
         /// <param name="safetyCheck">Use safety checks</param>
         /// <returns></returns>
-        public static bool CanGoToShadow(Shadow shadow, bool safetyCheck = false) //TODO safety Checks lel
+        public static bool CanGoToShadow(Shadow shadow) //TODO safety Checks lel
         {
-            if (safetyCheck)
+            if (MenuHelper.IsMenuEnabled("safetyChecks"))
             {
                 if (shadow.State == ShadowState.Created)
                 {
