@@ -327,7 +327,8 @@ namespace iDZed
                 case 0:
                     if (ZedDamage.GetTotalDamage(target) > target.Health)
                     {
-                        DoLineCombo(target);
+                        if (_spells[SpellSlot.R].IsReady())
+                            DoLineCombo(target);
                     }
                     else
                     {
