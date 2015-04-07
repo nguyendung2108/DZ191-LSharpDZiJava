@@ -47,7 +47,7 @@ namespace iDZed.Utils
         {
             double totalDamage = 0;
 
-            if (Zed._spells[SpellSlot.R].IsReady())
+            if (Zed._spells[SpellSlot.R].IsReady() || target.HasBuff("zedulttargetmark"))
             {
                 totalDamage += Zed._spells[SpellSlot.R].GetDamage(target);
 
