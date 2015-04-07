@@ -17,6 +17,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using iDZed.Activator;
+using iDZed.Activator.Spells;
 using iDZed.Utils;
 using LeagueSharp;
 using LeagueSharp.Common;
@@ -98,6 +99,9 @@ namespace iDZed
                 }
             }
 
+            ItemManager.UseDeathmarkItems();
+            SummonerSpells.Ignite.Cast();
+
             if (ShadowManager.RShadow.Exists && ShadowManager.WShadow.IsUsable)
             {
                 Vector3 wCastLocation = Player.ServerPosition -
@@ -111,8 +115,6 @@ namespace iDZed
                     _spells[SpellSlot.W].LastCastAttemptT = Environment.TickCount + 500;
                 }
             }
-
-            ItemManager.UseDeathmarkItems();
 
             if (ShadowManager.WShadow.Exists && ShadowManager.RShadow.Exists)
             {
@@ -150,10 +152,13 @@ namespace iDZed
                 }
             }
 
+            ItemManager.UseDeathmarkItems();
+            SummonerSpells.Ignite.Cast();
+
             if (ShadowManager.RShadow.Exists && ShadowManager.WShadow.IsUsable)
             {
                 Vector3 bestWPosition = VectorHelper.GetBestPosition(
-                    VectorHelper.GetVertices(target)[0], VectorHelper.GetVertices(target)[1]);
+                    target, VectorHelper.GetVertices(target)[0], VectorHelper.GetVertices(target)[1]);
                 // Maybe add a delay giving the target a chance to flash / zhonyas then it will place w at best perpendicular location m8
                 if (WShadowSpell.ToggleState == 0 && Environment.TickCount - _spells[SpellSlot.W].LastCastAttemptT > 0)
                 {
@@ -163,12 +168,15 @@ namespace iDZed
                 }
             }
 
-            ItemManager.UseDeathmarkItems();
-
-            if (ShadowManager.WShadow.Exists && ShadowManager.RShadow.Exists)
+            if (ShadowManager.WShadow.Exists && ShadowManager.CanGoToShadow(ShadowManager.WShadow))
             {
-                CastQ(target);
+                _spells[SpellSlot.W].Cast();
+            }
+
+            if (ShadowManager.WShadow.Exists && ShadowManager.RShadow.Exists && !ShadowManager.CanGoToShadow(ShadowManager.WShadow))
+            {
                 CastE();
+                CastQ(target);
             }
         }
 
@@ -325,7 +333,7 @@ namespace iDZed
 
             switch (Menu.Item("com.idz.zed.combo.mode").GetValue<StringList>().SelectedIndex)
             {
-                case 0:
+                case 0: // Line mode
                     if (Menu.Item("com.idz.zed.combo.user").GetValue<bool>() && _spells[SpellSlot.R].IsReady() &&
                         HasEnergy(new[] { SpellSlot.W, SpellSlot.R }))
                     {
@@ -336,18 +344,7 @@ namespace iDZed
                         DoNormalCombo(target);
                     }
                     break;
-                case 1: // Line mode
-                    if (Menu.Item("com.idz.zed.combo.user").GetValue<bool>() && _spells[SpellSlot.R].IsReady() &&
-                        HasEnergy(new[] { SpellSlot.W, SpellSlot.R }))
-                    {
-                        DoLineCombo(target);
-                    }
-                    else
-                    {
-                        DoNormalCombo(target);
-                    }
-                    break;
-                case 2: // triangle mode
+                case 1: // triangle mode
                     if (Menu.Item("com.idz.zed.combo.user").GetValue<bool>() && _spells[SpellSlot.R].IsReady() &&
                         _spells[SpellSlot.W].IsReady() && HasEnergy(new[] { SpellSlot.R, SpellSlot.W }))
                     {
@@ -505,7 +502,7 @@ namespace iDZed
                 comboMenu.AddItem(new MenuItem("com.idz.zed.combo.swapr", "Swap R On kill").SetValue(true));
                 comboMenu.AddItem(
                     new MenuItem("com.idz.zed.combo.mode", "Combo Mode").SetValue(
-                        new StringList(new[] { "Normal Mode with Ult", "Line Mode", "Triangle Mode" })));
+                        new StringList(new[] { "Line Mode", "Triangle Mode" })));
             }
             Menu.AddSubMenu(comboMenu);
 
@@ -610,7 +607,7 @@ namespace iDZed
                 if (args.SData.Name == "ZhonyasHourglass" && sender.HasBuff("zedulttargetmark"))
                 {
                     Vector3 bestPosition = VectorHelper.GetBestPosition(
-                        VectorHelper.GetVertices(sender, true)[0], VectorHelper.GetVertices(sender, true)[1]);
+                        sender, VectorHelper.GetVertices(sender, true)[0], VectorHelper.GetVertices(sender, true)[1]);
                     // TODO when i eventually finish this do more and more checks so we don't fuck up on anything  :S
                     if (_spells[SpellSlot.W].IsReady() && WShadowSpell.ToggleState == 0 &&
                         Environment.TickCount - _spells[SpellSlot.W].LastCastAttemptT > 0)

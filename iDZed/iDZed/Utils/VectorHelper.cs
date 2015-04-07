@@ -24,6 +24,7 @@ namespace iDZed.Utils
         public static Vector3[] GetVertices(Obj_AI_Hero target, bool forZhonyas = false) //TODO Zhonyas triangular ult
         {
             Shadow ultShadow = ShadowManager.RShadow;
+
             if (!ultShadow.Exists)
             {
                 return new[] { Vector3.Zero, Vector3.Zero };
@@ -66,20 +67,18 @@ namespace iDZed.Utils
             return new[] { vertex3.To3D(), vertex4.To3D() };
         }
 
-        public static Vector3 GetBestPosition(Vector3 firstPosition, Vector3 secondPosition)
+        public static Vector3 GetBestPosition(Obj_AI_Hero target, Vector3 firstPosition, Vector3 secondPosition)
         {
-            if (firstPosition.IsWall() && !secondPosition.IsWall())
+            if (firstPosition.IsWall() && !secondPosition.IsWall() && secondPosition.Distance(target.ServerPosition) < firstPosition.Distance(target.ServerPosition))
                 // if firstposition is a wall and second position isn't
             {
                 return secondPosition; //return second position
             }
-            if (secondPosition.IsWall() && !firstPosition.IsWall())
+            if (secondPosition.IsWall() && !firstPosition.IsWall() && firstPosition.Distance(target.ServerPosition) < secondPosition.Distance(target.ServerPosition))
                 // if secondPosition is a wall and first position isn't
             {
                 return firstPosition; // return first position
             }
-
-            //TODO check distance to target with both positions maybe then return closest position?
 
             return firstPosition;
         }
