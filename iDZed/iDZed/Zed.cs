@@ -120,8 +120,7 @@ namespace iDZed
                 CastE();
             }
 
-            if (ShadowManager.CanGoToShadow(ShadowManager.WShadow) && WShadowSpell.ToggleState == 2 &&
-                !_deathmarkKilled)
+            if (ShadowManager.CanGoToShadow(ShadowManager.WShadow) && WShadowSpell.ToggleState == 2 && !_deathmarkKilled)
             {
                 if (MenuHelper.IsMenuEnabled("com.idz.zed.combo.swapw") &&
                     ShadowManager.WShadow.ShadowObject.Distance(target.ServerPosition) <
@@ -327,12 +326,10 @@ namespace iDZed
             switch (Menu.Item("com.idz.zed.combo.mode").GetValue<StringList>().SelectedIndex)
             {
                 case 0:
-                    if (ZedDamage.GetTotalDamage(target) > target.Health)
+                    if (Menu.Item("com.idz.zed.combo.user").GetValue<bool>() && _spells[SpellSlot.R].IsReady() &&
+                        HasEnergy(new[] { SpellSlot.W, SpellSlot.R }))
                     {
-                        if (_spells[SpellSlot.R].IsReady())
-                        {
-                            DoLineCombo(target);
-                        }
+                        DoLineCombo(target);
                     }
                     else
                     {
