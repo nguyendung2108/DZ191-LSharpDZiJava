@@ -505,7 +505,7 @@ namespace iDZed
                 comboMenu.AddItem(new MenuItem("com.idz.zed.combo.swapr", "Swap R On kill").SetValue(true));
                 comboMenu.AddItem(
                     new MenuItem("com.idz.zed.combo.mode", "Combo Mode").SetValue(
-                        new StringList(new[] { "Normal Mode / Killable Ult", "Line Mode", "Triangle Mode" })));
+                        new StringList(new[] { "Normal Mode with Ult", "Line Mode", "Triangle Mode" })));
             }
             Menu.AddSubMenu(comboMenu);
 

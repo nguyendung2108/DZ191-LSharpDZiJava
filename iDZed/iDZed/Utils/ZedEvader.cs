@@ -84,7 +84,7 @@ namespace iDZed.Utils
                 new MenuItem("com.idz.zed.spelldodging.dodgeSwap", "Swap with W shadow for dangerous skillshots")
                     .SetValue(false));
             dodgeMenu.AddItem(
-                new MenuItem("customDangerValue", "-> W Shadow Danger Value").SetValue(new Slider(3, 1, 5)));
+                new MenuItem("com.idz.zed.spelldodging.customDangerValue", "-> W Shadow Danger Value").SetValue(new Slider(3, 1, 5)));
             dodgeMenu.AddItem(
                 new MenuItem("com.idz.zed.spelldodging.useUltDodge", "Use Dangerous spells with R").SetValue(true));
 
@@ -111,7 +111,7 @@ namespace iDZed.Utils
                     {
                         var incomingDamage = skillshot.Caster.GetDamageSpell(ObjectManager.Player, skillshot.SpellData.SpellName).CalculatedDamage;
                         if (skillshot.SpellData.IsDangerous &&
-                            skillshot.SpellData.DangerValue >= MenuHelper.GetSliderValue("customDangerValue") || incomingDamage + 15 > ObjectManager.Player.Health)
+                            skillshot.SpellData.DangerValue >= MenuHelper.GetSliderValue("com.idz.zed.spelldodging.customDangerValue") || incomingDamage + 15 > ObjectManager.Player.Health)
                         {
                             if (skillshot.IsSafe(ShadowManager.WShadow.ShadowObject.ServerPosition.To2D()) &&
                                 Zed._spells[SpellSlot.W].IsReady())
