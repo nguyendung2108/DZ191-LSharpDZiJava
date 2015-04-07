@@ -538,6 +538,7 @@ namespace iDZed
                             "Draw " + GetStringFromSpellSlot(slot) + " Range").SetValue(
                                 new Circle(true, System.Drawing.Color.Aqua)));
                 }
+                drawMenu.AddItem(new MenuItem("drawShadows", "Draw Shadows").SetValue(true));
             }
             Menu.AddSubMenu(drawMenu);
 
@@ -626,10 +627,14 @@ namespace iDZed
 
         private static void Drawing_OnDraw(EventArgs args)
         {
-            foreach (Shadow shadow in
-                ShadowManager._shadowsList.Where(sh => sh.State != ShadowState.NotActive && sh.ShadowObject != null))
+            if (MenuHelper.isMenuEnabled("drawShadows"))
             {
-                Render.Circle.DrawCircle(shadow.Position, 60f, System.Drawing.Color.Orange);
+                foreach (Shadow shadow in
+                    ShadowManager._shadowsList.Where(sh => sh.State != ShadowState.NotActive && sh.ShadowObject != null)
+                    )
+                {
+                    Render.Circle.DrawCircle(shadow.Position, 60f, System.Drawing.Color.Orange);
+                }
             }
 
             foreach (var spell in
