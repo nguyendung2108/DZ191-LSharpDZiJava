@@ -508,7 +508,7 @@ namespace iDZed
                 comboMenu.AddItem(new MenuItem("com.idz.zed.combo.swapr", "Swap R On kill").SetValue(true));
                 comboMenu.AddItem(
                     new MenuItem("com.idz.zed.combo.mode", "Combo Mode").SetValue(
-                        new StringList(new[] { "Normal Mode / No Ult", "Line Mode", "Triangle Mode" })));
+                        new StringList(new[] { "Normal Mode / Killable Ult", "Line Mode", "Triangle Mode" })));
             }
             Menu.AddSubMenu(comboMenu);
 
@@ -527,6 +527,19 @@ namespace iDZed
                 farmMenu.AddItem(new MenuItem("com.idz.zed.farm.useE", "Use E in Farm").SetValue(true));
             }
             Menu.AddSubMenu(farmMenu);
+
+            Menu drawMenu = new Menu("[iDZed] Drawing", "com.idz.zed.drawing");
+            {
+                foreach (SpellSlot slot in _spells.Select(entry => entry.Key))
+                {
+                    drawMenu.AddItem(
+                        new MenuItem(
+                            "com.idz.zed.drawing.draw" + GetStringFromSpellSlot(slot),
+                            "Draw " + GetStringFromSpellSlot(slot) + " Range").SetValue(
+                                new Circle(true, System.Drawing.Color.Aqua)));
+                }
+            }
+            Menu.AddSubMenu(drawMenu);
 
             Menu miscMenu = new Menu("[iDZed] Misc", "com.idz.zed.misc");
             {
@@ -617,6 +630,35 @@ namespace iDZed
                 ShadowManager._shadowsList.Where(sh => sh.State != ShadowState.NotActive && sh.ShadowObject != null))
             {
                 Render.Circle.DrawCircle(shadow.Position, 60f, System.Drawing.Color.Orange);
+            }
+
+            foreach (var spell in
+                _spells.Where(
+                    s => Menu.Item("com.idz.zed.drawing.draw" + GetStringFromSpellSlot(s.Key)).GetValue<Circle>().Active)
+                )
+            {
+                Circle value =
+                    Menu.Item("com.idz.zed.drawing.draw" + GetStringFromSpellSlot(spell.Key)).GetValue<Circle>();
+
+                Render.Circle.DrawCircle(
+                    Player.Position, spell.Value.Range, spell.Value.IsReady() ? value.Color : System.Drawing.Color.Aqua);
+            }
+        }
+
+        private static string GetStringFromSpellSlot(SpellSlot sp)
+        {
+            switch (sp)
+            {
+                case SpellSlot.Q:
+                    return "Q";
+                case SpellSlot.W:
+                    return "W";
+                case SpellSlot.E:
+                    return "E";
+                case SpellSlot.R:
+                    return "R";
+                default:
+                    return "unk";
             }
         }
 
