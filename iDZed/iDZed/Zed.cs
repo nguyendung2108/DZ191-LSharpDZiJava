@@ -114,7 +114,9 @@ namespace iDZed
             }
 
             if (GetMarkedTarget() != null)
+            {
                 target = GetMarkedTarget();
+            }
 
             ItemManager.UseDeathmarkItems();
             SummonerSpells.Ignite.Cast();
@@ -184,7 +186,9 @@ namespace iDZed
             }
 
             if (GetMarkedTarget() != null)
+            {
                 target = GetMarkedTarget();
+            }
 
             ItemManager.UseDeathmarkItems();
             SummonerSpells.Ignite.Cast();
@@ -228,7 +232,9 @@ namespace iDZed
             if (_spells[SpellSlot.Q].IsReady())
             {
                 if (GetMarkedTarget() != null)
+                {
                     target = GetMarkedTarget();
+                }
 
                 if (ShadowManager.WShadow.Exists || (ShadowManager.WShadow.State == ShadowState.Travelling))
                 {
@@ -284,7 +290,7 @@ namespace iDZed
                         PredictionOutput prediction = _spells[SpellSlot.Q].GetPrediction(target);
                         if (prediction.Hitchance >= GetHitchance())
                         {
-                            if (_spells[SpellSlot.Q].IsInRange(target) &&
+                            if (Player.Distance(target) <= _spells[SpellSlot.Q].Range &&
                                 target.IsValidTarget(_spells[SpellSlot.Q].Range))
                             {
                                 _spells[SpellSlot.Q].Cast(prediction.CastPosition);
@@ -293,7 +299,11 @@ namespace iDZed
                     }
                     else
                     {
-                        _spells[SpellSlot.Q].Cast(target.ServerPosition);
+                        if (Player.Distance(target) <= _spells[SpellSlot.Q].Range &&
+                            target.IsValidTarget(_spells[SpellSlot.Q].Range))
+                        {
+                            _spells[SpellSlot.Q].Cast(target.ServerPosition);
+                        }
                     }
                 }
             }
@@ -487,8 +497,10 @@ namespace iDZed
 
         private static void Laneclear()
         {
-            var allMinionsQ = MinionManager.GetMinions(Player.ServerPosition, _spells[SpellSlot.Q].Range, MinionTypes.All, MinionTeam.NotAlly);
-            var allMinionsE = MinionManager.GetMinions(Player.ServerPosition, _spells[SpellSlot.Q].Range, MinionTypes.All, MinionTeam.NotAlly);
+            var allMinionsQ = MinionManager.GetMinions(
+                Player.ServerPosition, _spells[SpellSlot.Q].Range, MinionTypes.All, MinionTeam.NotAlly);
+            var allMinionsE = MinionManager.GetMinions(
+                Player.ServerPosition, _spells[SpellSlot.Q].Range, MinionTypes.All, MinionTeam.NotAlly);
             if (Menu.Item("com.idz.zed.laneclear.useQ").GetValue<bool>() && _spells[SpellSlot.Q].IsReady())
             {
                 var bestPositionQ = _spells[SpellSlot.Q].GetLineFarmLocation(allMinionsQ, _spells[SpellSlot.Q].Width);
@@ -516,7 +528,8 @@ namespace iDZed
                     allMinions.FirstOrDefault(
                         x => _spells[SpellSlot.Q].IsInRange(x) && x.IsValidTarget(_spells[SpellSlot.Q].Range));
 
-                if (qMinion != null && _spells[SpellSlot.Q].GetDamage(qMinion) > qMinion.Health && !Orbwalking.InAutoAttackRange(qMinion))
+                if (qMinion != null && _spells[SpellSlot.Q].GetDamage(qMinion) > qMinion.Health &&
+                    !Orbwalking.InAutoAttackRange(qMinion))
                 {
                     _spells[SpellSlot.Q].Cast(qMinion);
                 }
@@ -524,7 +537,8 @@ namespace iDZed
             if (Menu.Item("com.idz.zed.lasthit.useE").GetValue<bool>() && _spells[SpellSlot.E].IsReady())
             {
                 var minions =
-                    MinionManager.GetMinions(Player.ServerPosition, _spells[SpellSlot.E].Range, MinionTypes.All, MinionTeam.NotAlly)
+                    MinionManager.GetMinions(
+                        Player.ServerPosition, _spells[SpellSlot.E].Range, MinionTypes.All, MinionTeam.NotAlly)
                         .FindAll(
                             minion =>
                                 !Orbwalking.InAutoAttackRange(minion) &&
@@ -735,7 +749,11 @@ namespace iDZed
 
         private static Obj_AI_Hero GetMarkedTarget()
         {
-            return HeroManager.Enemies.FirstOrDefault(x => x.IsValidTarget(_spells[SpellSlot.W].Range + _spells[SpellSlot.Q].Range) && x.HasBuff("zedulttargetmark") && x.IsVisible);
+            return
+                HeroManager.Enemies.FirstOrDefault(
+                    x =>
+                        x.IsValidTarget(_spells[SpellSlot.W].Range + _spells[SpellSlot.Q].Range) &&
+                        x.HasBuff("zedulttargetmark") && x.IsVisible);
         }
 
         private static void Drawing_OnDraw(EventArgs args)
