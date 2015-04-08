@@ -163,7 +163,7 @@ namespace iDZed
         private static void DoTriangleCombo(Obj_AI_Hero target)
             //I'm dumb, this triangular combo is only good for targets the Zhonyas, we can still use it for that i guess :^)
         {
-            if (ShadowManager.RShadow.IsUsable) // Cast Ultimate m8 :S
+            if (ShadowManager.RShadow.IsUsable && !target.HasBuffOfType(BuffType.Invulnerability)) // Cast Ultimate m8 :S
             {
                 if (MenuHelper.IsMenuEnabled("checkQWE"))
                 {
@@ -236,7 +236,7 @@ namespace iDZed
                     target = GetMarkedTarget();
                 }
 
-                if (ShadowManager.WShadow.Exists || (ShadowManager.WShadow.State == ShadowState.Travelling))
+                if (ShadowManager.WShadow.Exists && ShadowManager.WShadow.ShadowObject.Distance(target.ServerPosition) < Player.Distance(target.ServerPosition))
                 {
                     _spells[SpellSlot.Q].UpdateSourcePosition(
                         ShadowManager.WShadow.Position, ShadowManager.WShadow.Position);
@@ -259,7 +259,7 @@ namespace iDZed
                         }
                     }
                 }
-                else if (ShadowManager.RShadow.Exists)
+                else if (ShadowManager.RShadow.Exists && ShadowManager.RShadow.ShadowObject.Distance(target.ServerPosition) < Player.Distance(target.ServerPosition))
                 {
                     _spells[SpellSlot.Q].UpdateSourcePosition(
                         ShadowManager.RShadow.Position, ShadowManager.RShadow.Position);
