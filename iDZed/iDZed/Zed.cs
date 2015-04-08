@@ -31,7 +31,7 @@ namespace iDZed
         private static Orbwalking.Orbwalker _orbwalker;
         public static readonly SpellDataInst WShadowSpell = Player.Spellbook.GetSpell(SpellSlot.W);
         private static readonly SpellDataInst RShadowSpell = Player.Spellbook.GetSpell(SpellSlot.R);
-        private static bool _deathmarkKilled;
+        //private static bool _deathmarkKilled = false;
 
         private static Obj_AI_Hero Player
         {
@@ -136,7 +136,7 @@ namespace iDZed
                 CastE();
             }
 
-            if (ShadowManager.CanGoToShadow(ShadowManager.WShadow) && WShadowSpell.ToggleState == 2 && !_deathmarkKilled)
+            if (ShadowManager.CanGoToShadow(ShadowManager.WShadow) && WShadowSpell.ToggleState == 2) //&& !_deathmarkKilled)
             {
                 if (MenuHelper.IsMenuEnabled("com.idz.zed.combo.swapw") &&
                     ShadowManager.WShadow.ShadowObject.Distance(target.ServerPosition) <
