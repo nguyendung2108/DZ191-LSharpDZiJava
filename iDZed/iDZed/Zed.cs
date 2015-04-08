@@ -78,8 +78,8 @@ namespace iDZed
             {
                 { Orbwalking.OrbwalkingMode.Combo, Combo },
                 { Orbwalking.OrbwalkingMode.Mixed, Harass },
-                { Orbwalking.OrbwalkingMode.LastHit, Farm },
-                { Orbwalking.OrbwalkingMode.LaneClear, Farm },
+                { Orbwalking.OrbwalkingMode.LastHit, LastHit },
+                { Orbwalking.OrbwalkingMode.LaneClear, Laneclear },
                 { Orbwalking.OrbwalkingMode.None, () => { } }
             };
             InitMenu();
@@ -476,36 +476,50 @@ namespace iDZed
             }
         }
 
-        private static void Farm()
+        private static void Laneclear()
         {
-            var allMinions = MinionManager.GetMinions(Player.ServerPosition, 1000f);
-            if (Menu.Item("com.idz.zed.farm.useQ").GetValue<bool>() && _spells[SpellSlot.Q].IsReady())
+            var allMinions = MinionManager.GetMinions(Player.ServerPosition, _spells[SpellSlot.Q].Range, MinionTypes.All, MinionTeam.NotAlly);
+            if (Menu.Item("com.idz.zed.laneclear.useQ").GetValue<bool>() && _spells[SpellSlot.Q].IsReady())
             {
-                var bestPosition = _spells[SpellSlot.Q].GetLineFarmLocation(allMinions);
+                var bestPositionQ = _spells[SpellSlot.Q].GetLineFarmLocation(allMinions, _spells[SpellSlot.Q].Width);
+                if (bestPositionQ.MinionsHit >= Menu.Item("com.idz.zed.laneclear.qhit").GetValue<Slider>().Value)
+                {
+                    _spells[SpellSlot.Q].Cast(bestPositionQ.Position);
+                }
+            }
+            if (Menu.Item("com.idz.zed.laneclear.useE").GetValue<bool>() && _spells[SpellSlot.E].IsReady())
+            {
+                var eMinions = MinionManager.GetMinions(Player.ServerPosition, _spells[SpellSlot.E].Range, MinionTypes.All, MinionTeam.NotAlly);
+                if (eMinions.Count >= Menu.Item("com.idz.zed.laneclear.ehit").GetValue<Slider>().Value)
+                {
+                    _spells[SpellSlot.E].Cast();
+                }
+            }
+        }
+
+        private static void LastHit()
+        {
+            var allMinions = MinionManager.GetMinions(Player.ServerPosition, 1000f, MinionTypes.All, MinionTeam.NotAlly);
+            if (Menu.Item("com.idz.zed.lasthit.useQ").GetValue<bool>() && _spells[SpellSlot.Q].IsReady())
+            {
                 var qMinion =
                     allMinions.FirstOrDefault(
                         x => _spells[SpellSlot.Q].IsInRange(x) && x.IsValidTarget(_spells[SpellSlot.Q].Range));
-                if (bestPosition.MinionsHit >= 3)
+
+                if (qMinion != null && _spells[SpellSlot.Q].GetDamage(qMinion) > qMinion.Health && !Orbwalking.InAutoAttackRange(qMinion))
                 {
-                    _spells[SpellSlot.Q].Cast(bestPosition.Position);
-                }
-                else
-                {
-                    if (qMinion != null && _spells[SpellSlot.Q].GetDamage(qMinion) > qMinion.Health)
-                    {
-                        _spells[SpellSlot.Q].Cast(qMinion);
-                    }
+                    _spells[SpellSlot.Q].Cast(qMinion);
                 }
             }
-            if (Menu.Item("com.idz.zed.farm.useE").GetValue<bool>() && _spells[SpellSlot.E].IsReady())
+            if (Menu.Item("com.idz.zed.lasthit.useE").GetValue<bool>() && _spells[SpellSlot.E].IsReady())
             {
                 var minions =
-                    MinionManager.GetMinions(Player.ServerPosition, _spells[SpellSlot.E].Range)
+                    MinionManager.GetMinions(Player.ServerPosition, _spells[SpellSlot.E].Range, MinionTypes.All, MinionTeam.NotAlly)
                         .FindAll(
                             minion =>
                                 !Orbwalking.InAutoAttackRange(minion) &&
                                 minion.Health < 0.75 * _spells[SpellSlot.E].GetDamage(minion));
-                if (minions.Count > 1)
+                if (minions.Count >= 1)
                 {
                     _spells[SpellSlot.E].Cast();
                 }
@@ -554,12 +568,22 @@ namespace iDZed
             }
             Menu.AddSubMenu(harassMenu);
 
-            Menu farmMenu = new Menu("[iDZed] Farm", "com.idz.zed.farm");
+            Menu lastHitMenu = new Menu("[iDZed] LastHit", "com.idz.zed.lasthit");
             {
-                farmMenu.AddItem(new MenuItem("com.idz.zed.farm.useQ", "Use Q in Farm").SetValue(true));
-                farmMenu.AddItem(new MenuItem("com.idz.zed.farm.useE", "Use E in Farm").SetValue(true));
+                lastHitMenu.AddItem(new MenuItem("com.idz.zed.lasthit.useQ", "Use Q in LastHit").SetValue(true));
+                lastHitMenu.AddItem(new MenuItem("com.idz.zed.lasthit.useE", "Use E in LastHit").SetValue(true));
             }
-            Menu.AddSubMenu(farmMenu);
+            Menu.AddSubMenu(lastHitMenu);
+
+            Menu laneclearMenu = new Menu("[iDZed] Laneclear", "com.idz.zed.laneclear");
+            {
+                laneclearMenu.AddItem(new MenuItem("com.idz.zed.laneclear.useQ", "Use Q in laneclear").SetValue(true));
+                laneclearMenu.AddItem(
+                    new MenuItem("com.idz.zed.laneclear.qhit", "Min minions for Q").SetValue(new Slider(3, 1, 10)));
+                laneclearMenu.AddItem(new MenuItem("com.idz.zed.laneclear.useE", "Use E in laneclear").SetValue(true));
+                laneclearMenu.AddItem(
+                    new MenuItem("com.idz.zed.laneclear.ehit", "Min minions for E").SetValue(new Slider(3, 1, 10)));
+            }
 
             Menu drawMenu = new Menu("[iDZed] Drawing", "com.idz.zed.drawing");
             {
