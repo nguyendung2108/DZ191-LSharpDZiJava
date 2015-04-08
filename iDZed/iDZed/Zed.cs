@@ -163,7 +163,8 @@ namespace iDZed
         private static void DoTriangleCombo(Obj_AI_Hero target)
             //I'm dumb, this triangular combo is only good for targets the Zhonyas, we can still use it for that i guess :^)
         {
-            if (ShadowManager.RShadow.IsUsable && !target.HasBuffOfType(BuffType.Invulnerability)) // Cast Ultimate m8 :S
+            if (ShadowManager.RShadow.IsUsable && !target.HasBuffOfType(BuffType.Invulnerability))
+                // Cast Ultimate m8 :S
             {
                 if (MenuHelper.IsMenuEnabled("checkQWE"))
                 {
@@ -236,7 +237,9 @@ namespace iDZed
                     target = GetMarkedTarget();
                 }
 
-                if (ShadowManager.WShadow.Exists && ShadowManager.WShadow.ShadowObject.Distance(target.ServerPosition) < Player.Distance(target.ServerPosition))
+                if (ShadowManager.WShadow.Exists &&
+                    ShadowManager.WShadow.ShadowObject.Distance(target.ServerPosition) <
+                    Player.Distance(target.ServerPosition))
                 {
                     _spells[SpellSlot.Q].UpdateSourcePosition(
                         ShadowManager.WShadow.Position, ShadowManager.WShadow.Position);
@@ -259,7 +262,9 @@ namespace iDZed
                         }
                     }
                 }
-                else if (ShadowManager.RShadow.Exists && ShadowManager.RShadow.ShadowObject.Distance(target.ServerPosition) < Player.Distance(target.ServerPosition))
+                else if (ShadowManager.RShadow.Exists &&
+                         ShadowManager.RShadow.ShadowObject.Distance(target.ServerPosition) <
+                         Player.Distance(target.ServerPosition))
                 {
                     _spells[SpellSlot.Q].UpdateSourcePosition(
                         ShadowManager.RShadow.Position, ShadowManager.RShadow.Position);
@@ -392,7 +397,15 @@ namespace iDZed
                         {
                             return;
                         }
-                        DoLineCombo(target);
+                        if (ShadowManager.WShadow.Exists)
+                        {
+                            CastQ(target);
+                            CastE();
+                        }
+                        else
+                        {
+                            DoLineCombo(target);
+                        }
                     }
                     else
                     {
@@ -406,7 +419,15 @@ namespace iDZed
                         {
                             return;
                         }
-                        DoTriangleCombo(target);
+                        if (ShadowManager.WShadow.Exists)
+                        {
+                            CastQ(target);
+                            CastE();
+                        }
+                        else
+                        {
+                            DoTriangleCombo(target);
+                        }
                     }
                     else
                     {

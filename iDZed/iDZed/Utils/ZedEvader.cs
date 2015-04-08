@@ -150,7 +150,7 @@ namespace iDZed.Utils
                 {
                     if (Zed._spells[SpellSlot.R].IsInRange(sender) || ObjectManager.Player.Distance(args.End) < 250)
                     {
-                        if (args.SData.Name == "SyndraR" || args.SData.Name == "TristanaR" && args.Target.IsMe)
+                        if (args.SData.Name == "SyndraR" || args.SData.Name == "TristanaR" || args.SData.Name == "BrandWildfire" && args.Target.IsMe)
                         {
                             Utility.DelayAction.Add((int) 0.25, () => Zed._spells[SpellSlot.R].Cast());
                         }
