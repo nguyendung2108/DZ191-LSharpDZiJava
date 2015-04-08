@@ -19,6 +19,13 @@ namespace iDZed.Activator.Spells
 
         public bool RunCondition()
         {
+            if (GetSummonerSpell().IsReady() &&
+                HeroManager.Enemies.FirstOrDefault(
+                    x => x.IsValidTarget(GetSummonerSpell().Range) && x.HasBuff("zedulttargetmark")) != null)
+            {
+                return true;
+            }
+
             return GetSummonerSpell().IsReady() &&
                    MenuHelper.IsMenuEnabled("com.idz.zed.activator.summonerspells." + GetName() + ".enabled") &&
                    ObjectManager.Player.GetEnemiesInRange(GetSummonerSpell().Range)
@@ -31,7 +38,7 @@ namespace iDZed.Activator.Spells
 
         public void Execute()
         {
-            var target = ObjectManager.Player.GetEnemiesInRange(GetSummonerSpell().Range).Find(h => h.Health + 20 < ObjectManager.Player.GetSummonerSpellDamage(h, Damage.SummonerSpell.Ignite));
+            Obj_AI_Hero target = ObjectManager.Player.GetEnemiesInRange(GetSummonerSpell().Range).Find(h => h.Health + 20 < ObjectManager.Player.GetSummonerSpellDamage(h, Damage.SummonerSpell.Ignite) || h.HasBuff("zedulttargetmark"));
             if (target.IsValidTarget(GetSummonerSpell().Range))
             {
                 GetSummonerSpell().Cast(target);

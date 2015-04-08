@@ -119,7 +119,7 @@ namespace iDZed
             }
 
             ItemManager.UseDeathmarkItems();
-            SummonerSpells.Ignite.Cast();
+            ItemManager.UseSummonerSpells();
 
             if (ShadowManager.RShadow.Exists && ShadowManager.WShadow.IsUsable)
             {
@@ -192,7 +192,7 @@ namespace iDZed
             }
 
             ItemManager.UseDeathmarkItems();
-            SummonerSpells.Ignite.Cast();
+            ItemManager.UseSummonerSpells();
 
             if (ShadowManager.RShadow.Exists && ShadowManager.WShadow.IsUsable)
             {
@@ -217,7 +217,7 @@ namespace iDZed
                 CastQ(target);
                 CastE();
             }
-            else if (ShadowManager.RShadow.Exists && !ShadowManager.WShadow.IsUsable)
+            else if (ShadowManager.RShadow.Exists && !ShadowManager.WShadow.IsUsable && !ShadowManager.WShadow.Exists)
             {
                 CastQ(target);
                 CastE();
@@ -524,7 +524,10 @@ namespace iDZed
                 Player.ServerPosition, _spells[SpellSlot.Q].Range, MinionTypes.All, MinionTeam.NotAlly);
             if (Menu.Item("com.idz.zed.laneclear.useQ").GetValue<bool>() && _spells[SpellSlot.Q].IsReady())
             {
-                var bestPositionQ = _spells[SpellSlot.Q].GetLineFarmLocation(allMinionsQ, _spells[SpellSlot.Q].Width);
+                var bestPositionQ =
+                    MinionManager.GetBestLineFarmLocation(
+                        allMinionsQ.Select(x => x.ServerPosition.To2D()).ToList(), _spells[SpellSlot.Q].Width,
+                        _spells[SpellSlot.Q].Range);
                 if (bestPositionQ.MinionsHit >= Menu.Item("com.idz.zed.laneclear.qhit").GetValue<Slider>().Value)
                 {
                     _spells[SpellSlot.Q].Cast(bestPositionQ.Position);
@@ -532,7 +535,10 @@ namespace iDZed
             }
             if (Menu.Item("com.idz.zed.laneclear.useE").GetValue<bool>() && _spells[SpellSlot.E].IsReady())
             {
-                var eLocation = _spells[SpellSlot.E].GetCircularFarmLocation(allMinionsE);
+                var eLocation =
+                    MinionManager.GetBestLineFarmLocation(
+                        allMinionsE.Select(x => x.ServerPosition.To2D()).ToList(), _spells[SpellSlot.E].Width,
+                        _spells[SpellSlot.E].Range);
                 if (eLocation.MinionsHit >= Menu.Item("com.idz.zed.laneclear.ehit").GetValue<Slider>().Value)
                 {
                     _spells[SpellSlot.E].Cast();

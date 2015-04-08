@@ -215,7 +215,7 @@ namespace iDZed.Activator
             }
         }
 
-        private static void UseSummonerSpells()
+        public static void UseSummonerSpells()
         {
             foreach (ISummonerSpell spell in SummonerSpellsList.Where(spell => spell.RunCondition()))
             {
