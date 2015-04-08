@@ -120,7 +120,7 @@ namespace iDZed.Utils
                             }
                         }
 
-                        if (!Zed._spells[SpellSlot.R].IsReady() && !ShadowManager.RShadow.Exists && MenuHelper.IsMenuEnabled("com.idz.zed.spelldodging.dangerous.dodge" + skillshot.SpellData.SpellName))
+                        if (!ShadowManager.RShadow.IsUsable && !ShadowManager.RShadow.Exists && MenuHelper.IsMenuEnabled("com.idz.zed.spelldodging.dangerous.dodge" + skillshot.SpellData.SpellName))
                         {
                             if (DangerousList.Any(spell => spell.Contains(skillshot.SpellData.SpellName)))
                             {
@@ -146,8 +146,7 @@ namespace iDZed.Utils
             if (MenuHelper.IsMenuEnabled("com.idz.zed.spelldodging.useUltDodge") &&
                 MenuHelper.IsMenuEnabled("com.idz.zed.spelldodging.dangerous.dodge" + args.SData.Name))
             {
-                if (Zed._spells[SpellSlot.R].IsReady() &&
-                    DangerousList.Any(spell => spell.Contains(args.SData.Name)) && ShadowManager.RShadow.IsUsable)
+                if (Zed._spells[SpellSlot.R].IsReady() && DangerousList.Any(spell => spell.Contains(args.SData.Name)) && ShadowManager.RShadow.IsUsable)
                 {
                     if (Zed._spells[SpellSlot.R].IsInRange(sender) || ObjectManager.Player.Distance(args.End) < 250)
                     {
@@ -184,8 +183,7 @@ namespace iDZed.Utils
                 {
                     Utility.DelayAction.Add(
                         ((int)
-                            (args.StartPosition.Distance(ObjectManager.Player.ServerPosition) / 2000f + Game.Ping / 2f)),
-                        () => Zed._spells[SpellSlot.R].Cast(selectedTarget));
+                            (args.StartPosition.Distance(ObjectManager.Player.ServerPosition) / 2000f + Game.Ping / 2f)), () => Zed._spells[SpellSlot.R].Cast(selectedTarget));
                 }
             }
         }
