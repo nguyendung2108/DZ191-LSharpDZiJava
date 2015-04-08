@@ -132,11 +132,12 @@ namespace iDZed
 
             if (ShadowManager.WShadow.Exists && ShadowManager.RShadow.Exists)
             {
-                CastQ(target, true);
+                CastQ(target);
                 CastE();
             }
 
-            if (ShadowManager.CanGoToShadow(ShadowManager.WShadow) && WShadowSpell.ToggleState == 2) //&& !_deathmarkKilled)
+            if (ShadowManager.CanGoToShadow(ShadowManager.WShadow) && WShadowSpell.ToggleState == 2)
+                //&& !_deathmarkKilled)
             {
                 if (MenuHelper.IsMenuEnabled("com.idz.zed.combo.swapw") &&
                     ShadowManager.WShadow.ShadowObject.Distance(target.ServerPosition) <
@@ -197,8 +198,8 @@ namespace iDZed
 
             if (ShadowManager.WShadow.Exists && ShadowManager.RShadow.Exists)
             {
+                CastQ(target);
                 CastE();
-                CastQ(target, true);
             }
         }
 
@@ -206,7 +207,7 @@ namespace iDZed
 
         #region Spell Casting
 
-        private static void CastQ(Obj_AI_Hero target, bool usePrediction = false)
+        private static void CastQ(Obj_AI_Hero target)
         {
             if (_spells[SpellSlot.Q].IsReady())
             {
@@ -214,7 +215,7 @@ namespace iDZed
                 {
                     _spells[SpellSlot.Q].UpdateSourcePosition(
                         ShadowManager.WShadow.Position, ShadowManager.WShadow.Position);
-                    if (usePrediction)
+                    if (MenuHelper.IsMenuEnabled("com.idz.zed.combo.useqpred"))
                     {
                         PredictionOutput prediction = _spells[SpellSlot.Q].GetPrediction(target);
                         if (prediction.Hitchance >= GetHitchance())
@@ -237,7 +238,7 @@ namespace iDZed
                 {
                     _spells[SpellSlot.Q].UpdateSourcePosition(
                         ShadowManager.RShadow.Position, ShadowManager.RShadow.Position);
-                    if (usePrediction)
+                    if (MenuHelper.IsMenuEnabled("com.idz.zed.combo.useqpred"))
                     {
                         PredictionOutput prediction = _spells[SpellSlot.Q].GetPrediction(target);
                         if (prediction.Hitchance >= GetHitchance())
@@ -259,7 +260,7 @@ namespace iDZed
                 else
                 {
                     _spells[SpellSlot.Q].UpdateSourcePosition(Player.ServerPosition, Player.ServerPosition);
-                    if (usePrediction)
+                    if (MenuHelper.IsMenuEnabled("com.idz.zed.combo.useqpred"))
                     {
                         PredictionOutput prediction = _spells[SpellSlot.Q].GetPrediction(target);
                         if (prediction.Hitchance >= GetHitchance())
@@ -394,7 +395,7 @@ namespace iDZed
                 CastW(target);
                 if (Menu.Item("com.idz.zed.combo.useq").GetValue<bool>())
                 {
-                    Utility.DelayAction.Add(105, () => CastQ(target, true));
+                    Utility.DelayAction.Add(105, () => CastQ(target));
                 }
                 if (Menu.Item("com.idz.zed.combo.usee").GetValue<bool>())
                 {
@@ -403,7 +404,7 @@ namespace iDZed
             }
             else
             {
-                CastQ(target, true);
+                CastQ(target);
                 CastE();
             }
         }
@@ -424,7 +425,7 @@ namespace iDZed
                     {
                         return;
                     }
-                    CastQ(target, true);
+                    CastQ(target);
                     CastE();
                     break;
                 case 1: //"W-E-Q"
@@ -436,10 +437,15 @@ namespace iDZed
                         _spells[SpellSlot.W].Cast(target.ServerPosition);
                         _spells[SpellSlot.W].LastCastAttemptT = Environment.TickCount + 500;
                     }
+                    else
+                    {
+                        CastQ(target);
+                        CastE();
+                    }
                     if (ShadowManager.WShadow.Exists)
                     {
                         CastE();
-                        Utility.DelayAction.Add(250, () => CastQ(target, true));
+                        Utility.DelayAction.Add(250, () => CastQ(target));
                     }
                     break;
                 case 2: //"W-Q-E" 
@@ -453,7 +459,7 @@ namespace iDZed
                     }
                     if (ShadowManager.WShadow.Exists)
                     {
-                        CastQ(target, true);
+                        CastQ(target);
                         Utility.DelayAction.Add(250, CastE);
                     }
                     break;
@@ -515,6 +521,9 @@ namespace iDZed
             Menu comboMenu = new Menu("[iDZed] Combo", "com.idz.zed.combo");
             {
                 comboMenu.AddItem(new MenuItem("com.idz.zed.combo.useq", "Use Q").SetValue(true));
+                comboMenu.AddItem(
+                    new MenuItem("com.idz.zed.combo.useqpred", "Q Prediction: On = slower, off = faster").SetValue(
+                        false));
                 comboMenu.AddItem(new MenuItem("com.idz.zed.combo.usew", "Use W").SetValue(true));
                 comboMenu.AddItem(new MenuItem("com.idz.zed.combo.usee", "Use E").SetValue(true));
                 comboMenu.AddItem(new MenuItem("com.idz.zed.combo.user", "Use R").SetValue(true));
@@ -648,26 +657,19 @@ namespace iDZed
 
         private static void OnCreateObject(GameObject sender, EventArgs args)
         {
-            if (!(sender is Obj_GeneralParticleEmitter))
-            {
-                return;
-            }
+            if (!(sender is Obj_GeneralParticleEmitter)) {}
 
-            /*if (Menu.Item("com.idz.zed.combo.swapr").GetValue<bool>())
+            if (Menu.Item("com.idz.zed.combo.swapr").GetValue<bool>())
             {
                 if (sender.Name == "Zed_Base_R_buf_tell.troy")
                 {
-                    _deathmarkKilled = true;
+                    //_deathmarkKilled = true;
                     if (RShadowSpell.ToggleState == 2 && ShadowManager.CanGoToShadow(ShadowManager.RShadow))
                     {
                         _spells[SpellSlot.R].Cast();
                     }
                 }
-                else
-                {
-                    _deathmarkKilled = false;
-                }
-            }*/
+            }
         }
 
         private static void OnSpellCast(Obj_AI_Base sender1, GameObjectProcessSpellCastEventArgs args)
