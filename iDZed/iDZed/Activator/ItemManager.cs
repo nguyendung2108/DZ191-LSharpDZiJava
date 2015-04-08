@@ -56,6 +56,22 @@ namespace iDZed.Activator
                 Range = 600f,
                 Class = ItemClass.Offensive,
                 Mode = ItemMode.NoTarget
+            },
+            new DzItem
+            {
+                Id = 3074,
+                Name = "Hydra",
+                Range = 250f,
+                Class = ItemClass.Offensive,
+                Mode = ItemMode.NoTarget
+            },
+             new DzItem
+            {
+                Id = 3077,
+                Name = "Tiamat",
+                Range = 250f,
+                Class = ItemClass.Offensive,
+                Mode = ItemMode.NoTarget
             }
         };
 
