@@ -113,6 +113,9 @@ namespace iDZed
                 }
             }
 
+            if (GetMarkedTarget() != null)
+                target = GetMarkedTarget();
+
             ItemManager.UseDeathmarkItems();
             SummonerSpells.Ignite.Cast();
 
@@ -180,6 +183,9 @@ namespace iDZed
                 }
             }
 
+            if (GetMarkedTarget() != null)
+                target = GetMarkedTarget();
+
             ItemManager.UseDeathmarkItems();
             SummonerSpells.Ignite.Cast();
 
@@ -221,6 +227,9 @@ namespace iDZed
         {
             if (_spells[SpellSlot.Q].IsReady())
             {
+                if (GetMarkedTarget() != null)
+                    target = GetMarkedTarget();
+
                 if (ShadowManager.WShadow.Exists || (ShadowManager.WShadow.State == ShadowState.Travelling))
                 {
                     _spells[SpellSlot.Q].UpdateSourcePosition(
@@ -665,10 +674,6 @@ namespace iDZed
 
         private static void Game_OnUpdate(EventArgs args)
         {
-            // ZedUltTargetMark :S
-            /* foreach (BuffInstance buff in HeroManager.Enemies.Where(x => x.IsValidTarget(1000)).SelectMany(hero => hero.Buffs)) {
-                 Game.PrintChat(string.Format("Buff Name: {0}", buff.Name));
-             }*/
             OnFlee();
             _orbwalkingModesDictionary[_orbwalker.ActiveMode]();
         }
@@ -712,7 +717,6 @@ namespace iDZed
         {
             Obj_AI_Hero sender = sender1 as Obj_AI_Hero;
             if (sender != null && sender.IsEnemy && sender.Team != Player.Team)
-                // TODO this works asuna, just not all the time, pls make better or smth :S
             {
                 if (args.SData.Name == "ZhonyasHourglass" && sender.HasBuff("zedulttargetmark"))
                 {
@@ -727,6 +731,11 @@ namespace iDZed
                     }
                 }
             }
+        }
+
+        private static Obj_AI_Hero GetMarkedTarget()
+        {
+            return HeroManager.Enemies.FirstOrDefault(x => x.IsValidTarget(_spells[SpellSlot.W].Range + _spells[SpellSlot.Q].Range) && x.HasBuff("zedulttargetmark") && x.IsVisible);
         }
 
         private static void Drawing_OnDraw(EventArgs args)
