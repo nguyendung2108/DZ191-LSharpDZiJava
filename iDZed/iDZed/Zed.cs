@@ -386,7 +386,6 @@ namespace iDZed
                 _spells[SpellSlot.W].Range + _spells[SpellSlot.Q].Range, TargetSelector.DamageType.Physical);
             Vector2 wPosition = Player.ServerPosition.To2D()
                 .Extend(target.ServerPosition.To2D(), _spells[SpellSlot.E].Range);
-            var wCastTime = (int) (Player.Distance(wPosition) / 2000f);
             switch (Menu.Item("com.idz.zed.harass.harassMode").GetValue<StringList>().SelectedIndex)
             {
                 case 0: // "Q-E"
@@ -417,12 +416,13 @@ namespace iDZed
                             _spells[SpellSlot.W].LastCastAttemptT = Environment.TickCount + 500;
                         }
                     }
-                    if (ShadowManager.WShadow.State == ShadowState.Travelling)
-                    {
-                        CastE();
-                        Utility.DelayAction.Add(250, () => CastQ(target, true));
-                    }
-                    else if (ShadowManager.WShadow.Exists)
+                    /* if (ShadowManager.WShadow.State == ShadowState.Travelling)
+                     {
+                         CastE();
+                         Utility.DelayAction.Add(250, () => CastQ(target, true));
+                     }
+                     else*/
+                    if (ShadowManager.WShadow.Exists)
                     {
                         CastQ(target, true);
                         CastE();
@@ -536,12 +536,22 @@ namespace iDZed
             }
             Menu.AddSubMenu(drawMenu);
 
+            Menu fleeMenu = new Menu("[iDZed] Flee", "com.idz.zed.flee");
+            {
+                fleeMenu.AddItem(
+                    new MenuItem("fleeActive", "Flee Key").SetValue(
+                        new KeyBind("V".ToCharArray()[0], KeyBindType.Press)));
+                fleeMenu.AddItem(new MenuItem("autoEFlee", "Auto E when fleeing").SetValue(true));
+            }
+            Menu.AddSubMenu(fleeMenu);
+
             Menu miscMenu = new Menu("[iDZed] Misc", "com.idz.zed.misc");
             {
                 miscMenu.AddItem(new MenuItem("energyManagement", "Use Energy Management").SetValue(true));
                 miscMenu.AddItem(new MenuItem("safetyChecks", "Check Safety for shadow swapping").SetValue(true));
             }
             Menu.AddSubMenu(miscMenu);
+
             ItemManager.OnLoad(Menu);
             ZedEvader.OnLoad(Menu);
 
@@ -573,7 +583,25 @@ namespace iDZed
             /* foreach (BuffInstance buff in HeroManager.Enemies.Where(x => x.IsValidTarget(1000)).SelectMany(hero => hero.Buffs)) {
                  Game.PrintChat(string.Format("Buff Name: {0}", buff.Name));
              }*/
+             OnFlee();
             _orbwalkingModesDictionary[_orbwalker.ActiveMode]();
+        }
+
+        private static void OnFlee()
+        {
+            if (!MenuHelper.GetKeybindValue("fleeActive"))
+            {
+                return;
+            }
+            if (_spells[SpellSlot.W].IsReady() && ShadowManager.WShadow.IsUsable)
+            {
+                _spells[SpellSlot.W].Cast(Game.CursorPos);
+            }
+            if (ShadowManager.WShadow.Exists && ShadowManager.CanGoToShadow(ShadowManager.WShadow))
+            {
+                _spells[SpellSlot.W].Cast();
+            }
+            CastE();
         }
 
         private static void OnCreateObject(GameObject sender, EventArgs args)

@@ -35,22 +35,19 @@ namespace iDZed.Utils
                 Vector2 vertex1 = ObjectManager.Player.ServerPosition.To2D() +
                                   Vector2.Normalize(
                                       ObjectManager.Player.ServerPosition.To2D() +
-                                      Vector2.Normalize(
-                                          target.ServerPosition.To2D() - ultShadow.Position.To2D()) *
+                                      Vector2.Normalize(target.ServerPosition.To2D() - ultShadow.Position.To2D()) *
                                       Zed._spells[SpellSlot.W].Range - ObjectManager.Player.ServerPosition.To2D() +
-                                      Vector2.Normalize(
-                                          target.ServerPosition.To2D() - ultShadow.Position.To2D())
+                                      Vector2.Normalize(target.ServerPosition.To2D() - ultShadow.Position.To2D())
                                           .Perpendicular() * Zed._spells[SpellSlot.W].Range).Perpendicular() *
                                   Zed._spells[SpellSlot.W].Range;
+                //
                 Vector2 vertex2 = ObjectManager.Player.ServerPosition.To2D() +
                                   Vector2.Normalize(
                                       ObjectManager.Player.ServerPosition.To2D() +
-                                      Vector2.Normalize(
-                                          target.ServerPosition.To2D() - ultShadow.Position.To2D())
+                                      Vector2.Normalize(target.ServerPosition.To2D() - ultShadow.Position.To2D())
                                           .Perpendicular() * Zed._spells[SpellSlot.W].Range -
                                       ObjectManager.Player.ServerPosition.To2D() +
-                                      Vector2.Normalize(
-                                          target.ServerPosition.To2D() - ultShadow.Position.To2D()) *
+                                      Vector2.Normalize(target.ServerPosition.To2D() - ultShadow.Position.To2D()) *
                                       Zed._spells[SpellSlot.W].Range).Perpendicular() * Zed._spells[SpellSlot.W].Range;
 
                 return new[] { vertex1.To3D(), vertex2.To3D() };
@@ -69,12 +66,14 @@ namespace iDZed.Utils
 
         public static Vector3 GetBestPosition(Obj_AI_Hero target, Vector3 firstPosition, Vector3 secondPosition)
         {
-            if (firstPosition.IsWall() && !secondPosition.IsWall() && secondPosition.Distance(target.ServerPosition) < firstPosition.Distance(target.ServerPosition))
+            if (firstPosition.IsWall() && !secondPosition.IsWall() &&
+                secondPosition.Distance(target.ServerPosition) < firstPosition.Distance(target.ServerPosition))
                 // if firstposition is a wall and second position isn't
             {
                 return secondPosition; //return second position
             }
-            if (secondPosition.IsWall() && !firstPosition.IsWall() && firstPosition.Distance(target.ServerPosition) < secondPosition.Distance(target.ServerPosition))
+            if (secondPosition.IsWall() && !firstPosition.IsWall() &&
+                firstPosition.Distance(target.ServerPosition) < secondPosition.Distance(target.ServerPosition))
                 // if secondPosition is a wall and first position isn't
             {
                 return firstPosition; // return first position

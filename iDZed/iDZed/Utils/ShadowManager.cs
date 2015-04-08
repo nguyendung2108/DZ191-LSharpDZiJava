@@ -158,7 +158,7 @@ namespace iDZed.Utils
         /// <returns></returns>
         public static bool CanGoToShadow(Shadow shadow) //TODO safety Checks lel
         {
-            if (MenuHelper.IsMenuEnabled("safetyChecks"))
+            if (MenuHelper.IsMenuEnabled("safetyChecks") && !MenuHelper.GetKeybindValue("fleeActive"))
             {
                 if (shadow.State == ShadowState.Created)
                 {
