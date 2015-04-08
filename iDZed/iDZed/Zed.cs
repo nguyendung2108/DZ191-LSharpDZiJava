@@ -388,10 +388,10 @@ namespace iDZed
                 case 0: // Line mode
                     if (Menu.Item("com.idz.zed.combo.user").GetValue<bool>() && _spells[SpellSlot.R].IsReady())
                     {
-                        /*if (!HasEnergy(new[] { SpellSlot.W, SpellSlot.R, SpellSlot.Q, SpellSlot.E }))
+                        if (!HasEnergy(new[] { SpellSlot.W, SpellSlot.R, SpellSlot.Q, SpellSlot.E }))
                         {
                             return;
-                        }*/
+                        }
                         DoLineCombo(target);
                     }
                     else
@@ -402,10 +402,10 @@ namespace iDZed
                 case 1: // triangle mode
                     if (Menu.Item("com.idz.zed.combo.user").GetValue<bool>() && _spells[SpellSlot.R].IsReady())
                     {
-                        /*if (!HasEnergy(new[] { SpellSlot.W, SpellSlot.R, SpellSlot.Q, SpellSlot.E }))
+                        if (!HasEnergy(new[] { SpellSlot.W, SpellSlot.R, SpellSlot.Q, SpellSlot.E }))
                         {
                             return;
-                        }*/
+                        }
                         DoTriangleCombo(target);
                     }
                     else
