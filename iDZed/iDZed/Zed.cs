@@ -584,6 +584,7 @@ namespace iDZed
                 laneclearMenu.AddItem(
                     new MenuItem("com.idz.zed.laneclear.ehit", "Min minions for E").SetValue(new Slider(3, 1, 10)));
             }
+            Menu.AddSubMenu(laneclearMenu);
 
             Menu drawMenu = new Menu("[iDZed] Drawing", "com.idz.zed.drawing");
             {
