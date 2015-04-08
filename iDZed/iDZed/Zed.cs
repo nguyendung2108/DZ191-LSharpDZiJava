@@ -173,7 +173,8 @@ namespace iDZed
                 _spells[SpellSlot.W].Cast();
             }
 
-            if (ShadowManager.WShadow.Exists && ShadowManager.RShadow.Exists && !ShadowManager.CanGoToShadow(ShadowManager.WShadow))
+            if (ShadowManager.WShadow.Exists && ShadowManager.RShadow.Exists &&
+                !ShadowManager.CanGoToShadow(ShadowManager.WShadow))
             {
                 CastE();
                 CastQ(target);
@@ -334,9 +335,17 @@ namespace iDZed
             switch (Menu.Item("com.idz.zed.combo.mode").GetValue<StringList>().SelectedIndex)
             {
                 case 0: // Line mode
-                    if (Menu.Item("com.idz.zed.combo.user").GetValue<bool>() && _spells[SpellSlot.R].IsReady() &&
-                        HasEnergy(new[] { SpellSlot.W, SpellSlot.R }))
+                    if (Menu.Item("com.idz.zed.combo.user").GetValue<bool>() && _spells[SpellSlot.R].IsReady())
                     {
+                        if (!HasEnergy(new[] { SpellSlot.W, SpellSlot.R, SpellSlot.Q, SpellSlot.E }))
+                        {
+                            return;
+                        }
+                        if (!_spells[SpellSlot.Q].IsReady() && !_spells[SpellSlot.W].IsReady() &&
+                            !_spells[SpellSlot.E].IsReady())
+                        {
+                            return;
+                        }
                         DoLineCombo(target);
                     }
                     else
@@ -345,9 +354,17 @@ namespace iDZed
                     }
                     break;
                 case 1: // triangle mode
-                    if (Menu.Item("com.idz.zed.combo.user").GetValue<bool>() && _spells[SpellSlot.R].IsReady() &&
-                        _spells[SpellSlot.W].IsReady() && HasEnergy(new[] { SpellSlot.R, SpellSlot.W }))
+                    if (Menu.Item("com.idz.zed.combo.user").GetValue<bool>() && _spells[SpellSlot.R].IsReady())
                     {
+                        if (!HasEnergy(new[] { SpellSlot.W, SpellSlot.R, SpellSlot.Q, SpellSlot.E }))
+                        {
+                            return;
+                        }
+                        if (!_spells[SpellSlot.Q].IsReady() && !_spells[SpellSlot.W].IsReady() &&
+                            !_spells[SpellSlot.E].IsReady())
+                        {
+                            return;
+                        }
                         DoTriangleCombo(target);
                     }
                     else
@@ -613,7 +630,7 @@ namespace iDZed
             /* foreach (BuffInstance buff in HeroManager.Enemies.Where(x => x.IsValidTarget(1000)).SelectMany(hero => hero.Buffs)) {
                  Game.PrintChat(string.Format("Buff Name: {0}", buff.Name));
              }*/
-             OnFlee();
+            OnFlee();
             _orbwalkingModesDictionary[_orbwalker.ActiveMode]();
         }
 
@@ -643,7 +660,6 @@ namespace iDZed
 
             if (Menu.Item("com.idz.zed.combo.swapr").GetValue<bool>())
             {
-
                 if (sender.Name == "Zed_Base_R_buf_tell.troy")
                 {
                     _deathmarkKilled = true;
