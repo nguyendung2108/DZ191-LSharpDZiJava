@@ -432,7 +432,7 @@ namespace iDZed
                     if (_spells[SpellSlot.W].IsReady() && ShadowManager.WShadow.IsUsable &&
                         WShadowSpell.ToggleState == 0 &&
                         Environment.TickCount - _spells[SpellSlot.W].LastCastAttemptT > 0 &&
-                        Player.Distance(target) <= _spells[SpellSlot.W].Range)
+                        Player.Distance(target) <= _spells[SpellSlot.W].Range + _spells[SpellSlot.E].Range)
                     {
                         _spells[SpellSlot.W].Cast(target.ServerPosition);
                         _spells[SpellSlot.W].LastCastAttemptT = Environment.TickCount + 500;
@@ -447,7 +447,7 @@ namespace iDZed
                     if (_spells[SpellSlot.W].IsReady() && ShadowManager.WShadow.IsUsable &&
                         WShadowSpell.ToggleState == 0 &&
                         Environment.TickCount - _spells[SpellSlot.W].LastCastAttemptT > 0 &&
-                        Player.Distance(target) <= _spells[SpellSlot.W].Range)
+                        Player.Distance(target) <= _spells[SpellSlot.W].Range + _spells[SpellSlot.E].Range)
                     {
                         _spells[SpellSlot.W].Cast(target.ServerPosition);
                         _spells[SpellSlot.W].LastCastAttemptT = Environment.TickCount + 500;
