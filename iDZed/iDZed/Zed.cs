@@ -21,7 +21,6 @@ using iDZed.Activator.Spells;
 using iDZed.Utils;
 using LeagueSharp;
 using LeagueSharp.Common;
-using LeagueSharp.Common.Packet.C2S;
 using SharpDX;
 
 namespace iDZed
