@@ -478,10 +478,11 @@ namespace iDZed
 
         private static void Laneclear()
         {
-            var allMinions = MinionManager.GetMinions(Player.ServerPosition, _spells[SpellSlot.Q].Range, MinionTypes.All, MinionTeam.NotAlly);
+            var allMinionsQ = MinionManager.GetMinions(Player.ServerPosition, _spells[SpellSlot.Q].Range, MinionTypes.All, MinionTeam.NotAlly);
+            var allMinionsE = MinionManager.GetMinions(Player.ServerPosition, _spells[SpellSlot.Q].Range, MinionTypes.All, MinionTeam.NotAlly);
             if (Menu.Item("com.idz.zed.laneclear.useQ").GetValue<bool>() && _spells[SpellSlot.Q].IsReady())
             {
-                var bestPositionQ = _spells[SpellSlot.Q].GetLineFarmLocation(allMinions, _spells[SpellSlot.Q].Width);
+                var bestPositionQ = _spells[SpellSlot.Q].GetLineFarmLocation(allMinionsQ, _spells[SpellSlot.Q].Width);
                 if (bestPositionQ.MinionsHit >= Menu.Item("com.idz.zed.laneclear.qhit").GetValue<Slider>().Value)
                 {
                     _spells[SpellSlot.Q].Cast(bestPositionQ.Position);
@@ -489,8 +490,8 @@ namespace iDZed
             }
             if (Menu.Item("com.idz.zed.laneclear.useE").GetValue<bool>() && _spells[SpellSlot.E].IsReady())
             {
-                var eMinions = MinionManager.GetMinions(Player.ServerPosition, _spells[SpellSlot.E].Range, MinionTypes.All, MinionTeam.NotAlly);
-                if (eMinions.Count >= Menu.Item("com.idz.zed.laneclear.ehit").GetValue<Slider>().Value)
+                var eLocation = _spells[SpellSlot.E].GetCircularFarmLocation(allMinionsE);
+                if (eLocation.MinionsHit >= Menu.Item("com.idz.zed.laneclear.ehit").GetValue<Slider>().Value)
                 {
                     _spells[SpellSlot.E].Cast();
                 }
