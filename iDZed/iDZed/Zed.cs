@@ -611,18 +611,21 @@ namespace iDZed
                 return;
             }
 
-            if (sender.Name == "Zed_Base_R_buf_tell.troy")
+            if (Menu.Item("com.idz.zed.combo.swapr").GetValue<bool>())
             {
-                _deathmarkKilled = true;
-                if (RShadowSpell.ToggleState == 2 && ShadowManager.CanGoToShadow(ShadowManager.RShadow) &&
-                    Menu.Item("com.idz.zed.combo.swapr").GetValue<bool>())
+
+                if (sender.Name == "Zed_Base_R_buf_tell.troy")
                 {
-                    _spells[SpellSlot.R].Cast();
+                    _deathmarkKilled = true;
+                    if (RShadowSpell.ToggleState == 2 && ShadowManager.CanGoToShadow(ShadowManager.RShadow))
+                    {
+                        _spells[SpellSlot.R].Cast();
+                    }
                 }
-            }
-            else
-            {
-                _deathmarkKilled = false;
+                else
+                {
+                    _deathmarkKilled = false;
+                }
             }
         }
 
