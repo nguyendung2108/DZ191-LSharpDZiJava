@@ -130,7 +130,12 @@ namespace iDZed
                 }
             }
 
-            if (ShadowManager.WShadow.Exists || ShadowManager.RShadow.Exists)
+            if (ShadowManager.WShadow.Exists && ShadowManager.RShadow.Exists)
+            {
+                CastQ(target);
+                CastE();
+            }
+            else if (ShadowManager.RShadow.Exists && !ShadowManager.WShadow.IsUsable)
             {
                 CastQ(target);
                 CastE();
@@ -196,7 +201,12 @@ namespace iDZed
                 _spells[SpellSlot.W].Cast();
             }
 
-            if (ShadowManager.WShadow.Exists || ShadowManager.RShadow.Exists)
+            if (ShadowManager.WShadow.Exists && ShadowManager.RShadow.Exists)
+            {
+                CastQ(target);
+                CastE();
+            }
+            else if (ShadowManager.RShadow.Exists && !ShadowManager.WShadow.IsUsable)
             {
                 CastQ(target);
                 CastE();
