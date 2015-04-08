@@ -195,7 +195,7 @@ namespace iDZed
                     if (usePrediction)
                     {
                         PredictionOutput prediction = _spells[SpellSlot.Q].GetPrediction(target);
-                        if (prediction.Hitchance >= HitChance.High)
+                        if (prediction.Hitchance >= GetHitchance())
                         {
                             if (ShadowManager.WShadow.ShadowObject.Distance(target) <= _spells[SpellSlot.Q].Range)
                             {
@@ -218,7 +218,7 @@ namespace iDZed
                     if (usePrediction)
                     {
                         PredictionOutput prediction = _spells[SpellSlot.Q].GetPrediction(target);
-                        if (prediction.Hitchance >= HitChance.High)
+                        if (prediction.Hitchance >= GetHitchance())
                         {
                             if (ShadowManager.RShadow.ShadowObject.Distance(target) <= _spells[SpellSlot.Q].Range)
                             {
@@ -240,7 +240,7 @@ namespace iDZed
                     if (usePrediction)
                     {
                         PredictionOutput prediction = _spells[SpellSlot.Q].GetPrediction(target);
-                        if (prediction.Hitchance >= HitChance.High)
+                        if (prediction.Hitchance >= GetHitchance())
                         {
                             if (_spells[SpellSlot.Q].IsInRange(target) &&
                                 target.IsValidTarget(_spells[SpellSlot.Q].Range))
@@ -559,6 +559,9 @@ namespace iDZed
             {
                 miscMenu.AddItem(new MenuItem("energyManagement", "Use Energy Management").SetValue(true));
                 miscMenu.AddItem(new MenuItem("safetyChecks", "Check Safety for shadow swapping").SetValue(true));
+                miscMenu.AddItem(
+                    new MenuItem("com.idz.zed.misc.hitchance", "Q Hitchance").SetValue(
+                        new StringList(new[] { "Low", "Medium", "High", "Very High" }, 2)));
             }
             Menu.AddSubMenu(miscMenu);
 
@@ -566,6 +569,23 @@ namespace iDZed
             ZedEvader.OnLoad(Menu);
 
             Menu.AddToMainMenu();
+        }
+
+        public static HitChance GetHitchance()
+        {
+            switch (Menu.Item("com.idz.zed.misc.hitchance").GetValue<StringList>().SelectedIndex)
+            {
+                case 0:
+                    return HitChance.Low;
+                case 1:
+                    return HitChance.Medium;
+                case 2:
+                    return HitChance.High;
+                case 3:
+                    return HitChance.VeryHigh;
+                default:
+                    return HitChance.Medium;
+            }
         }
 
         private static void InitSpells()
