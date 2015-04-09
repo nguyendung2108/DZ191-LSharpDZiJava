@@ -139,11 +139,11 @@ namespace iDZed
                 CastQ(target);
                 CastE();
             }
-            /*else if (ShadowManager.RShadow.Exists && !ShadowManager.WShadow.IsUsable)
+            else if (ShadowManager.RShadow.Exists && !ShadowManager.WShadow.IsUsable && !ShadowManager.WShadow.Exists)
             {
                 CastQ(target);
                 CastE();
-            }*/
+            }
 
             if (ShadowManager.CanGoToShadow(ShadowManager.WShadow) && WShadowSpell.ToggleState == 2)
                 //&& !_deathmarkKilled)
@@ -206,7 +206,7 @@ namespace iDZed
                 }
             }
 
-            if (ShadowManager.CanGoToShadow(ShadowManager.WShadow) && WShadowSpell.ToggleState == 2)
+            if (WShadowSpell.ToggleState == 2)
             {
                 _spells[SpellSlot.W].Cast();
             }
