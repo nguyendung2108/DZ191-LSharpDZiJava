@@ -3473,8 +3473,8 @@ namespace iDZed.Evade
                     MissileSpeed = int.MaxValue,
                     FixedRange = false,
                     AddHitbox = true,
-                    DangerValue = 2,
-                    IsDangerous = false,
+                    DangerValue = 4,
+                    IsDangerous = true,
                     MissileSpellName = "ZiggsR",
                     DisableFowDetection = true,
                 });

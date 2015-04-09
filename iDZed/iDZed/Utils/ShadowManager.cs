@@ -16,10 +16,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.Remoting.Messaging;
+using iDZed.Activator;
 using LeagueSharp;
 using LeagueSharp.Common;
 using SharpDX;
+
+// ReSharper disable MergeConditionalExpression
+// ReSharper disable FunctionRecursiveOnAllPaths
 
 namespace iDZed.Utils
 {
@@ -38,22 +41,36 @@ namespace iDZed.Utils
         private const string ZedW2SsName = "ZedW2";
         private const string ZedR2SsName = "ZedR2"; //TODO Check this
 
+        /// <summary>
+        ///     Find the WShadow from the shadows list
+        /// </summary>
         public static Shadow WShadow
         {
             get { return _shadowsList.Find(x => x.Type == ShadowType.Normal); }
         }
 
+        /// <summary>
+        ///     Find the RShadow from the shadows list
+        /// </summary>
         public static Shadow RShadow
         {
             get { return _shadowsList.Find(x => x.Type == ShadowType.Ult); }
         }
 
+        /// <summary>
+        ///     Subscribe to the events needed.
+        /// </summary>
         public static void OnLoad()
         {
             GameObject.OnCreate += GameObject_OnCreate;
             GameObject.OnDelete += GameObject_OnDelete;
         }
 
+        /// <summary>
+        ///     OnCreate Event :)
+        /// </summary>
+        /// <param name="sender"> the sender of the gameobject </param>
+        /// <param name="args">the event arguments kappa</param>
         private static void GameObject_OnCreate(GameObject sender, EventArgs args)
         {
             if (!(sender is Obj_AI_Minion) && !(sender is Obj_SpellMissile))
@@ -71,7 +88,8 @@ namespace iDZed.Utils
                         {
                             myShadow.State = ShadowState.Created;
                             myShadow.ShadowObject = minion;
-                            myShadow.Position = minion.Position;
+                            myShadow.Position = minion.ServerPosition;
+                            // TODO, since you added this m8 the position is offset a little bit, and when you switch with shadows the new shadow position isn't correct. :S
                             //Hacky workaround, TODO: Find a better way
                             Utility.DelayAction.Add(
                                 4200, () =>
@@ -113,9 +131,13 @@ namespace iDZed.Utils
             }
         }
 
+        /// <summary>
+        ///     OnDelete Event
+        /// </summary>
+        /// <param name="sender">the sender of the game object</param>
+        /// <param name="args">the event arguments</param>
         private static void GameObject_OnDelete(GameObject sender, EventArgs args)
         {
-            //This is bugged and does not happen immediately as the zed shadow disappear, but instead 3-4 seconds later.
             if (sender != null && sender.IsAlly)
             {
                 var myShadow =
@@ -129,9 +151,14 @@ namespace iDZed.Utils
             }
         }
 
-        public static bool CanGoToShadow(Shadow shadow, bool safetyCheck = false) //TODO safety Checks lel
+        /// <summary>
+        ///     Checks if the player can go to the selected Shadow.
+        /// </summary>
+        /// <param name="shadow">The shadow</param>
+        /// <returns></returns>
+        public static bool CanGoToShadow(Shadow shadow) //TODO safety Checks lel
         {
-            if (safetyCheck)
+            if (MenuHelper.IsMenuEnabled("safetyChecks") && !MenuHelper.GetKeybindValue("fleeActive"))
             {
                 if (shadow.State == ShadowState.Created)
                 {
@@ -151,11 +178,16 @@ namespace iDZed.Utils
 
     internal class Shadow
     {
+        private Vector3 shPos = Vector3.Zero;
         public Obj_AI_Minion ShadowObject { get; set; }
         public ShadowState State { get; set; }
         public ShadowType Type { get; set; }
 
-        public Vector3 Position { get; set; }
+        public Vector3 Position
+        {
+            get { return ShadowObject != null ? ShadowObject.Position : shPos; }
+            set { shPos = value; }
+        }
 
         public bool IsUsable
         {

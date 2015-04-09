@@ -7,19 +7,19 @@ using LeagueSharp.Common;
 
 namespace iDZed.Activator
 {
-    class MenuHelper
+    static class MenuHelper
     {
-        public static bool isMenuEnabled(String item)
+        public static bool IsMenuEnabled(string item)
         {
             return Zed.Menu.Item(item).GetValue<bool>();
         }
 
-        public static int getSliderValue(String item)
+        public static int GetSliderValue(string item)
         {
             return Zed.Menu.Item(item) != null ? Zed.Menu.Item(item).GetValue<Slider>().Value : -1;
         }
 
-        public static bool getKeybindValue(String item)
+        public static bool GetKeybindValue(string item)
         {
             return Zed.Menu.Item(item).GetValue<KeyBind>().Active;
         }
