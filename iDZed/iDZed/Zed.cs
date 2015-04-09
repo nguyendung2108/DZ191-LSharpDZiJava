@@ -139,11 +139,11 @@ namespace iDZed
                 CastQ(target);
                 CastE();
             }
-            else if (ShadowManager.RShadow.Exists && !ShadowManager.WShadow.IsUsable)
+            /*else if (ShadowManager.RShadow.Exists && !ShadowManager.WShadow.IsUsable)
             {
                 CastQ(target);
                 CastE();
-            }
+            }*/
 
             if (ShadowManager.CanGoToShadow(ShadowManager.WShadow) && WShadowSpell.ToggleState == 2)
                 //&& !_deathmarkKilled)
@@ -206,7 +206,7 @@ namespace iDZed
                 }
             }
 
-            if (ShadowManager.WShadow.Exists && ShadowManager.CanGoToShadow(ShadowManager.WShadow))
+            if (ShadowManager.CanGoToShadow(ShadowManager.WShadow) && WShadowSpell.ToggleState == 2)
             {
                 _spells[SpellSlot.W].Cast();
             }
@@ -415,9 +415,12 @@ namespace iDZed
                     }
                     break;
                 case 1: // triangle mode
-                    if (Menu.Item("com.idz.zed.combo.user").GetValue<bool>() && _spells[SpellSlot.R].IsReady())
+                    if (Menu.Item("com.idz.zed.combo.user").GetValue<bool>() && _spells[SpellSlot.R].IsReady() &&
+                        (target.Health + 20 >=
+                         _spells[SpellSlot.Q].GetDamage(target) + _spells[SpellSlot.E].GetDamage(target) +
+                         ObjectManager.Player.GetAutoAttackDamage(target)))
                     {
-                        if (!HasEnergy(new[] { SpellSlot.W, SpellSlot.R, SpellSlot.Q, SpellSlot.E }))
+                        if (!HasEnergy(new[] { SpellSlot.W, SpellSlot.R }))
                         {
                             return;
                         }
