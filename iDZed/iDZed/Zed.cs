@@ -614,6 +614,9 @@ namespace iDZed
             {
                 harassMenu.AddItem(new MenuItem("com.idz.zed.harass.useHarass", "Use Harass").SetValue(true));
                 harassMenu.AddItem(
+                    new MenuItem("com.idz.zed.harass.toggle", "Toggle Long Harass").SetValue(
+                        new KeyBind("T".ToCharArray()[0], KeyBindType.Toggle)));
+                harassMenu.AddItem(
                     new MenuItem("com.idz.zed.harass.harassMode", "Harass Mode").SetValue(
                         new StringList(new[] { "Q-E", "W-E-Q", "W-Q-E" })));
             }
@@ -716,6 +719,14 @@ namespace iDZed
         private static void Game_OnUpdate(EventArgs args)
         {
             OnFlee();
+            var target = TargetSelector.GetTarget(
+                _spells[SpellSlot.W].Range + _spells[SpellSlot.Q].Range, TargetSelector.DamageType.Physical);
+            if (MenuHelper.GetKeybindValue("com.idz.zed.harass.toggle"))
+            {
+                CastW(target);
+                CastQ(target);
+                CastE();
+            }
             _orbwalkingModesDictionary[_orbwalker.ActiveMode]();
         }
 
