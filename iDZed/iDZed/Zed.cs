@@ -391,7 +391,7 @@ namespace iDZed
             switch (Menu.Item("com.idz.zed.combo.mode").GetValue<StringList>().SelectedIndex)
             {
                 case 0: // Line mode
-                    if (Menu.Item("com.idz.zed.combo.user").GetValue<bool>() && _spells[SpellSlot.R].IsReady())
+                    if (Menu.Item("com.idz.zed.combo.user").GetValue<bool>() && _spells[SpellSlot.R].IsReady() && (target.Health + 20 >= _spells[SpellSlot.Q].GetDamage(target) + _spells[SpellSlot.E].GetDamage(target) + ObjectManager.Player.GetAutoAttackDamage(target)))
                     {
                         if (!HasEnergy(new[] { SpellSlot.W, SpellSlot.R, SpellSlot.Q, SpellSlot.E }))
                         {

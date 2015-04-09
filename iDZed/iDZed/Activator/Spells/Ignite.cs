@@ -33,7 +33,7 @@ namespace iDZed.Activator.Spells
                            h =>
                                h.Health + 20 <
                                ObjectManager.Player.GetSummonerSpellDamage(h, Damage.SummonerSpell.Ignite) &&
-                               h.IsValidTarget(GetSummonerSpell().Range) && h.CountAlliesInRange(550f) < 3);
+                               h.IsValidTarget(GetSummonerSpell().Range) && h.CountAlliesInRange(550f) < 3 && !((h.Health + 20 > Zed._spells[SpellSlot.Q].GetDamage(h) + Zed._spells[SpellSlot.E].GetDamage(h) + ObjectManager.Player.GetAutoAttackDamage(h))));
         }
 
         public void Execute()
