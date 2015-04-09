@@ -17,7 +17,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using iDZed.Activator;
-using iDZed.Activator.Spells;
 using iDZed.Utils;
 using LeagueSharp;
 using LeagueSharp.Common;
@@ -391,7 +390,10 @@ namespace iDZed
             switch (Menu.Item("com.idz.zed.combo.mode").GetValue<StringList>().SelectedIndex)
             {
                 case 0: // Line mode
-                    if (Menu.Item("com.idz.zed.combo.user").GetValue<bool>() && _spells[SpellSlot.R].IsReady() && (target.Health + 20 >= _spells[SpellSlot.Q].GetDamage(target) + _spells[SpellSlot.E].GetDamage(target) + ObjectManager.Player.GetAutoAttackDamage(target)))
+                    if (Menu.Item("com.idz.zed.combo.user").GetValue<bool>() && _spells[SpellSlot.R].IsReady() &&
+                        (target.Health + 20 >=
+                         _spells[SpellSlot.Q].GetDamage(target) + _spells[SpellSlot.E].GetDamage(target) +
+                         ObjectManager.Player.GetAutoAttackDamage(target)))
                     {
                         if (!HasEnergy(new[] { SpellSlot.W, SpellSlot.R, SpellSlot.Q, SpellSlot.E }))
                         {
@@ -770,11 +772,11 @@ namespace iDZed
             Obj_AI_Hero sender = sender1 as Obj_AI_Hero;
             if (sender != null && sender.IsEnemy && sender.Team != Player.Team)
             {
-                if (args.SData.Name == "ZhonyasHourglass" && sender.HasBuff("zedulttargetmark"))
+                if (args.SData.Name == "ZhonyasHourglass" && sender.HasBuff("zedulttargetmark") &&
+                    Player.Distance(sender, true) < _spells[SpellSlot.W].Range - 20 * _spells[SpellSlot.W].Range - 20)
                 {
                     Vector3 bestPosition = VectorHelper.GetBestPosition(
                         sender, VectorHelper.GetVertices(sender, true)[0], VectorHelper.GetVertices(sender, true)[1]);
-                    // TODO when i eventually finish this do more and more checks so we don't fuck up on anything  :S
                     if (_spells[SpellSlot.W].IsReady() && WShadowSpell.ToggleState == 0 &&
                         Environment.TickCount - _spells[SpellSlot.W].LastCastAttemptT > 0)
                     {
