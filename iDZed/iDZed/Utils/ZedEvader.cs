@@ -28,7 +28,7 @@ namespace iDZed.Utils
     {
         public static readonly List<Skillshot> DetectedSkillShots = new List<Skillshot>();
         private static readonly List<Skillshot> EvadeDetectedSkillshots = new List<Skillshot>();
-
+        //todo Orianna ult, Malphite ult, Annie ult, Scarner Ult (if possible), Riven Ult, Lissandra Ult, Chogath Ult, Veigar Ult, Nautilus Ult, Cassiopeia Ult, Gnar Ult, Katarina Ult...
         private static readonly List<string> DangerousList = new List<string>
             // Credits to Jack is back :), thanks jack! saved me some time.
         {
@@ -71,11 +71,14 @@ namespace iDZed.Utils
             Menu dangerSpellMenu =
                 dodgeMenu.AddSubMenu(new Menu("Dangerous Spells", "com.idz.zed.spelldodging.dangerous"));
             {
-                foreach (Obj_AI_Hero hero in HeroManager.Enemies.Where(hero => DangerousList.Contains(hero.Spellbook.GetSpell(SpellSlot.R).SData.Name))) {
+                foreach (
+                    Obj_AI_Hero hero in
+                        HeroManager.Enemies.Where(
+                            hero => DangerousList.Contains(hero.Spellbook.GetSpell(SpellSlot.R).SData.Name)))
+                {
                     dangerSpellMenu.AddItem(
                         new MenuItem(
-                            "com.idz.zed.spelldodging.dangerous.dodge" +
-                            hero.Spellbook.GetSpell(SpellSlot.R).SData.Name,
+                            "com.idz.zed.spelldodging.dangerous.dodge" + hero.Spellbook.GetSpell(SpellSlot.R).SData.Name,
                             "Dodge: " + hero.Spellbook.GetSpell(SpellSlot.R).Name).SetValue(true));
                 }
             }
@@ -84,7 +87,8 @@ namespace iDZed.Utils
                 new MenuItem("com.idz.zed.spelldodging.dodgeSwap", "Swap with W shadow for dangerous skillshots")
                     .SetValue(false));
             dodgeMenu.AddItem(
-                new MenuItem("com.idz.zed.spelldodging.customDangerValue", "-> W Shadow Danger Value").SetValue(new Slider(3, 1, 5)));
+                new MenuItem("com.idz.zed.spelldodging.customDangerValue", "-> W Shadow Danger Value").SetValue(
+                    new Slider(3, 1, 5)));
             dodgeMenu.AddItem(
                 new MenuItem("com.idz.zed.spelldodging.useUltDodge", "Use Dangerous spells with R").SetValue(true));
 
@@ -109,9 +113,13 @@ namespace iDZed.Utils
                     if (ShadowManager.CanGoToShadow(ShadowManager.WShadow) && Zed.WShadowSpell.ToggleState == 2 &&
                         skillshot.IsAboutToHit(200, ObjectManager.Player))
                     {
-                        var incomingDamage = skillshot.Caster.GetDamageSpell(ObjectManager.Player, skillshot.SpellData.SpellName).CalculatedDamage;
+                        var incomingDamage =
+                            skillshot.Caster.GetDamageSpell(ObjectManager.Player, skillshot.SpellData.SpellName)
+                                .CalculatedDamage;
                         if (skillshot.SpellData.IsDangerous &&
-                            skillshot.SpellData.DangerValue >= MenuHelper.GetSliderValue("com.idz.zed.spelldodging.customDangerValue") || incomingDamage + 15 > ObjectManager.Player.Health)
+                            skillshot.SpellData.DangerValue >=
+                            MenuHelper.GetSliderValue("com.idz.zed.spelldodging.customDangerValue") ||
+                            incomingDamage + 15 > ObjectManager.Player.Health)
                         {
                             if (skillshot.IsSafe(ShadowManager.WShadow.ShadowObject.ServerPosition.To2D()) &&
                                 Zed._spells[SpellSlot.W].IsReady())
@@ -120,7 +128,9 @@ namespace iDZed.Utils
                             }
                         }
 
-                        if (!ShadowManager.RShadow.IsUsable && !ShadowManager.RShadow.Exists && MenuHelper.IsMenuEnabled("com.idz.zed.spelldodging.dangerous.dodge" + skillshot.SpellData.SpellName))
+                        if (!ShadowManager.RShadow.IsUsable && !ShadowManager.RShadow.Exists &&
+                            MenuHelper.IsMenuEnabled(
+                                "com.idz.zed.spelldodging.dangerous.dodge" + skillshot.SpellData.SpellName))
                         {
                             if (DangerousList.Any(spell => spell.Contains(skillshot.SpellData.SpellName)))
                             {
@@ -146,11 +156,13 @@ namespace iDZed.Utils
             if (MenuHelper.IsMenuEnabled("com.idz.zed.spelldodging.useUltDodge") &&
                 MenuHelper.IsMenuEnabled("com.idz.zed.spelldodging.dangerous.dodge" + args.SData.Name))
             {
-                if (Zed._spells[SpellSlot.R].IsReady() && DangerousList.Any(spell => spell.Contains(args.SData.Name)) && ShadowManager.RShadow.IsUsable)
+                if (Zed._spells[SpellSlot.R].IsReady() && DangerousList.Any(spell => spell.Contains(args.SData.Name)) &&
+                    ShadowManager.RShadow.IsUsable)
                 {
                     if (Zed._spells[SpellSlot.R].IsInRange(sender) || ObjectManager.Player.Distance(args.End) < 250)
                     {
-                        if (args.SData.Name == "SyndraR" || args.SData.Name == "TristanaR" || args.SData.Name == "BrandWildfire" && args.Target.IsMe)
+                        if (args.SData.Name == "SyndraR" || args.SData.Name == "TristanaR" ||
+                            args.SData.Name == "BrandWildfire" && args.Target.IsMe)
                         {
                             Utility.DelayAction.Add((int) 0.25, () => Zed._spells[SpellSlot.R].Cast());
                         }
@@ -183,7 +195,8 @@ namespace iDZed.Utils
                 {
                     Utility.DelayAction.Add(
                         ((int)
-                            (args.StartPosition.Distance(ObjectManager.Player.ServerPosition) / 2000f + Game.Ping / 2f)), () => Zed._spells[SpellSlot.R].Cast(selectedTarget));
+                            (args.StartPosition.Distance(ObjectManager.Player.ServerPosition) / 2000f + Game.Ping / 2f)),
+                        () => Zed._spells[SpellSlot.R].Cast(selectedTarget));
                 }
             }
         }
@@ -194,15 +207,17 @@ namespace iDZed.Utils
         {
             //Check if the skillshot is already added.
             var alreadyAdded = false;
-            foreach (var item in EvadeDetectedSkillshots)
+            foreach (
+                Skillshot item in
+                    EvadeDetectedSkillshots.Where(
+                        item =>
+                            item.SpellData.SpellName == skillshot.SpellData.SpellName &&
+                            (item.Caster.NetworkId == skillshot.Caster.NetworkId &&
+                             (skillshot.Direction).AngleBetween(item.Direction) < 5 &&
+                             (skillshot.Start.Distance(item.Start) < 100 || skillshot.SpellData.FromObjects.Length == 0)))
+                )
             {
-                if (item.SpellData.SpellName == skillshot.SpellData.SpellName &&
-                    (item.Caster.NetworkId == skillshot.Caster.NetworkId &&
-                     (skillshot.Direction).AngleBetween(item.Direction) < 5 &&
-                     (skillshot.Start.Distance(item.Start) < 100 || skillshot.SpellData.FromObjects.Length == 0)))
-                {
-                    alreadyAdded = true;
-                }
+                alreadyAdded = true;
             }
             //Check if the skillshot is from an ally.
             if (skillshot.Caster.Team == ObjectManager.Player.Team)

@@ -512,6 +512,11 @@ namespace iDZed
                         _spells[SpellSlot.W].Cast(target.ServerPosition);
                         _spells[SpellSlot.W].LastCastAttemptT = Environment.TickCount + 500;
                     }
+                    else
+                    {
+                        CastQ(target);
+                        CastE();
+                    }
                     if (ShadowManager.WShadow.Exists)
                     {
                         CastQ(target);
