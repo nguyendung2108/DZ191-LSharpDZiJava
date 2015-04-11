@@ -492,7 +492,7 @@ namespace iDZed
                         _spells[SpellSlot.W].Cast(target.ServerPosition);
                         _spells[SpellSlot.W].LastCastAttemptT = Environment.TickCount + 500;
                     }
-                    else
+                    else if (!_spells[SpellSlot.W].IsReady() && !ShadowManager.WShadow.IsUsable)
                     {
                         CastQ(target);
                         CastE();
@@ -500,7 +500,7 @@ namespace iDZed
                     if (ShadowManager.WShadow.Exists)
                     {
                         CastE();
-                        Utility.DelayAction.Add(250, () => CastQ(target));
+                        CastQ(target);
                     }
                     break;
                 case 2: //"W-Q-E" 
@@ -512,7 +512,7 @@ namespace iDZed
                         _spells[SpellSlot.W].Cast(target.ServerPosition);
                         _spells[SpellSlot.W].LastCastAttemptT = Environment.TickCount + 500;
                     }
-                    else
+                    else if (!_spells[SpellSlot.W].IsReady() && !ShadowManager.WShadow.IsUsable)
                     {
                         CastQ(target);
                         CastE();
@@ -520,7 +520,7 @@ namespace iDZed
                     if (ShadowManager.WShadow.Exists)
                     {
                         CastQ(target);
-                        Utility.DelayAction.Add(250, CastE);
+                        CastE();
                     }
                     break;
             }
@@ -532,7 +532,7 @@ namespace iDZed
                 Player.ServerPosition, _spells[SpellSlot.Q].Range, MinionTypes.All, MinionTeam.NotAlly);
             var allMinionsE = MinionManager.GetMinions(
                 Player.ServerPosition, _spells[SpellSlot.Q].Range, MinionTypes.All, MinionTeam.NotAlly);
-            if (Menu.Item("com.idz.zed.laneclear.useQ").GetValue<bool>() && _spells[SpellSlot.Q].IsReady())
+            if (Menu.Item("com.idz.zed.laneclear.useQ").GetValue<bool>() && _spells[SpellSlot.Q].IsReady() && !Player.IsWindingUp)
             {
                 var bestPositionQ =
                     MinionManager.GetBestLineFarmLocation(
@@ -543,7 +543,7 @@ namespace iDZed
                     _spells[SpellSlot.Q].Cast(bestPositionQ.Position);
                 }
             }
-            if (Menu.Item("com.idz.zed.laneclear.useE").GetValue<bool>() && _spells[SpellSlot.E].IsReady())
+            if (Menu.Item("com.idz.zed.laneclear.useE").GetValue<bool>() && _spells[SpellSlot.E].IsReady() && !Player.IsWindingUp)
             {
                 var eLocation =
                     MinionManager.GetBestLineFarmLocation(
