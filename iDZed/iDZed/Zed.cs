@@ -668,7 +668,7 @@ namespace iDZed
             {
                 fleeMenu.AddItem(
                     new MenuItem("fleeActive", "Flee Key").SetValue(
-                        new KeyBind("V".ToCharArray()[0], KeyBindType.Press)));
+                        new KeyBind("P".ToCharArray()[0], KeyBindType.Press)));
                 fleeMenu.AddItem(new MenuItem("autoEFlee", "Auto E when fleeing").SetValue(true));
             }
             Menu.AddSubMenu(fleeMenu);
