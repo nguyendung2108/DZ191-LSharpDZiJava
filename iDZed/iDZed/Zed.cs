@@ -492,7 +492,7 @@ namespace iDZed
                         _spells[SpellSlot.W].Cast(target.ServerPosition);
                         _spells[SpellSlot.W].LastCastAttemptT = Environment.TickCount + 500;
                     }
-                    else if (!_spells[SpellSlot.W].IsReady() && !ShadowManager.WShadow.IsUsable)
+                    else if (!_spells[SpellSlot.W].IsReady() || !ShadowManager.WShadow.IsUsable)
                     {
                         CastQ(target);
                         CastE();
@@ -512,7 +512,7 @@ namespace iDZed
                         _spells[SpellSlot.W].Cast(target.ServerPosition);
                         _spells[SpellSlot.W].LastCastAttemptT = Environment.TickCount + 500;
                     }
-                    else if (!_spells[SpellSlot.W].IsReady() && !ShadowManager.WShadow.IsUsable)
+                    else if (!_spells[SpellSlot.W].IsReady() || !ShadowManager.WShadow.IsUsable)
                     {
                         CastQ(target);
                         CastE();
